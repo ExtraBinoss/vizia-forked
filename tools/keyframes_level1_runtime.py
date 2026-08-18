@@ -84,24 +84,29 @@ impl CssAnimationTiming {
         self.directed_progress(0, 0.0)
     }
 
-    fn final_progress(self) -> f32 {
+    fn final_iteration_and_progress(self) -> (u64, f32) {
         let count = match self.iteration_count {
-            AnimationIterationCount::Infinite => return self.initial_progress(),
+            AnimationIterationCount::Infinite => return (0, self.initial_progress()),
             AnimationIterationCount::Number(count) => count.max(0.0),
         };
 
         if count == 0.0 {
-            return self.initial_progress();
+            return (0, self.initial_progress());
         }
 
         let whole = count.floor();
         let fraction = count - whole;
         if fraction.abs() <= f32::EPSILON {
             let iteration = (whole as u64).saturating_sub(1);
-            self.directed_progress(iteration, 1.0)
+            (iteration, self.directed_progress(iteration, 1.0))
         } else {
-            self.directed_progress(whole as u64, fraction)
+            let iteration = whole as u64;
+            (iteration, self.directed_progress(iteration, fraction))
         }
+    }
+
+    fn final_progress(self) -> f32 {
+        self.final_iteration_and_progress().1
     }
 
     pub fn sample(self, active_elapsed: f32) -> CssAnimationSample {
@@ -119,24 +124,24 @@ impl CssAnimationTiming {
                 progress,
                 current_iteration: 0,
                 elapsed_active: 0.0,
+                before: self.reverse_for_iteration(0),
                 finished: false,
             };
         }
 
         if active_duration == 0.0 || local >= active_duration {
+            let (final_iteration, final_progress) = self.final_iteration_and_progress();
             let progress = matches!(
                 self.fill_mode,
                 AnimationFillMode::Forwards | AnimationFillMode::Both
             )
-            .then(|| self.final_progress());
+            .then_some(final_progress);
             return CssAnimationSample {
                 phase: CssAnimationPhase::After,
                 progress,
-                current_iteration: match self.iteration_count {
-                    AnimationIterationCount::Infinite => 0,
-                    AnimationIterationCount::Number(count) => count.floor() as u64,
-                },
+                current_iteration: final_iteration,
                 elapsed_active: active_duration.min(local.max(0.0)),
+                before: self.reverse_for_iteration(final_iteration),
                 finished: true,
             };
         }
@@ -150,6 +155,7 @@ impl CssAnimationTiming {
             progress: Some(self.directed_progress(iteration, simple)),
             current_iteration: iteration,
             elapsed_active: local.max(0.0),
+            before: self.reverse_for_iteration(iteration),
             finished: false,
         }
     }
@@ -161,6 +167,9 @@ pub(crate) struct CssAnimationSample {
     pub progress: Option<f32>,
     pub current_iteration: u64,
     pub elapsed_active: f32,
+    /// CSS Easing's "before flag" is true while traversing a segment backwards. This matters at
+    /// exact discontinuities for step timing functions.
+    pub before: bool,
     pub finished: bool,
 }
 
@@ -245,7 +254,9 @@ mod tests {
     fn direction_modes_cover_odd_and_even_iterations() {
         let base = CssAnimationTiming { delay: 0.0, ..timing() };
         let reverse = CssAnimationTiming { direction: AnimationDirection::Reverse, ..base };
-        assert!((reverse.sample(0.5).progress.unwrap() - 0.75).abs() < 0.001);
+        let reversed_sample = reverse.sample(0.5);
+        assert!((reversed_sample.progress.unwrap() - 0.75).abs() < 0.001);
+        assert!(reversed_sample.before);
 
         let alternate = CssAnimationTiming {
             direction: AnimationDirection::Alternate,
@@ -253,6 +264,7 @@ mod tests {
             ..base
         };
         assert!((alternate.sample(2.5).progress.unwrap() - 0.75).abs() < 0.001);
+        assert!(alternate.sample(2.5).before);
 
         let alternate_reverse = CssAnimationTiming {
             direction: AnimationDirection::AlternateReverse,
@@ -260,6 +272,7 @@ mod tests {
             ..base
         };
         assert!((alternate_reverse.sample(0.5).progress.unwrap() - 0.75).abs() < 0.001);
+        assert!(alternate_reverse.sample(0.5).before);
     }
 
     #[test]
@@ -450,6 +463,7 @@ mod tests {
         assert_eq!(start.value_with_before(0.0, true), 0.0);
         assert_eq!(end.value(0.0), 0.0);
         assert_eq!(end.value(1.0), 1.0);
+        assert_eq!(end.value_with_before(0.5, true), 0.25);
     }
 }
 ''',
