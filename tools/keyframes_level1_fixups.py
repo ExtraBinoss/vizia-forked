@@ -38,6 +38,74 @@ if start >= 0:
     text = text[:start] + text[end + 3 :]
 p.write_text(text)
 
+# Render every blur in a compatible filter list in order. Unsupported/mismatched lists use the
+# discrete interpolator above, so the renderer only needs to compose the supported blur chain.
+replace_once(
+    "crates/vizia_core/src/systems/draw.rs",
+    r'''        if let Some(filter) = filter {
+            match filter {
+                Filter::Blur(radius) => {
+                    let sigma = radius.to_px().unwrap() * cx.scale_factor() / 2.0;
+                    let image_filter = ImageFilter::crop(rect, None, None)
+                        .unwrap()
+                        .blur(None, (sigma, sigma), None)
+                        .unwrap();
+                    paint.set_image_filter(image_filter);
+                }
+            }
+        }
+''',
+    r'''        if let Some(filter) = filter {
+            let filters = filter.as_list();
+            if filters.iter().any(|filter| matches!(filter, Filter::Blur(_))) {
+                let mut image_filter = ImageFilter::crop(rect, None, None).unwrap();
+                for filter in filters {
+                    if let Filter::Blur(radius) = filter {
+                        let sigma = radius.to_px().unwrap_or(0.0) * cx.scale_factor() / 2.0;
+                        image_filter = image_filter.blur(None, (sigma, sigma), None).unwrap();
+                    }
+                }
+                paint.set_image_filter(image_filter);
+            }
+        }
+''',
+)
+replace_once(
+    "crates/vizia_core/src/systems/draw.rs",
+    r'''        let slr = if let Some(backdrop_filter) = backdrop_filter {
+            match backdrop_filter {
+                Filter::Blur(radius) => {
+                    let sigma = radius.to_px().unwrap() * cx.scale_factor() / 2.0;
+                    backdrop_image_filter =
+                        backdrop_image_filter.blur(None, (sigma, sigma), None).unwrap();
+                    SaveLayerRec::default()
+                        .bounds(&transformed_rect)
+                        .paint(&paint)
+                        .backdrop(&backdrop_image_filter)
+                }
+            }
+        } else {
+            SaveLayerRec::default().paint(&paint)
+        };
+''',
+    r'''        let slr = if let Some(backdrop_filter) = backdrop_filter {
+            for filter in backdrop_filter.as_list() {
+                if let Filter::Blur(radius) = filter {
+                    let sigma = radius.to_px().unwrap_or(0.0) * cx.scale_factor() / 2.0;
+                    backdrop_image_filter =
+                        backdrop_image_filter.blur(None, (sigma, sigma), None).unwrap();
+                }
+            }
+            SaveLayerRec::default()
+                .bounds(&transformed_rect)
+                .paint(&paint)
+                .backdrop(&backdrop_image_filter)
+        } else {
+            SaveLayerRec::default().paint(&paint)
+        };
+''',
+)
+
 # Track names originating from stylesheets separately so a stylesheet reload can cancel removed
 # @keyframes without destroying animations registered through the explicit Rust API.
 replace_once(
