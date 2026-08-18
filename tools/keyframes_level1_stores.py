@@ -62,17 +62,18 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
             offsets.push((1.0, TimingFunction::AnimationDefault));
         }
         offsets.sort_by(|a, b| a.0.total_cmp(&b.0));
-        offsets.dedup_by(|a, b| {
-            if (a.0 - b.0).abs() <= f32::EPSILON {
-                // Later keyframe timing declarations win at duplicate offsets.
-                a.1 = b.1;
-                true
-            } else {
-                false
+        let mut normalized_offsets: Vec<(f32, TimingFunction)> = Vec::with_capacity(offsets.len());
+        for (time, timing) in offsets {
+            if let Some(last) = normalized_offsets.last_mut() {
+                if (last.0 - time).abs() <= f32::EPSILON {
+                    last.1 = timing;
+                    continue;
+                }
             }
-        });
+            normalized_offsets.push((time, timing));
+        }
 
-        offsets
+        normalized_offsets
             .into_iter()
             .map(|(time, timing_function)| {
                 let value = description
@@ -85,6 +86,21 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
                 Keyframe { time, value, timing_function }
             })
             .collect()
+    }
+
+    fn refresh_animation_index(&mut self, entity: Entity) {
+        let entity_index = entity.index();
+        if entity_index >= self.inline_data.sparse.len() {
+            return;
+        }
+        self.inline_data.sparse[entity_index].anim_index = self
+            .active_animations
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_, state)| state.entities.contains(&entity))
+            .map(|(index, _)| index as u32)
+            .unwrap_or(u32::MAX);
     }
 
     /// Play an animation for a given entity through the legacy Rust animation API.
@@ -108,9 +124,12 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
             self.inline_data.sparse.resize(entity_index + 1, InlineIndex::null());
         }
 
-        let active_anim_index = self.inline_data.sparse[entity_index].anim_index as usize;
-        if active_anim_index < self.active_animations.len() {
-            self.active_animations[active_anim_index].entities.remove(&entity);
+        // Preserve legacy single-animation behavior without destroying CSS animations that may
+        // have higher cascade precedence on the same property.
+        for state in self.active_animations.iter_mut() {
+            if state.css_clock.is_none() && state.entities.contains(&entity) {
+                state.entities.remove(&entity);
+            }
         }
 
         let mut anim_state = description;
@@ -127,8 +146,8 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
         anim_state.active = true;
         anim_state.t = 0.0;
         anim_state.entities.insert(entity);
-        self.inline_data.sparse[entity_index].anim_index = self.active_animations.len() as u32;
         self.active_animations.push(anim_state);
+        self.refresh_animation_index(entity);
     }
 
     pub(crate) fn play_css_animation(
@@ -150,9 +169,12 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
             self.inline_data.sparse.resize(entity_index + 1, InlineIndex::null());
         }
 
-        let active_anim_index = self.inline_data.sparse[entity_index].anim_index as usize;
-        if active_anim_index < self.active_animations.len() {
-            self.active_animations[active_anim_index].entities.remove(&entity);
+        // Restarting the same named animation replaces only that instance. Other CSS animations
+        // keep progressing underneath so later list entries can temporarily override them.
+        for state in self.active_animations.iter_mut() {
+            if state.css_clock.is_some() && state.id == animation {
+                state.entities.remove(&entity);
+            }
         }
 
         let mut state = description;
@@ -160,8 +182,8 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
         state.configure_css(timing, default_timing, start_time);
         state.output = None;
         state.entities.insert(entity);
-        self.inline_data.sparse[entity_index].anim_index = self.active_animations.len() as u32;
         self.active_animations.push(state);
+        self.refresh_animation_index(entity);
     }
 
     pub(crate) fn update_css_animation(
@@ -172,13 +194,8 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
         default_timing: TimingFunction,
         now: Instant,
     ) {
-        let entity_index = entity.index();
-        if entity_index >= self.inline_data.sparse.len() {
-            return;
-        }
-        let active_anim_index = self.inline_data.sparse[entity_index].anim_index as usize;
-        if let Some(state) = self.active_animations.get_mut(active_anim_index) {
-            if state.id == animation && state.css_clock.is_some() {
+        for state in self.active_animations.iter_mut() {
+            if state.css_clock.is_some() && state.id == animation && state.entities.contains(&entity) {
                 state.update_css_timing(timing, default_timing, now);
             }
         }
@@ -186,17 +203,12 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
 
     /// Stop an active animation for the given entity.
     pub(crate) fn stop_animation(&mut self, entity: Entity, animation: Animation) {
-        let entity_index = entity.index();
-        if entity_index >= self.inline_data.sparse.len() {
-            return;
+        for state in self.active_animations.iter_mut() {
+            if state.id == animation {
+                state.entities.remove(&entity);
+            }
         }
-        let active_anim_index = self.inline_data.sparse[entity_index].anim_index as usize;
-        if active_anim_index < self.active_animations.len()
-            && self.active_animations[active_anim_index].id == animation
-        {
-            self.active_animations[active_anim_index].entities.remove(&entity);
-            self.inline_data.sparse[entity_index].anim_index = u32::MAX;
-        }
+        self.refresh_animation_index(entity);
     }
 
     /// Tick the animation for the given time and return entities whose animated value may change.
@@ -250,7 +262,7 @@ COMMON_PLAY_AND_TICK = r'''    fn get_base(&self, entity: Entity) -> Option<&T> 
                 } else {
                     start.timing_function
                 };
-                let eased = timing.value_with_before(local, sample.phase == CssAnimationPhase::Before);
+                let eased = timing.value_with_before(local, sample.before);
                 state.output = Some(T::interpolate(&start.value, &end.value, eased));
                 continue;
             }
@@ -323,10 +335,28 @@ for path, replacement in [
         "    // Returns true if the given entity is linked to an active animation",
         replacement + "    // Returns true if the given entity is linked to an active animation",
     )
+
+    # Animated CSS declarations outrank transitions/base style. For multiple CSS animations on the
+    # same property, later list entries are stored later and therefore win while they apply a value.
     replace_once(
         path,
-        "            if animation_index < self.active_animations.len() {\n                return self.active_animations[animation_index].get_output();\n            }",
-        "            if animation_index < self.active_animations.len() {\n                if let Some(output) = self.active_animations[animation_index].get_output() {\n                    return Some(output);\n                }\n            }",
+        "            // Animations override inline and shared styling\n            let animation_index = self.inline_data.sparse[entity_index].anim_index as usize;\n\n            if animation_index < self.active_animations.len() {\n                return self.active_animations[animation_index].get_output();\n            }",
+        "            // CSS animations override transitions and base style; later CSS animations win.\n            for state in self.active_animations.iter().rev() {\n                if state.css_clock.is_some() && state.entities.contains(&entity) {\n                    if let Some(output) = state.get_output() {\n                        return Some(output);\n                    }\n                }\n            }\n\n            // Preserve the legacy/transition animation path when no CSS animation applies.\n            let animation_index = self.inline_data.sparse[entity_index].anim_index as usize;\n            if animation_index < self.active_animations.len() {\n                if let Some(output) = self.active_animations[animation_index].get_output() {\n                    return Some(output);\n                }\n            }",
+    )
+
+    # Removing an entity must detach it from every stacked animation, not only the currently winning
+    # sparse index. The rest of the original remove method then deletes inline/base data as before.
+    replace_once(
+        path,
+        "            let active_anim_index = self.inline_data.sparse[entity_index].anim_index as usize;\n\n            if active_anim_index < self.active_animations.len() {\n                let anim_state = &mut self.active_animations[active_anim_index];\n                anim_state.t = 1.0;\n\n                self.remove_innactive_animations();\n            }",
+        "            for state in self.active_animations.iter_mut() {\n                state.entities.remove(&entity);\n            }\n            self.inline_data.sparse[entity_index].anim_index = u32::MAX;\n            self.remove_innactive_animations();",
+    )
+
+    # Membership queries must see any stacked animation, not just the sparse winner.
+    replace_once(
+        path,
+        "        let entity_index = entity.index();\n        if entity_index < self.inline_data.sparse.len() {\n            let anim_index = self.inline_data.sparse[entity_index].anim_index as usize;\n            if anim_index < self.active_animations.len()\n                && self.active_animations[anim_index].id == animation\n            {\n                return true;\n            }\n        }\n\n        false",
+        "        self.active_animations\n            .iter()\n            .any(|state| state.id == animation && state.entities.contains(&entity))",
     )
 
 print("CSS animation storage runtime applied")
