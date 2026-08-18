@@ -6,6 +6,11 @@ on:
     paths:
       - tools/keyframes_level1_apply.py
       - .github/workflows/keyframes-level1-agent.yml
+  pull_request:
+    branches: [ main ]
+    paths:
+      - tools/keyframes_level1_apply.py
+      - .github/workflows/keyframes-level1-agent.yml
   workflow_dispatch:
 
 permissions:
