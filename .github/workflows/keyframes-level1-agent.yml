@@ -5,11 +5,13 @@ on:
     branches: [ agent/css-keyframes-level1-complete ]
     paths:
       - tools/keyframes_level1_apply.py
+      - tools/keyframes_level1_finish.py
       - .github/workflows/keyframes-level1-agent.yml
   pull_request:
     branches: [ main ]
     paths:
       - tools/keyframes_level1_apply.py
+      - tools/keyframes_level1_finish.py
       - .github/workflows/keyframes-level1-agent.yml
   workflow_dispatch:
 
@@ -33,7 +35,7 @@ jobs:
           sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
       - uses: dtolnay/rust-toolchain@stable
       - name: Apply implementation patch
-        run: python3 tools/keyframes_level1_apply.py
+        run: python3 tools/keyframes_level1_apply.py || python3 tools/keyframes_level1_finish.py
       - name: Format
         run: cargo fmt --all
       - name: Test style parser
