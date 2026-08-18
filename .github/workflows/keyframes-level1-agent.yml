@@ -39,6 +39,10 @@ jobs:
             libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
             libfreetype6-dev libfontconfig1-dev libexpat1-dev libjpeg-dev libpng-dev
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: css-keyframes-level1
+          cache-on-failure: true
       - name: Apply CSS Animations Level 1 implementation
         run: |
           python3 tools/keyframes_level1_apply.py || true
