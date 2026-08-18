@@ -47,6 +47,7 @@ impl<'i> StyleSheet<'i> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{CssRule, Property};
 
     const CSS_EXAMPLE: &str = r#"
 button label {
@@ -132,6 +133,51 @@ test {
     fn parse_stylsheet() {
         let style_sheet = StyleSheet::parse(CSS_EXAMPLE, ParserOptions::default());
         println!("{:#?}", style_sheet);
+    }
+
+    #[test]
+    fn parses_filter_and_backdrop_filter_keyframes() {
+        let style_sheet = StyleSheet::parse(
+            r#"
+                @keyframes reveal {
+                    from {
+                        filter: blur(16px);
+                        backdrop-filter: blur(0px);
+                    }
+
+                    to {
+                        filter: blur(0px);
+                        backdrop-filter: blur(12px);
+                    }
+                }
+            "#,
+            ParserOptions::default(),
+        )
+        .expect("filter keyframes should parse");
+
+        let keyframes = style_sheet
+            .rules
+            .0
+            .iter()
+            .find_map(|rule| match rule {
+                CssRule::Keyframes(rule) => Some(rule),
+                _ => None,
+            })
+            .expect("stylesheet should contain keyframes");
+
+        assert_eq!(keyframes.keyframes.len(), 2);
+        assert!(keyframes.keyframes.iter().all(|keyframe| {
+            keyframe
+                .declarations
+                .declarations
+                .iter()
+                .any(|property| matches!(property, Property::Filter(_)))
+                && keyframe
+                    .declarations
+                    .declarations
+                    .iter()
+                    .any(|property| matches!(property, Property::BackdropFilter(_)))
+        }));
     }
 }
 

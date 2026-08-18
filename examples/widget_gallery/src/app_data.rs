@@ -4,6 +4,7 @@ pub const ALL_VIEW_ID: &str = "All";
 pub const ALL_VIEW_KEY: &str = "all";
 
 pub const CATEGORIES: &[(&str, &[(&str, &str)])] = &[
+    ("category-animation", &[("Animation", "animation")]),
     (
         "category-layout",
         &[

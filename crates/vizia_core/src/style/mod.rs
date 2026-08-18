@@ -123,6 +123,53 @@ bitflags! {
     }
 }
 
+#[cfg(test)]
+mod animation_tests {
+    use super::*;
+
+    fn blur_radius(filter: &Filter) -> f32 {
+        match filter {
+            Filter::Blur(radius) => radius.to_px().expect("test blur radius should use pixels"),
+        }
+    }
+
+    #[test]
+    fn filter_keyframes_are_registered_played_and_interpolated() {
+        let mut style = Style::default();
+        let animation = style.add_animation(
+            AnimationBuilder::new()
+                .keyframe(0.0, |key| key.filter(Filter::Blur(Length::px(20.0))))
+                .keyframe(1.0, |key| key.filter(Filter::Blur(Length::px(0.0)))),
+        );
+        let entity = Entity::root();
+        let start = Instant::now();
+
+        style.play_animation(entity, animation, start, Duration::from_secs(1), Duration::default());
+        style.filter.tick(start + Duration::from_millis(500));
+
+        assert!(style.filter.has_active_animation(entity, animation));
+        assert!((blur_radius(style.filter.get(entity).unwrap()) - 10.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn backdrop_filter_keyframes_are_registered_played_and_interpolated() {
+        let mut style = Style::default();
+        let animation = style.add_animation(
+            AnimationBuilder::new()
+                .keyframe(0.0, |key| key.backdrop_filter(Filter::Blur(Length::px(0.0))))
+                .keyframe(1.0, |key| key.backdrop_filter(Filter::Blur(Length::px(16.0)))),
+        );
+        let entity = Entity::root();
+        let start = Instant::now();
+
+        style.play_animation(entity, animation, start, Duration::from_secs(1), Duration::default());
+        style.backdrop_filter.tick(start + Duration::from_millis(250));
+
+        assert!(style.backdrop_filter.has_active_animation(entity, animation));
+        assert!((blur_radius(style.backdrop_filter.get(entity).unwrap()) - 4.0).abs() < 0.01);
+    }
+}
+
 impl Default for Abilities {
     fn default() -> Abilities {
         Abilities::HOVERABLE
@@ -516,6 +563,14 @@ impl Style {
 
                 Property::ClipPath(value) => {
                     insert_keyframe(&mut self.clip_path, animation_id, time, value.clone());
+                }
+
+                Property::Filter(value) => {
+                    insert_keyframe(&mut self.filter, animation_id, time, value.clone());
+                }
+
+                Property::BackdropFilter(value) => {
+                    insert_keyframe(&mut self.backdrop_filter, animation_id, time, value.clone());
                 }
 
                 // TRANSFORM
@@ -986,6 +1041,8 @@ impl Style {
         self.display.play_animation(entity, animation, start_time, duration, delay);
         self.opacity.play_animation(entity, animation, start_time, duration, delay);
         self.clip_path.play_animation(entity, animation, start_time, duration, delay);
+        self.filter.play_animation(entity, animation, start_time, duration, delay);
+        self.backdrop_filter.play_animation(entity, animation, start_time, duration, delay);
 
         self.transform.play_animation(entity, animation, start_time, duration, delay);
         self.transform_origin.play_animation(entity, animation, start_time, duration, delay);
@@ -1095,6 +1152,8 @@ impl Style {
         self.display.has_active_animation(entity, animation)
             | self.opacity.has_active_animation(entity, animation)
             | self.clip_path.has_active_animation(entity, animation)
+            | self.filter.has_active_animation(entity, animation)
+            | self.backdrop_filter.has_active_animation(entity, animation)
             | self.transform.has_active_animation(entity, animation)
             | self.transform_origin.has_active_animation(entity, animation)
             | self.translate.has_active_animation(entity, animation)
@@ -1231,6 +1290,16 @@ impl Style {
             "clip-path" => {
                 self.clip_path.insert_animation(animation, self.add_transition(transition));
                 self.clip_path.insert_transition(rule_id, animation);
+            }
+
+            "filter" => {
+                self.filter.insert_animation(animation, self.add_transition(transition));
+                self.filter.insert_transition(rule_id, animation);
+            }
+
+            "backdrop-filter" => {
+                self.backdrop_filter.insert_animation(animation, self.add_transition(transition));
+                self.backdrop_filter.insert_transition(rule_id, animation);
             }
 
             "transform" => {

@@ -20,6 +20,7 @@ checkbox = Case à cocher
 all = Tous
 
 ## Widget Categories
+category-animation = Animation
 category-layout = Mise en page
 category-display = Affichage
 category-input = Entrée
@@ -33,6 +34,8 @@ button-group = Groupe de boutons
 popup = Fenêtre contextuelle
 
 ## Widget Gallery Titles
+animation = Animation
+    .description = Des keyframes CSS rejouables illustrent le timing, les transformations, l’interpolation des styles et les filtres.
 accordion = Accordéon
     .description = Un accordéon affiche une liste d'en-têtes qui peuvent être développés un à la fois pour révéler le contenu.
 avatar = Avatar
