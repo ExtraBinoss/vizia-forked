@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -63,4 +64,11 @@ replace_once(
 ''',
 )
 
-print("duplicate keyframe semantics applied")
+# Older relaunchable workflow runs predate the explicit composition step. When they check out the
+# current branch, apply the per-occurrence composition patch here as well. The patch itself is
+# idempotent, and current workflows skip this because the field already exists.
+state = (ROOT / "crates/vizia_core/src/animation/animation_state.rs").read_text()
+if "pub css_instance_id: Option<u64>" not in state:
+    runpy.run_path(str(ROOT / "tools/keyframes_level1_composition.py"))
+
+print("duplicate keyframe and occurrence semantics applied")
