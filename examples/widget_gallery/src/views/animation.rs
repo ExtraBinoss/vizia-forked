@@ -2,34 +2,16 @@ use vizia::prelude::*;
 
 use crate::DemoRegion;
 
-const ENTRANCE_ANIMATION: &str = "gallery-entrance";
-const ENTRANCE_TARGET: &str = "gallery-entrance-target";
-const STYLE_ANIMATION: &str = "gallery-style";
-const STYLE_TARGET: &str = "gallery-style-target";
-const MOTION_ANIMATION: &str = "gallery-motion";
-const MOTION_TARGET: &str = "gallery-motion-target";
-const FILTER_ANIMATION: &str = "gallery-filter-reveal";
-const FILTER_TARGET: &str = "gallery-filter-target";
-const BACKDROP_ANIMATION: &str = "gallery-backdrop-reveal";
-const BACKDROP_TARGET: &str = "gallery-backdrop-target";
-
-fn replay_button(cx: &mut Context, animation: &'static str, target: &'static str) {
-    Button::new(cx, |cx| Label::new(cx, "Replay")).on_press(move |cx| {
-        cx.play_animation_for(animation, target, Duration::from_millis(700), Duration::default())
-    });
-}
-
-fn animation_demo(
+fn css_animation_demo(
     cx: &mut Context,
     title: &'static str,
-    animation: &'static str,
-    target: &'static str,
+    description: &'static str,
     content: impl Fn(&mut Context) + Copy + 'static,
 ) {
     DemoRegion::new(cx, title, move |cx| {
         VStack::new(cx, move |cx| {
+            Label::new(cx, description).class("animation-demo-description");
             HStack::new(cx, content).class("animation-stage").alignment(Alignment::Center);
-            replay_button(cx, animation, target);
         })
         .class("animation-demo")
         .height(Auto)
@@ -39,42 +21,113 @@ fn animation_demo(
 
 pub fn animation(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        Label::new(cx, "Animation").class("panel-title");
+        Label::new(cx, "CSS Animations Level 1").class("panel-title");
         Label::new(
             cx,
-            "Replayable CSS keyframes covering transforms, style interpolation, motion, and GPU filters.",
+            "Declarative @keyframes demos. No Rust play_animation_for calls are used on this page.",
         )
         .class("panel-description");
 
         Divider::new(cx);
 
-        animation_demo(cx, "Entrance", ENTRANCE_ANIMATION, ENTRANCE_TARGET, |cx| {
-            Label::new(cx, "Hello, Vizia")
-                .id(ENTRANCE_TARGET)
-                .class("animation-card");
-        });
-
-        animation_demo(cx, "Style interpolation", STYLE_ANIMATION, STYLE_TARGET, |cx| {
-            Label::new(cx, "Color + radius")
-                .id(STYLE_TARGET)
-                .class("animation-card animation-style-target");
-        });
-
-        animation_demo(cx, "Multi-keyframe motion", MOTION_ANIMATION, MOTION_TARGET, |cx| {
-            Element::new(cx).id(MOTION_TARGET).class("animation-orb");
-        });
-
-        animation_demo(cx, "Filter blur reveal", FILTER_ANIMATION, FILTER_TARGET, |cx| {
-            Label::new(cx, "Sharp focus")
-                .id(FILTER_TARGET)
-                .class("animation-card animation-filter-target");
-        });
-
-        animation_demo(
+        css_animation_demo(
             cx,
-            "Backdrop-filter reveal",
-            BACKDROP_ANIMATION,
-            BACKDROP_TARGET,
+            "Shorthand + delay + fill",
+            "animation shorthand, negative delay and backwards/forwards fill behavior.",
+            |cx| {
+                Label::new(cx, "CSS entrance")
+                    .class("animation-card css-animation-entrance");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Iterations + direction",
+            "Fractional/infinite iteration counts with alternate and alternate-reverse directions.",
+            |cx| {
+                HStack::new(cx, |cx| {
+                    Element::new(cx).class("animation-orb css-animation-alternate");
+                    Element::new(cx).class("animation-orb css-animation-alternate-reverse");
+                })
+                .class("animation-row");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Steps easing",
+            "steps(), step-start and per-keyframe timing-function discontinuities.",
+            |cx| {
+                Element::new(cx).class("animation-orb css-animation-steps");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Paused play state",
+            "animation-play-state: paused freezes both delay and active time.",
+            |cx| {
+                Label::new(cx, "Paused at negative delay")
+                    .class("animation-card css-animation-paused");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Multiple animation composition",
+            "Two named animations run concurrently; the later animation wins when both target opacity.",
+            |cx| {
+                Label::new(cx, "pulse + color")
+                    .class("animation-card css-animation-composed");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Layout invalidation",
+            "width, gap and padding keyframes exercise relayout while paint-only properties stay redraw-only.",
+            |cx| {
+                HStack::new(cx, |cx| {
+                    Element::new(cx).class("css-animation-layout-box");
+                    Element::new(cx).class("css-animation-layout-box static");
+                })
+                .class("css-animation-layout-row");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Visual interpolation",
+            "background color, corner radius, border, shadow and text color interpolate together.",
+            |cx| {
+                Label::new(cx, "style interpolation")
+                    .class("animation-card css-animation-style");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Transform family",
+            "translate, rotate and scale animate independently across multiple keyframes.",
+            |cx| {
+                Element::new(cx).class("animation-orb css-animation-transform");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Filter list interpolation",
+            "Compatible blur() lists interpolate continuously; incompatible lists fall back discretely.",
+            |cx| {
+                Label::new(cx, "Sharp focus")
+                    .class("animation-card css-animation-filter");
+            },
+        );
+
+        css_animation_demo(
+            cx,
+            "Backdrop filter",
+            "Backdrop blur shares the same CSS animation timing and invalidation path.",
             |cx| {
                 ZStack::new(cx, |cx| {
                     HStack::new(cx, |cx| {
@@ -85,8 +138,7 @@ pub fn animation(cx: &mut Context) {
                     .size(Stretch(1.0));
 
                     Label::new(cx, "GPU glass")
-                        .id(BACKDROP_TARGET)
-                        .class("animation-backdrop-target");
+                        .class("animation-backdrop-target css-animation-backdrop");
                 })
                 .class("animation-backdrop-scene");
             },
