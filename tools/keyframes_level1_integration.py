@@ -106,6 +106,80 @@ replace_once(
 ''',
 )
 
+# The expanded easing enum is shared by transitions and animations.
+replace_once(
+    "crates/vizia_core/src/style/mod.rs",
+    r'''        let timing_function = transition
+            .timing_function
+            .map(|easing| match easing {
+                EasingFunction::Linear => TimingFunction::linear(),
+                EasingFunction::Ease => TimingFunction::ease(),
+                EasingFunction::EaseIn => TimingFunction::ease_in(),
+                EasingFunction::EaseOut => TimingFunction::ease_out(),
+                EasingFunction::EaseInOut => TimingFunction::ease_in_out(),
+                EasingFunction::CubicBezier(x1, y1, x2, y2) => TimingFunction::new(x1, y1, x2, y2),
+            })
+            .unwrap_or_default();''',
+    r'''        let timing_function = transition
+            .timing_function
+            .map(TimingFunction::from_easing)
+            .unwrap_or_default();''',
+)
+
+# Entity deletion and stylesheet reload are animation cancellation points. Also clean every
+# animation declaration store just like the existing style properties.
+replace_once(
+    "crates/vizia_core/src/style/mod.rs",
+    "    pub(crate) fn remove(&mut self, entity: Entity) {\n        self.relayout.remove(&entity);\n",
+    r'''    pub(crate) fn remove(&mut self, entity: Entity) {
+        self.cancel_css_animations(entity, Instant::now());
+        self.animation_name.remove(entity);
+        self.animation_duration.remove(entity);
+        self.animation_delay.remove(entity);
+        self.animation_timing_function.remove(entity);
+        self.animation_iteration_count.remove(entity);
+        self.animation_direction.remove(entity);
+        self.animation_fill_mode.remove(entity);
+        self.animation_play_state.remove(entity);
+        self.relayout.remove(&entity);
+''',
+)
+replace_once(
+    "crates/vizia_core/src/style/mod.rs",
+    "        for store in self.custom_opacity_props.values_mut() {\n            store.remove(entity);\n        }\n    }\n\n    pub(crate) fn needs_restyle",
+    r'''        for store in self.custom_opacity_props.values_mut() {
+            store.remove(entity);
+        }
+        for store in self.custom_shadow_props.values_mut() {
+            store.remove(entity);
+        }
+    }
+
+    pub(crate) fn needs_restyle''',
+)
+replace_once(
+    "crates/vizia_core/src/style/mod.rs",
+    "    pub(crate) fn clear_style_rules(&mut self) {\n        self.disabled.clear_rules();\n",
+    r'''    pub(crate) fn clear_style_rules(&mut self) {
+        let now = Instant::now();
+        let animated_entities: Vec<Entity> = self.css_animation_instances.keys().copied().collect();
+        for entity in animated_entities {
+            self.cancel_css_animations(entity, now);
+        }
+        self.animation_name.clear_rules();
+        self.animation_duration.clear_rules();
+        self.animation_delay.clear_rules();
+        self.animation_timing_function.clear_rules();
+        self.animation_iteration_count.clear_rules();
+        self.animation_direction.clear_rules();
+        self.animation_fill_mode.clear_rules();
+        self.animation_play_state.clear_rules();
+        self.animation_timelines.clear();
+        self.animations.clear();
+        self.disabled.clear_rules();
+''',
+)
+
 # Reduced motion: mundy is cross-platform; expose the OS preference and keep an app override.
 p = ROOT / "crates/vizia_core/Cargo.toml"
 text = p.read_text()
@@ -170,4 +244,4 @@ replace_once(
 ''',
 )
 
-print("CSS animation systems and reduced-motion integration applied")
+print("CSS animation systems, cleanup, and reduced-motion integration applied")
