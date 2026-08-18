@@ -48,6 +48,7 @@ jobs:
           python3 tools/keyframes_level1_css_resolver.py
           python3 tools/keyframes_level1_filters.py
           python3 tools/keyframes_level1_integration.py
+          python3 tools/keyframes_level1_fixups.py
       - name: Format
         run: cargo fmt --all
       - name: Test style parser
