@@ -13,6 +13,10 @@ on:
       - .github/workflows/keyframes-level1-agent.yml
   workflow_dispatch:
 
+concurrency:
+  group: keyframes-level1-${{ github.repository }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
