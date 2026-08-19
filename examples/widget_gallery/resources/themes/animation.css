@@ -450,13 +450,12 @@ label.animation-doc-backdrop-glass {
     to { border-top-width: 12px; border-bottom-width: 12px; }
 }
 .animation-doc-border-width {
-    border-style: solid;
     border-color: var(--primary);
     animation: doc-border-width 1600ms ease-in-out infinite alternate;
 }
 
 @keyframes doc-border-color { from { border-color: #3b82f6; } to { border-color: #f43f5e; } }
-.animation-doc-border-color { border-width: 5px; border-style: solid; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-color { border-width: 5px; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
 
 @keyframes doc-radius { from { corner-radius: 4px; } to { corner-radius: 34px; } }
 .animation-doc-radius { animation: doc-radius 1300ms ease-in-out infinite alternate; }
