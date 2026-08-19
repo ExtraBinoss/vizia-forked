@@ -2,8 +2,8 @@ use morphorm::Units;
 use vizia_style::{
     Angle, AnimationComposition, BackgroundRepeat, BackgroundSize, ClipPath, Color, ColorStop,
     Display, Filter, FontSize, Gradient, Length, LengthOrPercentage, LengthPercentageOrAuto,
-    LengthValue, LetterSpacing, LineDirection, LineHeight, LinearGradient, Opacity,
-    PercentageOrNumber, Position, RGBA, Rect, Scale, Shadow, Transform, Translate,
+    LengthValue, LetterSpacing, LineDirection, LineHeight, LinearGradient, Matrix as CssMatrix,
+    Opacity, PercentageOrNumber, Position, RGBA, Rect, Scale, Shadow, Transform, Translate,
 };
 
 use skia_safe::Matrix;
@@ -564,9 +564,14 @@ impl Interpolator for Transform {
             (Transform::SkewY(start), Transform::SkewY(end)) => {
                 Transform::SkewY(Angle::interpolate(start, end, t))
             }
-            (Transform::Matrix(start), Transform::Matrix(end)) => {
-                Transform::Matrix(Matrix::interpolate(start, end, t))
-            }
+            (Transform::Matrix(start), Transform::Matrix(end)) => Transform::Matrix(CssMatrix::new(
+                f32::interpolate(&start.a, &end.a, t),
+                f32::interpolate(&start.b, &end.b, t),
+                f32::interpolate(&start.c, &end.c, t),
+                f32::interpolate(&start.d, &end.d, t),
+                f32::interpolate(&start.e, &end.e, t),
+                f32::interpolate(&start.f, &end.f, t),
+            )),
             _ if t < 0.5 => start.clone(),
             _ => end.clone(),
         }
