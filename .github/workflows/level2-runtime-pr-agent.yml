@@ -1,39 +1,26 @@
-name: Level 2 Finalization Agent
+name: Level 2 Focused Validation
 
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: write
-
 jobs:
-  materialize-final:
-    if: github.actor != 'github-actions[bot]'
+  focused-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: agent/css-keyframes-level2
       - uses: dtolnay/rust-toolchain@stable
-      - name: Apply runtime follow-up and full-size gallery
-        run: python tools/level2_finish.py
-      - name: Format
-        run: cargo fmt
-      - name: Commit final source changes
+      - name: Install native dependencies
         run: |
-          if git diff --quiet; then
-            echo "No source changes to commit"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            crates/vizia_core/src/storage/animatable_set.rs \
-            crates/vizia_core/src/storage/animatable_var_set.rs \
-            crates/vizia_core/src/style/css_animation.rs \
-            examples/widget_gallery/src/views/animation.rs \
-            examples/widget_gallery/resources/themes/animation.css
-          git commit -m "feat: finish Level 2 animation showcase"
-          git push origin HEAD:agent/css-keyframes-level2
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
+            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libfreetype6-dev libfontconfig1-dev libwayland-dev
+      - name: CSS animation parser tests
+        run: cargo test -p vizia_style animation --lib
+      - name: Core Level 2 animation tests
+        run: cargo test -p vizia_core --lib animation
+      - name: Widget Gallery stylesheet smoke test
+        run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
