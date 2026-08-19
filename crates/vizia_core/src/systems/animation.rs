@@ -1,6 +1,7 @@
 use morphorm::Node;
 
-use crate::{layout::node::SubLayout, prelude::*};
+use crate::{animation::view_progress, layout::node::SubLayout, prelude::*};
+use vizia_style::{AnimationScroller, AnimationTimeline, AnimationTimelineAxis};
 
 macro_rules! process_auto_animations {
     ($cx:expr, $property:expr, $height:expr) => {
@@ -77,6 +78,119 @@ macro_rules! process_auto_animations {
     };
 }
 
+fn nearest_scroll_source(cx: &Context, entity: Entity) -> Option<Entity> {
+    let mut current = cx.tree.get_layout_parent(entity);
+    while let Some(entity) = current {
+        if cx.style.scroll_timeline_sources.contains_key(&entity) {
+            return Some(entity);
+        }
+        current = cx.tree.get_layout_parent(entity);
+    }
+    None
+}
+
+fn root_scroll_source(cx: &Context, entity: Entity) -> Option<Entity> {
+    let mut current = Some(entity);
+    let mut result = None;
+    while let Some(entity) = current {
+        if cx.style.scroll_timeline_sources.contains_key(&entity) {
+            result = Some(entity);
+        }
+        current = cx.tree.get_layout_parent(entity);
+    }
+    result
+}
+
+fn source_progress(cx: &Context, source: Entity, axis: AnimationTimelineAxis) -> Option<f32> {
+    cx.entity_manager
+        .is_alive(source)
+        .then(|| cx.style.scroll_timeline_sources.get(&source).copied())
+        .flatten()
+        .map(|source| source.progress(axis))
+}
+
+fn view_timeline_progress(
+    cx: &Context,
+    entity: Entity,
+    axis: AnimationTimelineAxis,
+) -> Option<f32> {
+    let source_entity = nearest_scroll_source(cx, entity)?;
+    let source = cx.style.scroll_timeline_sources.get(&source_entity).copied()?;
+    let subject = cx.cache.get_bounds(entity);
+    let viewport = cx.cache.get_bounds(source_entity);
+    Some(match axis {
+        AnimationTimelineAxis::Block | AnimationTimelineAxis::Y => {
+            let offset = (source.inner_height - source.container_height).max(0.0) * source.y;
+            view_progress(subject.y, subject.h, viewport.y, viewport.h, offset)
+        }
+        AnimationTimelineAxis::Inline | AnimationTimelineAxis::X => {
+            let offset = (source.inner_width - source.container_width).max(0.0) * source.x;
+            view_progress(subject.x, subject.w, viewport.x, viewport.w, offset)
+        }
+    })
+}
+
+fn timeline_progress_changed(previous: Option<f32>, next: Option<f32>) -> bool {
+    match (previous, next) {
+        (Some(previous), Some(next)) => (previous - next).abs() > f32::EPSILON,
+        (None, None) => false,
+        _ => true,
+    }
+}
+
+fn refresh_progress_timelines(cx: &mut Context) {
+    let requests = cx
+        .style
+        .css_animation_instances
+        .iter()
+        .flat_map(|(entity, instances)| {
+            instances.iter().map(move |instance| {
+                (
+                    *entity,
+                    instance.instance_id,
+                    instance.timeline.clone(),
+                    instance.timeline_driven,
+                    instance.timeline_progress,
+                )
+            })
+        })
+        .collect::<Vec<_>>();
+
+    let mut samples = Vec::new();
+    for (entity, instance_id, timeline, was_driven, previous_progress) in requests {
+        let (driven, progress) = match timeline {
+            AnimationTimeline::Auto => (false, None),
+            AnimationTimeline::None => (true, None),
+            AnimationTimeline::Named(name) => {
+                let progress =
+                    cx.style.named_scroll_timelines.get(&name).copied().and_then(|source| {
+                        source_progress(cx, source, AnimationTimelineAxis::Block)
+                    });
+                (true, progress)
+            }
+            AnimationTimeline::Scroll { scroller, axis } => {
+                let source = match scroller {
+                    AnimationScroller::Self_ => {
+                        cx.style.scroll_timeline_sources.contains_key(&entity).then_some(entity)
+                    }
+                    AnimationScroller::Nearest => nearest_scroll_source(cx, entity),
+                    AnimationScroller::Root => root_scroll_source(cx, entity),
+                };
+                (true, source.and_then(|source| source_progress(cx, source, axis)))
+            }
+            AnimationTimeline::View { axis } => (true, view_timeline_progress(cx, entity, axis)),
+        };
+
+        if driven != was_driven || timeline_progress_changed(previous_progress, progress) {
+            samples.push((entity, instance_id, driven, progress));
+        }
+    }
+
+    for (entity, instance_id, driven, progress) in samples {
+        cx.style.set_css_timeline_progress(entity, instance_id, driven, progress);
+    }
+}
+
 pub(crate) fn animation_system(cx: &mut Context) -> bool {
     cx.style.play_pending_animations();
 
@@ -88,6 +202,7 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     // Tick all animations
 
     let time = Instant::now();
+    refresh_progress_timelines(cx);
 
     let mut redraw_entities = Vec::new();
     let mut reflow_entities = Vec::new();

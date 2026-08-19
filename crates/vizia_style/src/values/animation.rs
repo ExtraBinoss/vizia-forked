@@ -228,6 +228,173 @@ impl<'i> Parse<'i> for AnimationPlayStates {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AnimationComposition {
+    #[default]
+    Replace,
+    Add,
+    Accumulate,
+}
+
+impl<'i> Parse<'i> for AnimationComposition {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        let location = input.current_source_location();
+        let ident = input.expect_ident_cloned()?;
+        match_ignore_ascii_case! { &ident,
+            "replace" => Ok(Self::Replace),
+            "add" => Ok(Self::Add),
+            "accumulate" => Ok(Self::Accumulate),
+            _ => Err(location.new_unexpected_token_error(Token::Ident(ident))),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct AnimationCompositions(pub Vec<AnimationComposition>);
+
+impl<'i> Parse<'i> for AnimationCompositions {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        input.parse_comma_separated(AnimationComposition::parse).map(Self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AnimationTimelineAxis {
+    #[default]
+    Block,
+    Inline,
+    X,
+    Y,
+}
+
+impl AnimationTimelineAxis {
+    fn from_ident(ident: &str) -> Option<Self> {
+        if ident.eq_ignore_ascii_case("block") {
+            Some(Self::Block)
+        } else if ident.eq_ignore_ascii_case("inline") {
+            Some(Self::Inline)
+        } else if ident.eq_ignore_ascii_case("x") {
+            Some(Self::X)
+        } else if ident.eq_ignore_ascii_case("y") {
+            Some(Self::Y)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AnimationScroller {
+    Root,
+    #[default]
+    Nearest,
+    Self_,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum AnimationTimeline {
+    #[default]
+    Auto,
+    None,
+    Named(String),
+    Scroll {
+        scroller: AnimationScroller,
+        axis: AnimationTimelineAxis,
+    },
+    View {
+        axis: AnimationTimelineAxis,
+    },
+}
+
+impl<'i> Parse<'i> for AnimationTimeline {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        if let Ok(ident) = input.try_parse(|input| input.expect_ident_cloned()) {
+            if ident.as_ref().eq_ignore_ascii_case("auto") {
+                return Ok(Self::Auto);
+            }
+            if ident.as_ref().eq_ignore_ascii_case("none") {
+                return Ok(Self::None);
+            }
+            if ident.as_ref().starts_with("--") {
+                return Ok(Self::Named(ident.to_string()));
+            }
+            return Err(input.new_custom_error(CustomParseError::InvalidValue));
+        }
+
+        if input.try_parse(|input| input.expect_function_matching("scroll")).is_ok() {
+            return input.parse_nested_block(|input| {
+                let mut scroller = AnimationScroller::Nearest;
+                let mut axis = AnimationTimelineAxis::Block;
+                let mut seen_scroller = false;
+                let mut seen_axis = false;
+                while !input.is_exhausted() {
+                    let location = input.current_source_location();
+                    let ident = input.expect_ident_cloned()?;
+                    if let Some(value) = AnimationTimelineAxis::from_ident(ident.as_ref()) {
+                        if seen_axis {
+                            return Err(location.new_unexpected_token_error(Token::Ident(ident)));
+                        }
+                        seen_axis = true;
+                        axis = value;
+                        continue;
+                    }
+                    let value = if ident.as_ref().eq_ignore_ascii_case("root") {
+                        Some(AnimationScroller::Root)
+                    } else if ident.as_ref().eq_ignore_ascii_case("nearest") {
+                        Some(AnimationScroller::Nearest)
+                    } else if ident.as_ref().eq_ignore_ascii_case("self") {
+                        Some(AnimationScroller::Self_)
+                    } else {
+                        None
+                    };
+                    let Some(value) = value else {
+                        return Err(location.new_unexpected_token_error(Token::Ident(ident)));
+                    };
+                    if seen_scroller {
+                        return Err(location.new_unexpected_token_error(Token::Ident(ident)));
+                    }
+                    seen_scroller = true;
+                    scroller = value;
+                }
+                Ok(Self::Scroll { scroller, axis })
+            });
+        }
+
+        if input.try_parse(|input| input.expect_function_matching("view")).is_ok() {
+            return input.parse_nested_block(|input| {
+                let axis = if input.is_exhausted() {
+                    AnimationTimelineAxis::Block
+                } else {
+                    let location = input.current_source_location();
+                    let ident = input.expect_ident_cloned()?;
+                    let Some(axis) = AnimationTimelineAxis::from_ident(ident.as_ref()) else {
+                        return Err(location.new_unexpected_token_error(Token::Ident(ident)));
+                    };
+                    if !input.is_exhausted() {
+                        let token = input.next()?.clone();
+                        return Err(location.new_unexpected_token_error(token));
+                    }
+                    axis
+                };
+                Ok(Self::View { axis })
+            });
+        }
+
+        let location = input.current_source_location();
+        let token = input.next()?.clone();
+        Err(location.new_unexpected_token_error(token))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct AnimationTimelines(pub Vec<AnimationTimeline>);
+
+impl<'i> Parse<'i> for AnimationTimelines {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        input.parse_comma_separated(AnimationTimeline::parse).map(Self)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct AnimationShorthandItem {
     pub name: AnimationName,
@@ -361,6 +528,48 @@ mod tests {
         let mut input = ParserInput::new(text);
         let mut parser = Parser::new(&mut input);
         AnimationShorthand::parse(&mut parser).expect("animation shorthand should parse")
+    }
+
+    #[test]
+    fn parses_animation_timeline_values() {
+        let mut input =
+            ParserInput::new("auto, --gallery, scroll(nearest y), scroll(x self), view(block)");
+        let mut parser = Parser::new(&mut input);
+        let parsed = AnimationTimelines::parse(&mut parser).expect("timeline list should parse");
+        assert_eq!(parsed.0.len(), 5);
+        assert_eq!(parsed.0[0], AnimationTimeline::Auto);
+        assert_eq!(parsed.0[1], AnimationTimeline::Named("--gallery".into()));
+        assert_eq!(
+            parsed.0[2],
+            AnimationTimeline::Scroll {
+                scroller: AnimationScroller::Nearest,
+                axis: AnimationTimelineAxis::Y,
+            }
+        );
+        assert_eq!(
+            parsed.0[3],
+            AnimationTimeline::Scroll {
+                scroller: AnimationScroller::Self_,
+                axis: AnimationTimelineAxis::X,
+            }
+        );
+        assert_eq!(parsed.0[4], AnimationTimeline::View { axis: AnimationTimelineAxis::Block });
+    }
+
+    #[test]
+    fn parses_animation_composition_list() {
+        let mut input = ParserInput::new("replace, add, accumulate");
+        let mut parser = Parser::new(&mut input);
+        let parsed =
+            AnimationCompositions::parse(&mut parser).expect("composition list should parse");
+        assert_eq!(
+            parsed.0,
+            vec![
+                AnimationComposition::Replace,
+                AnimationComposition::Add,
+                AnimationComposition::Accumulate,
+            ]
+        );
     }
 
     #[test]

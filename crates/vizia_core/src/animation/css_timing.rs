@@ -128,6 +128,62 @@ impl CssAnimationTiming {
             finished: false,
         }
     }
+
+    /// Sample a progress-based timeline. Delays are intentionally not wall-clock delays here: the
+    /// external timeline owns progress and maps its full 0..=1 range across the effect iterations.
+    /// Infinite iteration counts map to one reversible timeline iteration.
+    pub fn sample_timeline_progress(self, progress: Option<f32>) -> CssAnimationSample {
+        let Some(progress) = progress else {
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Before,
+                progress: None,
+                current_iteration: 0,
+                elapsed_active: 0.0,
+                before: self.reverse_for_iteration(0),
+                finished: false,
+            };
+        };
+        let timeline_progress = progress.clamp(0.0, 1.0);
+        let count = match self.iteration_count {
+            AnimationIterationCount::Infinite => 1.0,
+            AnimationIterationCount::Number(count) => count.max(0.0),
+        };
+        if count == 0.0 {
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Active,
+                progress: Some(self.initial_progress()),
+                current_iteration: 0,
+                elapsed_active: 0.0,
+                before: self.reverse_for_iteration(0),
+                finished: false,
+            };
+        }
+        if timeline_progress >= 1.0 {
+            let (iteration, value) = match self.iteration_count {
+                AnimationIterationCount::Infinite => (0, self.directed_progress(0, 1.0)),
+                AnimationIterationCount::Number(_) => self.final_iteration_and_progress(),
+            };
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Active,
+                progress: Some(value),
+                current_iteration: iteration,
+                elapsed_active: self.duration.max(0.0) * count,
+                before: self.reverse_for_iteration(iteration),
+                finished: false,
+            };
+        }
+        let position = timeline_progress * count;
+        let iteration = position.floor() as u64;
+        let simple = position - iteration as f32;
+        CssAnimationSample {
+            phase: CssAnimationPhase::Active,
+            progress: Some(self.directed_progress(iteration, simple)),
+            current_iteration: iteration,
+            elapsed_active: timeline_progress * self.duration.max(0.0) * count,
+            before: self.reverse_for_iteration(iteration),
+            finished: false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -148,28 +204,130 @@ pub(crate) struct CssAnimationClock {
     pub start_time: Instant,
     paused_at: Option<Instant>,
     paused_duration: Duration,
+    playback_rate: f32,
+    seek_offset: f32,
+    runtime_paused: bool,
 }
 
 impl CssAnimationClock {
     pub fn new(timing: CssAnimationTiming, start_time: Instant) -> Self {
         let paused_at = (timing.play_state == AnimationPlayState::Paused).then_some(start_time);
-        Self { timing, start_time, paused_at, paused_duration: Duration::ZERO }
+        Self {
+            timing,
+            start_time,
+            paused_at,
+            paused_duration: Duration::ZERO,
+            playback_rate: 1.0,
+            seek_offset: 0.0,
+            runtime_paused: false,
+        }
     }
 
     pub fn effective_elapsed(&self, now: Instant) -> f32 {
         let end = self.paused_at.unwrap_or(now);
-        end.saturating_duration_since(self.start_time)
-            .saturating_sub(self.paused_duration)
-            .as_secs_f32()
+        self.seek_offset
+            + end
+                .saturating_duration_since(self.start_time)
+                .saturating_sub(self.paused_duration)
+                .as_secs_f32()
+                * self.playback_rate
     }
 
     pub fn sample(&self, now: Instant) -> CssAnimationSample {
         self.timing.sample(self.effective_elapsed(now))
     }
 
+    pub fn playback_rate(&self) -> f32 {
+        self.playback_rate
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused_at.is_some()
+    }
+
+    fn reanchor(&mut self, now: Instant, elapsed: f32) {
+        let paused = self.is_paused();
+        self.start_time = now;
+        self.paused_duration = Duration::ZERO;
+        self.seek_offset = elapsed;
+        self.paused_at = paused.then_some(now);
+    }
+
+    pub fn pause(&mut self, now: Instant) {
+        self.runtime_paused = true;
+        if self.paused_at.is_none() {
+            self.paused_at = Some(now);
+        }
+    }
+
+    pub fn resume(&mut self, now: Instant) {
+        self.runtime_paused = false;
+        if self.timing.play_state == AnimationPlayState::Running {
+            if let Some(paused_at) = self.paused_at.take() {
+                self.paused_duration += now.saturating_duration_since(paused_at);
+            }
+        }
+    }
+
+    pub fn seek(&mut self, seconds: f32, now: Instant) {
+        let paused = self.is_paused();
+        self.start_time = now;
+        self.paused_duration = Duration::ZERO;
+        self.seek_offset = if seconds.is_finite() { seconds } else { 0.0 };
+        self.paused_at = paused.then_some(now);
+    }
+
+    pub fn set_playback_rate(&mut self, rate: f32, now: Instant) {
+        if !rate.is_finite() {
+            return;
+        }
+        let elapsed = self.effective_elapsed(now);
+        self.reanchor(now, elapsed);
+        self.playback_rate = rate;
+    }
+
+    pub fn reverse(&mut self, now: Instant) {
+        let rate =
+            if self.playback_rate.abs() <= f32::EPSILON { -1.0 } else { -self.playback_rate };
+        self.set_playback_rate(rate, now);
+    }
+
+    pub fn finish(&mut self, now: Instant) -> bool {
+        let duration = self.timing.active_duration();
+        if !duration.is_finite() {
+            return false;
+        }
+        self.seek(self.timing.delay + duration, now);
+        self.pause(now);
+        true
+    }
+
+    pub fn map_timeline_progress(&self, progress: Option<f32>) -> Option<f32> {
+        progress.map(|progress| {
+            if self.playback_rate < 0.0 { 1.0 - progress } else { progress }.clamp(0.0, 1.0)
+        })
+    }
+
+    pub(crate) fn apply_control(
+        &mut self,
+        control: crate::animation::CssAnimationControl,
+        now: Instant,
+    ) -> bool {
+        use crate::animation::CssAnimationControl;
+        match control {
+            CssAnimationControl::Pause => self.pause(now),
+            CssAnimationControl::Resume => self.resume(now),
+            CssAnimationControl::Seek(seconds) => self.seek(seconds, now),
+            CssAnimationControl::SetPlaybackRate(rate) => self.set_playback_rate(rate, now),
+            CssAnimationControl::Reverse => self.reverse(now),
+            CssAnimationControl::Finish => return self.finish(now),
+        }
+        true
+    }
+
     pub fn update_timing(&mut self, timing: CssAnimationTiming, now: Instant) {
         let was_paused = self.paused_at.is_some();
-        let should_pause = timing.play_state == AnimationPlayState::Paused;
+        let should_pause = timing.play_state == AnimationPlayState::Paused || self.runtime_paused;
         match (was_paused, should_pause) {
             (false, true) => self.paused_at = Some(now),
             (true, false) => {
@@ -196,6 +354,54 @@ mod tests {
             fill_mode: AnimationFillMode::None,
             play_state: AnimationPlayState::Running,
         }
+    }
+
+    #[test]
+    fn runtime_seek_rate_reverse_and_pause_preserve_elapsed_time() {
+        let start = Instant::now();
+        let mut clock = CssAnimationClock::new(timing(), start);
+        clock.seek(1.5, start);
+        assert!((clock.effective_elapsed(start) - 1.5).abs() < 0.001);
+
+        clock.set_playback_rate(2.0, start);
+        assert!((clock.effective_elapsed(start + Duration::from_millis(250)) - 2.0).abs() < 0.001);
+
+        clock.pause(start + Duration::from_millis(250));
+        assert!((clock.effective_elapsed(start + Duration::from_secs(5)) - 2.0).abs() < 0.001);
+        clock.resume(start + Duration::from_secs(5));
+        assert!((clock.effective_elapsed(start + Duration::from_millis(5250)) - 2.5).abs() < 0.001);
+
+        clock.reverse(start + Duration::from_millis(5250));
+        assert_eq!(clock.playback_rate(), -2.0);
+        assert!((clock.effective_elapsed(start + Duration::from_millis(5500)) - 2.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn runtime_finish_rejects_infinite_effects() {
+        let start = Instant::now();
+        let mut finite = CssAnimationClock::new(timing(), start);
+        assert!(finite.finish(start));
+        assert!(finite.is_paused());
+        assert!(finite.sample(start).finished);
+
+        let infinite_timing =
+            CssAnimationTiming { iteration_count: AnimationIterationCount::Infinite, ..timing() };
+        let mut infinite = CssAnimationClock::new(infinite_timing, start);
+        assert!(!infinite.finish(start));
+    }
+
+    #[test]
+    fn progress_timeline_is_reversible_and_ignores_wall_clock() {
+        let t = CssAnimationTiming {
+            delay: 99.0,
+            iteration_count: AnimationIterationCount::Number(2.0),
+            direction: AnimationDirection::Alternate,
+            ..timing()
+        };
+        assert_eq!(t.sample_timeline_progress(Some(0.25)).progress, Some(0.5));
+        assert_eq!(t.sample_timeline_progress(Some(0.75)).progress, Some(0.5));
+        assert!(!t.sample_timeline_progress(Some(1.0)).finished);
+        assert_eq!(t.sample_timeline_progress(None).progress, None);
     }
 
     #[test]

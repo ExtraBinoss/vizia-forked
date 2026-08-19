@@ -86,8 +86,9 @@ pub use vizia_style::{
 
 use cssparser::Token as CssToken;
 use vizia_style::{
-    AnimationDelays, AnimationDirections, AnimationDurations, AnimationFillModes,
-    AnimationIterationCounts, AnimationNames, AnimationPlayStates, AnimationTimingFunctions,
+    AnimationComposition, AnimationCompositions, AnimationDelays, AnimationDirections,
+    AnimationDurations, AnimationFillModes, AnimationIterationCounts, AnimationNames,
+    AnimationPlayStates, AnimationTimeline, AnimationTimelines, AnimationTimingFunctions,
     BlendMode, KeyframeSelector, ParserOptions, Property, Selectors, StyleSheet, TokenList,
     TokenOrValue, Variable,
 };
@@ -104,7 +105,10 @@ pub(crate) use transform::*;
 mod css_animation;
 pub(crate) use css_animation::CssAnimationInstance;
 
-use crate::animation::{AnimationEvent, AnimationState, Interpolator, Keyframe, TimingFunction};
+use crate::animation::{
+    AnimationEvent, AnimationState, Compositor, Interpolator, Keyframe, ScrollTimelineSource,
+    TimingFunction,
+};
 use crate::storage::animatable_set::AnimatableSet;
 use crate::storage::style_set::StyleSet;
 use bitflags::bitflags;
@@ -157,6 +161,60 @@ mod animation_tests {
 
         assert!(style.filter.has_active_animation(entity, animation));
         assert!((blur_radius(style.filter.get(entity).unwrap()) - 10.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn level_two_translate_effect_stack_adds_in_stable_order() {
+        let mut style = Style::default();
+        let first = style.add_animation(
+            AnimationBuilder::new()
+                .keyframe(0.0, |key| key.translate((Length::px(10.0), Length::px(0.0))))
+                .keyframe(1.0, |key| key.translate((Length::px(10.0), Length::px(0.0)))),
+        );
+        let second = style.add_animation(
+            AnimationBuilder::new()
+                .keyframe(0.0, |key| key.translate((Length::px(20.0), Length::px(0.0))))
+                .keyframe(1.0, |key| key.translate((Length::px(20.0), Length::px(0.0)))),
+        );
+        let entity = Entity::root();
+        style.translate.insert(entity, Translate::default());
+        let now = Instant::now();
+        let timing = CssAnimationTiming {
+            duration: 1.0,
+            fill_mode: AnimationFillMode::Both,
+            ..Default::default()
+        };
+
+        style.translate.play_css_animation(
+            entity,
+            first,
+            10,
+            0,
+            now,
+            timing,
+            TimingFunction::linear(),
+            AnimationComposition::Add,
+            &[],
+        );
+        style.translate.play_css_animation(
+            entity,
+            second,
+            11,
+            1,
+            now,
+            timing,
+            TimingFunction::linear(),
+            AnimationComposition::Add,
+            &[],
+        );
+        style.translate.tick(now + Duration::from_millis(500));
+
+        let value = style.translate.get(entity).expect("composed translate output");
+        assert_eq!(
+            value.x,
+            LengthOrPercentage::Length(Length::px(30.0)),
+            "two additive effects should compose instead of the later one replacing the first",
+        );
     }
 
     #[test]
@@ -269,7 +327,11 @@ pub struct Style {
     pub(crate) animation_direction: StyleSet<AnimationDirections>,
     pub(crate) animation_fill_mode: StyleSet<AnimationFillModes>,
     pub(crate) animation_play_state: StyleSet<AnimationPlayStates>,
+    pub(crate) animation_composition: StyleSet<AnimationCompositions>,
+    pub(crate) animation_timeline: StyleSet<AnimationTimelines>,
     pub(crate) css_animation_instances: HashMap<Entity, Vec<CssAnimationInstance>>,
+    pub(crate) scroll_timeline_sources: HashMap<Entity, ScrollTimelineSource>,
+    pub(crate) named_scroll_timelines: HashMap<String, Entity>,
     pub(crate) next_css_animation_instance_id: u64,
     pub(crate) animation_timelines: HashMap<Animation, Vec<(f32, TimingFunction)>>,
     pub(crate) pending_animation_events: Vec<AnimationEvent>,
@@ -546,7 +608,9 @@ impl Style {
         time: f32,
         properties: &[Property],
     ) {
-        fn insert_keyframe<T: 'static + Interpolator + Debug + Clone + PartialEq + Default>(
+        fn insert_keyframe<
+            T: 'static + Interpolator + Compositor + Debug + Clone + PartialEq + Default,
+        >(
             storage: &mut AnimatableSet<T>,
             animation_id: Animation,
             time: f32,
@@ -562,7 +626,9 @@ impl Style {
             }
         }
 
-        fn insert_keyframe2<T: 'static + Interpolator + Debug + Clone + PartialEq + Default>(
+        fn insert_keyframe2<
+            T: 'static + Interpolator + Compositor + Debug + Clone + PartialEq + Default,
+        >(
             storage: &mut AnimatableVarSet<T>,
             animation_id: Animation,
             time: f32,
@@ -1878,6 +1944,14 @@ impl Style {
                 self.animation_play_state.insert_rule(rule_id, value.clone());
                 return;
             }
+            Property::AnimationComposition(value) => {
+                self.animation_composition.insert_rule(rule_id, value.clone());
+                return;
+            }
+            Property::AnimationTimeline(value) => {
+                self.animation_timeline.insert_rule(rule_id, value.clone());
+                return;
+            }
             Property::Animation(value) => {
                 self.animation_name.insert_rule(
                     rule_id,
@@ -1914,6 +1988,16 @@ impl Style {
                 self.animation_play_state.insert_rule(
                     rule_id,
                     AnimationPlayStates(value.0.iter().map(|item| item.play_state).collect()),
+                );
+                self.animation_composition.insert_rule(
+                    rule_id,
+                    AnimationCompositions(
+                        value.0.iter().map(|_| AnimationComposition::Replace).collect(),
+                    ),
+                );
+                self.animation_timeline.insert_rule(
+                    rule_id,
+                    AnimationTimelines(value.0.iter().map(|_| AnimationTimeline::Auto).collect()),
                 );
                 return;
             }
