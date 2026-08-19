@@ -1,8 +1,8 @@
 use crate::{
     Alignment, Angle, AnimationCompositions, AnimationDelays, AnimationDirections,
     AnimationDurations, AnimationFillModes, AnimationIterationCounts, AnimationNames,
-    AnimationPlayStates, AnimationShorthand, AnimationTimingFunctions, AspectRatio,
-    BackgroundImage, BackgroundRepeat, BackgroundSize, BlendMode, Border, BorderStyle,
+    AnimationPlayStates, AnimationShorthand, AnimationTimelines, AnimationTimingFunctions,
+    AspectRatio, BackgroundImage, BackgroundRepeat, BackgroundSize, BlendMode, Border, BorderStyle,
     BorderStyleKeyword, BorderWidth, BorderWidthValue, ClipPath, Color, CornerRadius, CornerShape,
     CursorIcon, CustomParseError, CustomProperty, Direction, Display, Filter, FontFamily, FontSize,
     FontSlant, FontVariation, FontWeight, FontWidth, LayoutType, LayoutWrap, Length,
