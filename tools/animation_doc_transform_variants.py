@@ -10,7 +10,6 @@ if '    TransformTranslateOnly,\n' not in text:
         1,
     )
 
-# Only rewrite the examples inside the transform variant constant.
 start = text.index('const TRANSFORM_VARIANTS: &[DocVariant] = &[')
 end = text.index('\n];', start) + 3
 block = text[start:end]
@@ -65,3 +64,5 @@ if '@keyframes doc-transform-translate-only' not in c:
 }
 '''
 css.write_text(c)
+
+exec(Path('tools/animation_doc_variant_longhands.py').read_text())
