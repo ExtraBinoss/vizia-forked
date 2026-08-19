@@ -510,7 +510,19 @@ where
         for state in self.active_animations.iter_mut() {
             if state.css_instance_id == Some(instance_id) && state.entities.contains(&entity) {
                 if let Some(clock) = state.css_clock.as_mut() {
-                    found |= clock.apply_control(control, now);
+                    let applied = clock.apply_control(control, now);
+                    if applied
+                        && matches!(
+                            control,
+                            crate::animation::CssAnimationControl::Resume
+                                | crate::animation::CssAnimationControl::Seek(_)
+                                | crate::animation::CssAnimationControl::SetPlaybackRate(_)
+                                | crate::animation::CssAnimationControl::Reverse
+                        )
+                    {
+                        state.t = 0.0;
+                    }
+                    found |= applied;
                 }
             }
         }

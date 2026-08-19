@@ -623,3 +623,515 @@ hstack.animation-stage {
 .css-animation-backdrop {
     animation: gallery-backdrop-loop 1600ms ease-in-out 0s infinite alternate both running;
 }
+
+
+/* ===== CSS Animations Level 2 full-size showcase ===== */
+
+@keyframes l2-translate-x {
+    0% { translate: -125px 0px; }
+    100% { translate: 125px 0px; }
+}
+
+@keyframes l2-translate-y {
+    0% { translate: 0px -62px; }
+    100% { translate: 0px 62px; }
+}
+
+@keyframes l2-rotate-a {
+    0% { rotate: -25deg; }
+    100% { rotate: 205deg; }
+}
+
+@keyframes l2-rotate-b {
+    0% { rotate: 0deg; }
+    100% { rotate: 110deg; }
+}
+
+@keyframes l2-accumulate-pulse {
+    0% { scale: 0.82; }
+    100% { scale: 1.22; }
+}
+
+@keyframes l2-scroll-reveal {
+    0% {
+        translate: -250px 30px;
+        rotate: -18deg;
+        scale: 0.62;
+        opacity: 0.18;
+        background-color: #0ea5e9;
+        corner-radius: 10px;
+    }
+    50% {
+        translate: 0px -18px;
+        rotate: 0deg;
+        scale: 1.18;
+        opacity: 1;
+        background-color: #8b5cf6;
+        corner-radius: 34px;
+    }
+    100% {
+        translate: 250px 30px;
+        rotate: 18deg;
+        scale: 0.72;
+        opacity: 0.32;
+        background-color: #f97316;
+        corner-radius: 12px;
+    }
+}
+
+@keyframes l2-scroll-progress {
+    0% { translate: -390px 0px; scale: 0.75; }
+    100% { translate: 390px 0px; scale: 1.25; }
+}
+
+@keyframes l2-view-reveal {
+    0% {
+        opacity: 0.12;
+        translate: -170px 35px;
+        rotate: -22deg;
+        scale: 0.62;
+        background-color: #06b6d4;
+    }
+    50% {
+        opacity: 1;
+        translate: 0px -18px;
+        rotate: 0deg;
+        scale: 1.22;
+        background-color: #a855f7;
+    }
+    100% {
+        opacity: 0.18;
+        translate: 170px 35px;
+        rotate: 22deg;
+        scale: 0.68;
+        background-color: #f43f5e;
+    }
+}
+
+@keyframes l2-runtime-motion {
+    0% {
+        translate: -330px 35px;
+        rotate: -12deg;
+        scale: 0.76;
+        opacity: 0.45;
+        background-color: #0ea5e9;
+        corner-radius: 12px;
+    }
+    35% {
+        translate: -70px -42px;
+        rotate: 120deg;
+        scale: 1.18;
+        opacity: 1;
+        background-color: #8b5cf6;
+        corner-radius: 38px;
+    }
+    70% {
+        translate: 170px 26px;
+        rotate: 245deg;
+        scale: 0.92;
+        opacity: 0.72;
+        background-color: #f43f5e;
+        corner-radius: 18px;
+    }
+    100% {
+        translate: 330px -25px;
+        rotate: 360deg;
+        scale: 1.08;
+        opacity: 1;
+        background-color: #22c55e;
+        corner-radius: 28px;
+    }
+}
+
+.animation-page {
+    width: 1s;
+    height: auto;
+    gap: 30px;
+    padding-bottom: 52px;
+}
+
+.l2-hero {
+    width: 1s;
+    height: auto;
+    gap: 12px;
+    padding: 22px 24px;
+    corner-radius: 18px;
+    border-width: 1px;
+    border-color: #334155;
+    background-color: #0b1220;
+}
+
+.l2-hero-badge,
+.l2-action-badge {
+    width: auto;
+    height: auto;
+    padding: 5px 10px;
+    corner-radius: 999px;
+    background-color: #2563eb;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.l2-showcase-section,
+.animation-level-one-stack {
+    width: 1s;
+    height: auto;
+    gap: 14px;
+    padding: 22px;
+    corner-radius: 18px;
+    border-width: 1px;
+    border-color: var(--border);
+    background-color: var(--background-alt);
+}
+
+.l2-timelines-section {
+    min-height: 1040px;
+}
+
+.l2-section-title {
+    width: 1s;
+    height: auto;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.l2-section-copy {
+    width: 1s;
+    height: auto;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    text-wrap: true;
+}
+
+.l2-composition-content,
+.l2-timeline-content,
+.l2-runtime-content {
+    width: 1s;
+    height: auto;
+    gap: 18px;
+}
+
+.l2-composition-row {
+    width: 1s;
+    height: 330px;
+    horizontal-gap: 18px;
+}
+
+.l2-composition-cell {
+    width: 1s;
+    height: 1s;
+    gap: 8px;
+    padding: 14px;
+    corner-radius: 16px;
+    border-width: 1px;
+    border-color: #334155;
+    background-color: #0b1020;
+}
+
+.l2-mini-title {
+    width: 1s;
+    height: auto;
+    color: #f8fafc;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.l2-mini-copy {
+    width: 1s;
+    height: auto;
+    color: #94a3b8;
+    font-size: 12px;
+    text-wrap: true;
+}
+
+.l2-composition-stage {
+    width: 1s;
+    height: 230px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 14px;
+    background-color: #020617;
+}
+
+.l2-axis-x,
+.l2-axis-y {
+    position-type: absolute;
+    background-color: #334155;
+}
+
+.l2-axis-x { width: 78%; height: 2px; }
+.l2-axis-y { width: 2px; height: 72%; }
+
+.l2-composition-orb {
+    width: 64px;
+    height: 64px;
+    corner-radius: 18px;
+    border-width: 3px;
+    border-color: #ccffffff;
+    shadow: 0px 14px 30px #77000000;
+}
+
+.l2-replace-orb {
+    background-color: #f97316;
+    animation: l2-translate-x 2400ms ease-in-out 0s infinite alternate both running,
+               l2-translate-y 1650ms ease-in-out 0s infinite alternate both running;
+    animation-composition: replace, replace;
+}
+
+.l2-add-orb {
+    background-color: #22c55e;
+    animation: l2-translate-x 2400ms ease-in-out 0s infinite alternate both running,
+               l2-translate-y 1650ms ease-in-out 0s infinite alternate both running;
+    animation-composition: add, add;
+}
+
+.l2-accumulate-stage {
+    width: 1s;
+    height: 220px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 14px;
+    background-color: #020617;
+}
+
+.l2-accumulate-ring {
+    position-type: absolute;
+    width: 170px;
+    height: 170px;
+    corner-radius: 50%;
+    border-width: 2px;
+    border-color: #334155;
+}
+
+.l2-accumulate-card {
+    width: 118px;
+    height: 72px;
+    alignment: center;
+    corner-radius: 18px;
+    background-color: #8b5cf6;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-width: 2px;
+    border-color: #c4b5fd;
+    animation: l2-rotate-a 2200ms linear 0s infinite alternate both running,
+               l2-rotate-b 1400ms ease-in-out 0s infinite alternate both running,
+               l2-accumulate-pulse 900ms ease-in-out 0s infinite alternate both running;
+    animation-composition: accumulate, accumulate, add;
+}
+
+.l2-timeline-lab {
+    width: 1s;
+    height: 492px;
+    gap: 12px;
+    padding: 16px;
+    corner-radius: 16px;
+    border-width: 1px;
+    border-color: #334155;
+    background-color: #07101f;
+}
+
+.l2-progress-stage {
+    width: 1s;
+    height: 44px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 22px;
+    background-color: #020617;
+}
+
+.l2-progress-track {
+    position-type: absolute;
+    width: 82%;
+    height: 4px;
+    corner-radius: 2px;
+    background-color: #334155;
+}
+
+.l2-progress-dot {
+    position-type: absolute;
+    width: 24px;
+    height: 24px;
+    corner-radius: 50%;
+    background-color: #38bdf8;
+    shadow: 0px 0px 20px #aa38bdf8;
+}
+
+.l2-scroll-progress-dot {
+    animation: l2-scroll-progress 1s linear 0s 1 both running;
+    animation-timeline: --l2-gallery-scroll;
+}
+
+.l2-timeline-scroll {
+    width: 1s;
+    height: 340px;
+    corner-radius: 14px;
+    border-width: 1px;
+    border-color: #334155;
+    background-color: #020617;
+}
+
+.l2-scroll-content,
+.l2-view-content {
+    width: 1s;
+    height: auto;
+    min-height: 1180px;
+    alignment: center;
+    gap: 20px;
+    padding: 24px;
+}
+
+.l2-scroll-spacer {
+    width: 1s;
+    height: 360px;
+}
+
+.l2-scroll-caption {
+    width: auto;
+    height: auto;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.l2-scroll-subject {
+    width: 260px;
+    height: 110px;
+    alignment: center;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-width: 2px;
+    border-color: #ccffffff;
+    shadow: 0px 18px 36px #77000000;
+    animation: l2-scroll-reveal 1s linear 0s 1 both running;
+    animation-timeline: --l2-gallery-scroll;
+}
+
+.l2-view-filler {
+    width: 78%;
+    height: 150px;
+    alignment: center;
+    corner-radius: 18px;
+    background-color: #111827;
+    color: #64748b;
+    border-width: 1px;
+    border-color: #1e293b;
+}
+
+.l2-view-subject {
+    width: 360px;
+    height: 150px;
+    alignment: center;
+    corner-radius: 22px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border-width: 3px;
+    border-color: #ccffffff;
+    shadow: 0px 20px 42px #88000000;
+    animation: l2-view-reveal 1s linear 0s 1 both running;
+    animation-timeline: view(block);
+}
+
+.l2-runtime-stage {
+    width: 1s;
+    height: 310px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 18px;
+    background-color: #020617;
+    border-width: 1px;
+    border-color: #334155;
+}
+
+.l2-runtime-grid {
+    position-type: absolute;
+    width: 88%;
+    height: 72%;
+    corner-radius: 16px;
+    border-width: 1px;
+    border-color: #1e293b;
+    background-color: #07101f;
+}
+
+.l2-runtime-target {
+    width: 190px;
+    height: 82px;
+    alignment: center;
+    corner-radius: 14px;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    border-width: 2px;
+    border-color: #ccffffff;
+    shadow: 0px 16px 34px #77000000;
+    animation: l2-runtime-motion 10s linear 0s 1 both running;
+}
+
+.l2-runtime-readout {
+    width: 1s;
+    height: auto;
+    padding: 10px 12px;
+    corner-radius: 10px;
+    background-color: #0f172a;
+    color: #bae6fd;
+    font-family: "Cascadia Mono";
+    font-size: 12px;
+    text-wrap: true;
+}
+
+.l2-runtime-controls,
+.l2-seek-row {
+    width: 1s;
+    height: auto;
+    alignment: center-left;
+    horizontal-gap: 8px;
+}
+
+.l2-runtime-controls > button {
+    width: auto;
+    min-width: 88px;
+}
+
+.l2-control-label {
+    width: 110px;
+    height: auto;
+    color: var(--muted-foreground);
+    font-size: 12px;
+}
+
+.l2-seek-slider {
+    width: 1s;
+}
+
+.l2-seek-value {
+    width: 54px;
+    height: auto;
+    text-align: center;
+    font-size: 12px;
+}
+
+.l2-runtime-note {
+    width: 1s;
+    height: auto;
+    color: #94a3b8;
+    font-size: 11px;
+    text-wrap: true;
+}
+
+/* Level 1 witnesses now occupy the page itself instead of a nested 600px VirtualList. */
+.animation-level-one-stack {
+    gap: 18px;
+}
+
+.animation-demo-card {
+    height: 330px;
+    min-height: 330px;
+    padding: 18px;
+}
+
+hstack.animation-stage {
+    height: 224px;
+    padding: 20px;
+}

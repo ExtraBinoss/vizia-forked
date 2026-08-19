@@ -608,7 +608,13 @@ impl Style {
         let success = {
             let instance = &mut self.css_animation_instances.get_mut(&entity).unwrap()[index];
             let success = instance.clock.apply_control(control, now);
-            if matches!(control, CssAnimationControl::Resume | CssAnimationControl::Reverse) {
+            if matches!(
+                control,
+                CssAnimationControl::Resume
+                    | CssAnimationControl::Seek(_)
+                    | CssAnimationControl::SetPlaybackRate(_)
+                    | CssAnimationControl::Reverse
+            ) {
                 instance.ended = false;
             }
             success
