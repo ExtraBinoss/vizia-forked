@@ -2,7 +2,7 @@ use crate::animation::{
     AnimationState, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
 };
 use crate::prelude::*;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use vizia_storage::{SparseSet, SparseSetGeneric, SparseSetIndex};
 
 const INDEX_MASK: u32 = u32::MAX / 4;
@@ -624,6 +624,34 @@ where
             .iter()
             .filter(|state| state.t < 1.0)
             .flat_map(|state| state.entities.iter().copied())
+            .collect()
+    }
+
+    /// Tick animations but only return entities whose visible computed value changed.
+    ///
+    /// Layout/reflow callers use this to avoid invalidating an expensive subsystem on
+    /// every frame of paused or stepped CSS animations. The regular `tick()` remains
+    /// available for paint/transform paths that also drive the animation frame loop.
+    pub fn tick_changed(&mut self, time: Instant) -> Vec<Entity> {
+        let entities: HashSet<Entity> = self
+            .active_animations
+            .iter()
+            .filter(|state| state.t < 1.0)
+            .flat_map(|state| state.entities.iter().copied())
+            .collect();
+
+        if entities.is_empty() {
+            return Vec::new();
+        }
+
+        let before =
+            entities.iter().map(|entity| (*entity, self.get(*entity).cloned())).collect::<Vec<_>>();
+
+        let _ = self.tick(time);
+
+        before
+            .into_iter()
+            .filter_map(|(entity, before)| (self.get(entity).cloned() != before).then_some(entity))
             .collect()
     }
 

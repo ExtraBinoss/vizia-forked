@@ -94,6 +94,7 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     let mut relayout_entities = Vec::new();
     let mut retransform_entities = Vec::new();
     let mut reclip_entities = Vec::new();
+    let mut has_active_layout_animations = false;
 
     // Properties which affect rendering
     // Opacity
@@ -158,39 +159,47 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     // Line Height
     reflow_entities.extend(cx.style.line_height.tick(time));
 
-    // Properties which affect layout
+    // Properties which affect layout. Keep the animation frame loop alive while
+    // avoiding a relayout when a stepped/paused animation sampled the same value.
+    macro_rules! tick_layout {
+        ($store:expr) => {{
+            has_active_layout_animations |= $store.has_animations();
+            relayout_entities.extend($store.tick_changed(time));
+        }};
+    }
+
     relayout_entities.extend(cx.style.display.tick(time));
     // Border Width
-    relayout_entities.extend(cx.style.border_top_width.tick(time));
-    relayout_entities.extend(cx.style.border_right_width.tick(time));
-    relayout_entities.extend(cx.style.border_bottom_width.tick(time));
-    relayout_entities.extend(cx.style.border_left_width.tick(time));
+    tick_layout!(cx.style.border_top_width);
+    tick_layout!(cx.style.border_right_width);
+    tick_layout!(cx.style.border_bottom_width);
+    tick_layout!(cx.style.border_left_width);
     // Space
-    relayout_entities.extend(cx.style.left.tick(time));
-    relayout_entities.extend(cx.style.right.tick(time));
-    relayout_entities.extend(cx.style.top.tick(time));
-    relayout_entities.extend(cx.style.bottom.tick(time));
+    tick_layout!(cx.style.left);
+    tick_layout!(cx.style.right);
+    tick_layout!(cx.style.top);
+    tick_layout!(cx.style.bottom);
     // Size
-    relayout_entities.extend(cx.style.width.tick(time));
-    relayout_entities.extend(cx.style.height.tick(time));
+    tick_layout!(cx.style.width);
+    tick_layout!(cx.style.height);
     // Min/Max Size
-    relayout_entities.extend(cx.style.max_width.tick(time));
-    relayout_entities.extend(cx.style.max_height.tick(time));
-    relayout_entities.extend(cx.style.min_width.tick(time));
-    relayout_entities.extend(cx.style.min_height.tick(time));
+    tick_layout!(cx.style.max_width);
+    tick_layout!(cx.style.max_height);
+    tick_layout!(cx.style.min_width);
+    tick_layout!(cx.style.min_height);
     // Min/Max Gap
-    relayout_entities.extend(cx.style.max_horizontal_gap.tick(time));
-    relayout_entities.extend(cx.style.max_vertical_gap.tick(time));
-    relayout_entities.extend(cx.style.min_horizontal_gap.tick(time));
-    relayout_entities.extend(cx.style.min_vertical_gap.tick(time));
+    tick_layout!(cx.style.max_horizontal_gap);
+    tick_layout!(cx.style.max_vertical_gap);
+    tick_layout!(cx.style.min_horizontal_gap);
+    tick_layout!(cx.style.min_vertical_gap);
     // Row/Col Between
-    relayout_entities.extend(cx.style.vertical_gap.tick(time));
-    relayout_entities.extend(cx.style.horizontal_gap.tick(time));
+    tick_layout!(cx.style.vertical_gap);
+    tick_layout!(cx.style.horizontal_gap);
     // Child Space
-    relayout_entities.extend(cx.style.padding_left.tick(time));
-    relayout_entities.extend(cx.style.padding_right.tick(time));
-    relayout_entities.extend(cx.style.padding_top.tick(time));
-    relayout_entities.extend(cx.style.padding_bottom.tick(time));
+    tick_layout!(cx.style.padding_left);
+    tick_layout!(cx.style.padding_right);
+    tick_layout!(cx.style.padding_top);
+    tick_layout!(cx.style.padding_bottom);
 
     // Tick animations on custom color properties
     for store in cx.style.custom_color_props.values_mut() {
@@ -214,7 +223,8 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     }
     // Tick animations on custom units properties
     for store in cx.style.custom_units_props.values_mut() {
-        relayout_entities.extend(store.tick(time));
+        has_active_layout_animations |= store.has_animations();
+        relayout_entities.extend(store.tick_changed(time));
     }
     // Tick animations on custom opacity properties
     for store in cx.style.custom_opacity_props.values_mut() {
@@ -256,7 +266,8 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
         cx.needs_redraw(*entity);
     }
 
-    !redraw_entities.is_empty()
+    has_active_layout_animations
+        | !redraw_entities.is_empty()
         | !relayout_entities.is_empty()
         | !reflow_entities.is_empty()
         | !retransform_entities.is_empty()

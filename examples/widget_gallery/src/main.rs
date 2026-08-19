@@ -1372,6 +1372,9 @@ fn main() -> Result<(), ApplicationError> {
         cx.add_stylesheet(include_style!("resources/themes/accents.css"))
             .expect("Failed to add stylesheet");
 
+        cx.add_stylesheet(include_style!("resources/themes/animation.css"))
+            .expect("Failed to add animation gallery stylesheet");
+
         VStack::new(cx, |cx| {
             HStack::new(cx, |cx| {
                 Sidebar::new(
