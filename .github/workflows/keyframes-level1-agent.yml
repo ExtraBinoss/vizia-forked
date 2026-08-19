@@ -25,23 +25,16 @@ env:
 
 jobs:
   apply-and-validate:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/css-keyframes-level1-complete
           fetch-depth: 0
-      - name: Install Linux and Skia build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
-            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
-            libfreetype6-dev libfontconfig1-dev libexpat1-dev libjpeg-dev libpng-dev
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: css-keyframes-level1
+          shared-key: css-keyframes-level1-macos
           cache-on-failure: true
       - name: Apply CSS Animations Level 1 implementation
         run: |
