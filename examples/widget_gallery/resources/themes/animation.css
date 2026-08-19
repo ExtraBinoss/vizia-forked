@@ -1,824 +1,537 @@
-/* Animation showcase styles.
+/* CSS Animations interactive reference.
  *
- * Keep this page visually aligned with the rest of Widget Gallery: native controls keep their
- * normal theme, sections stay flat, and only the actual animation viewports get bordered surfaces.
+ * Keep native Widget Gallery controls untouched. Only the selected documentation
+ * example is mounted, so inactive examples do not keep animation clocks alive.
  */
 
-/* ── Shared keyframes ─────────────────────────────────────────────────── */
-
-@keyframes composition-x {
-    0% { translate: -120px 0px; }
-    100% { translate: 120px 0px; }
-}
-
-@keyframes composition-y {
-    0% { translate: 0px -52px; }
-    100% { translate: 0px 52px; }
-}
-
-@keyframes accumulate-a {
-    0% { rotate: -20deg; }
-    100% { rotate: 200deg; }
-}
-
-@keyframes accumulate-b {
-    0% { rotate: 0deg; }
-    100% { rotate: 120deg; }
-}
-
-@keyframes accumulate-scale {
-    0% { scale: 0.86; }
-    100% { scale: 1.14; }
-}
-
-@keyframes runtime-motion {
-    0% {
-        translate: -300px 24px;
-        rotate: -14deg;
-        scale: 0.82;
-        opacity: 0.55;
-        background-color: #3b82f6;
-        corner-radius: 8px;
-    }
-    33% {
-        translate: -92px -34px;
-        rotate: 105deg;
-        scale: 1.08;
-        opacity: 1;
-        background-color: #8b5cf6;
-        corner-radius: 24px;
-    }
-    66% {
-        translate: 112px 30px;
-        rotate: 238deg;
-        scale: 0.92;
-        opacity: 0.78;
-        background-color: #ec4899;
-        corner-radius: 14px;
-    }
-    100% {
-        translate: 300px -20px;
-        rotate: 360deg;
-        scale: 1.04;
-        opacity: 1;
-        background-color: #22c55e;
-        corner-radius: 20px;
-    }
-}
-
-@keyframes scroll-reveal {
-    0% {
-        translate: -250px 20px;
-        rotate: -16deg;
-        scale: 0.72;
-        opacity: 0.18;
-        background-color: #3b82f6;
-    }
-    50% {
-        translate: 0px -10px;
-        rotate: 0deg;
-        scale: 1.08;
-        opacity: 1;
-        background-color: #8b5cf6;
-    }
-    100% {
-        translate: 250px 20px;
-        rotate: 16deg;
-        scale: 0.78;
-        opacity: 0.35;
-        background-color: #f97316;
-    }
-}
-
-@keyframes view-reveal {
-    0% {
-        translate: -160px 20px;
-        rotate: -14deg;
-        scale: 0.72;
-        opacity: 0.16;
-        background-color: #06b6d4;
-    }
-    50% {
-        translate: 0px -10px;
-        rotate: 0deg;
-        scale: 1.08;
-        opacity: 1;
-        background-color: #8b5cf6;
-    }
-    100% {
-        translate: 160px 20px;
-        rotate: 14deg;
-        scale: 0.78;
-        opacity: 0.22;
-        background-color: #f43f5e;
-    }
-}
-
-@keyframes popover-blur-reveal {
-    0% {
-        opacity: 0;
-        filter: blur(9px);
-        translate: 0px -5px;
-        scale: 0.97;
-    }
-    100% {
-        opacity: 1;
-        filter: blur(0px);
-        translate: 0px 0px;
-        scale: 1;
-    }
-}
-
-@keyframes throbber-dot {
-    0%, 100% {
-        opacity: 0.28;
-        translate: 0px 1px;
-        scale: 0.72;
-    }
-    50% {
-        opacity: 1;
-        translate: 0px -3px;
-        scale: 1;
-    }
-}
-
-/* Level 1 regression witness keyframes. Only one witness is mounted at a time. */
-
-@keyframes baseline-entrance-kf {
-    0% {
-        opacity: 0.35;
-        translate: -120px 10px;
-        scale: 0.8;
-        background-color: #3b82f6;
-    }
-    50% {
-        opacity: 1;
-        translate: 0px -14px;
-        scale: 1.08;
-        background-color: #8b5cf6;
-    }
-    100% {
-        opacity: 0.62;
-        translate: 120px 8px;
-        scale: 0.88;
-        background-color: #22c55e;
-    }
-}
-
-@keyframes baseline-travel-kf {
-    0% { translate: -110px 0px; scale: 0.82; }
-    100% { translate: 110px 0px; scale: 1.08; }
-}
-
-@keyframes baseline-steps-kf {
-    0% { translate: -130px 0px; }
-    100% { translate: 130px 0px; }
-}
-
-@keyframes baseline-play-kf {
-    0% { translate: -105px 0px; opacity: 0.45; scale: 0.8; }
-    100% { translate: 105px 0px; opacity: 1; scale: 1.05; }
-}
-
-@keyframes baseline-pulse-kf {
-    0% { translate: -78px 0px; scale: 0.84; opacity: 0.55; }
-    100% { translate: 78px 0px; scale: 1.08; opacity: 1; }
-}
-
-@keyframes baseline-color-kf {
-    0% { background-color: #3b82f6; corner-radius: 7px; }
-    50% { background-color: #8b5cf6; corner-radius: 24px; }
-    100% { background-color: #f97316; corner-radius: 10px; }
-}
-
-@keyframes baseline-layout-kf {
-    0% { width: 76px; padding-left: 6px; padding-right: 6px; corner-radius: 6px; }
-    100% { width: 210px; padding-left: 22px; padding-right: 22px; corner-radius: 20px; }
-}
-
-@keyframes baseline-gap-kf {
-    0% { horizontal-gap: 8px; }
-    100% { horizontal-gap: 34px; }
-}
-
-@keyframes baseline-style-kf {
-    0% {
-        background-color: #3b82f6;
-        color: #ffffff;
-        corner-radius: 6px;
-        border-color: #93c5fd;
-        shadow: 0px 3px 10px #22000000;
-    }
-    50% {
-        background-color: #8b5cf6;
-        color: #ffffff;
-        corner-radius: 28px;
-        border-color: #c4b5fd;
-        shadow: 0px 10px 22px #33000000;
-    }
-    100% {
-        background-color: #22c55e;
-        color: #ffffff;
-        corner-radius: 10px;
-        border-color: #86efac;
-        shadow: 0px 5px 14px #22000000;
-    }
-}
-
-@keyframes baseline-transform-kf {
-    0% { translate: -110px 12px; rotate: -35deg; scale: 0.68; }
-    50% { translate: 0px -18px; rotate: 160deg; scale: 1.15; }
-    100% { translate: 110px 10px; rotate: 380deg; scale: 0.78; }
-}
-
-@keyframes baseline-filter-kf {
-    0%, 100% { filter: blur(0px); opacity: 1; scale: 1; }
-    50% { filter: blur(9px); opacity: 0.72; scale: 0.95; }
-}
-
-@keyframes baseline-backdrop-kf {
-    0% { backdrop-filter: blur(1px); }
-    50% { backdrop-filter: blur(11px); }
-    100% { backdrop-filter: blur(3px); }
-}
-
-@keyframes baseline-orb-one-kf {
-    0% { translate: -78px -16px; scale: 0.78; }
-    100% { translate: 92px 30px; scale: 1.18; }
-}
-
-@keyframes baseline-orb-two-kf {
-    0% { translate: 86px 24px; scale: 1.12; }
-    100% { translate: -92px -26px; scale: 0.72; }
-}
-
-/* ── Page layout ──────────────────────────────────────────────────────── */
-
-vstack.animation-page {
+vstack.animation-doc-page {
     width: 1s;
     height: auto;
-    gap: 28px;
-    padding-bottom: 48px;
-}
-
-.animation-page-header,
-.animation-section,
-.animation-section-header,
-.composition-content,
-.timeline-document-demo,
-.timeline-source-demo,
-.morph-demo,
-.baseline-sampler {
-    width: 1s;
-    height: auto;
-}
-
-.animation-page-header {
-    gap: 12px;
-}
-
-.animation-page-controls,
-.animation-inline-controls,
-.morph-controls {
-    width: auto;
-    height: auto;
-    horizontal-gap: 8px;
-    vertical-gap: 8px;
-}
-
-.animation-page-controls,
-.animation-inline-controls {
-    wrap: wrap;
-}
-
-.animation-section {
+    max-width: 1480px;
     gap: 20px;
 }
 
-.animation-section-header {
-    gap: 4px;
-}
-
-.animation-section-title {
+vstack.animation-doc-intro {
     width: 1s;
     height: auto;
-    font-size: 22px;
-    font-weight: bold;
+    gap: 5px;
 }
 
-.animation-section-description,
-.animation-example-copy {
+hstack.animation-doc-layout {
     width: 1s;
     height: auto;
-    color: var(--muted-foreground);
-    text-wrap: true;
+    gap: 24px;
+    align-items: flex-start;
 }
 
-.animation-section-description {
-    font-size: 13px;
-}
-
-.animation-example-title {
-    width: auto;
+vstack.animation-doc-nav {
+    width: 238px;
+    min-width: 238px;
     height: auto;
-    font-size: 15px;
-    font-weight: semi-bold;
+    padding-right: 18px;
+    border-right-width: 1px;
+    border-right-color: var(--border);
+    gap: 2px;
 }
 
-.animation-example-copy {
-    font-size: 12px;
-}
-
-.animation-example-heading {
+label.animation-doc-nav-title {
     width: 1s;
     height: auto;
-    alignment: center-left;
-    gap: 12px;
-}
-
-/* ── Composition ──────────────────────────────────────────────────────── */
-
-.composition-content {
-    gap: 22px;
-}
-
-.composition-comparison {
-    width: 1s;
-    height: auto;
-    horizontal-gap: 18px;
-}
-
-.animation-example-column {
-    width: 1s;
-    height: auto;
-    gap: 7px;
-}
-
-.composition-stage,
-.accumulate-stage,
-.runtime-stage,
-.morph-stage,
-.baseline-sample-stage {
-    width: 1s;
-    overflow: hidden;
-    alignment: center;
-    corner-radius: 8px;
-    border-width: 1px;
-    border-color: var(--border);
-    background-color: var(--background-alt);
-}
-
-.composition-stage {
-    height: 190px;
-}
-
-.composition-target {
-    width: 52px;
-    height: 52px;
-    corner-radius: 12px;
-    background-color: var(--primary);
-    border-width: 1px;
-    border-color: var(--border);
-}
-
-.composition-replace {
-    animation: composition-x 2200ms ease-in-out 0s infinite alternate both running,
-               composition-y 1500ms ease-in-out 0s infinite alternate both running;
-    animation-composition: replace, replace;
-}
-
-.composition-add {
-    animation: composition-x 2200ms ease-in-out 0s infinite alternate both running,
-               composition-y 1500ms ease-in-out 0s infinite alternate both running;
-    animation-composition: add, add;
-}
-
-.accumulate-stage {
-    height: 170px;
-}
-
-.accumulate-target {
-    width: 108px;
-    height: 64px;
-    alignment: center;
-    corner-radius: 12px;
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    font-weight: bold;
-    animation: accumulate-a 2200ms linear 0s infinite alternate both running,
-               accumulate-b 1400ms ease-in-out 0s infinite alternate both running,
-               accumulate-scale 900ms ease-in-out 0s infinite alternate both running;
-    animation-composition: accumulate, accumulate, add;
-}
-
-/* ── Timelines & runtime control ─────────────────────────────────────── */
-
-.timeline-document-demo,
-.timeline-source-demo {
-    gap: 12px;
-}
-
-.timeline-document-demo {
-}
-
-.runtime-stage {
-    height: 220px;
-}
-
-.runtime-target {
-    width: 190px;
-    height: 58px;
-    alignment: center;
-    corner-radius: 10px;
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    font-weight: bold;
-    animation: runtime-motion 8s linear 0s infinite normal both running;
-}
-
-.timeline-scrubber,
-.runtime-meta-row {
-    width: 1s;
-    height: auto;
-    alignment: center-left;
-    horizontal-gap: 12px;
-}
-
-.timeline-value,
-.timeline-progress-copy {
-    width: 54px;
-    height: auto;
-    text-align: right;
-    color: var(--muted-foreground);
-    font-size: 12px;
-}
-
-.runtime-readout {
-    width: 1s;
-    height: auto;
-    color: var(--muted-foreground);
-    font-size: 12px;
-}
-
-.timeline-scrollview {
-    width: 1s;
-    height: 270px;
-    corner-radius: 8px;
-    border-width: 1px;
-    border-color: var(--border);
-    background-color: var(--background-alt);
-}
-
-.scroll-timeline-content,
-.view-timeline-content {
-    width: 1s;
-    height: auto;
-    min-height: 780px;
-    alignment: center;
-    gap: 10px;
-    padding: 18px;
-}
-
-.timeline-spacer {
-    width: 1px;
-    height: 245px;
-}
-
-.view-timeline-spacer {
-    width: 1px;
-    height: 265px;
-}
-
-.timeline-hint {
-    width: auto;
-    height: auto;
-    color: var(--muted-foreground);
-    font-size: 11px;
-}
-
-.scroll-timeline-subject,
-.view-timeline-subject {
-    width: 190px;
-    height: 70px;
-    alignment: center;
-    corner-radius: 10px;
-    color: #ffffff;
-    font-weight: bold;
-}
-
-.scroll-timeline-subject {
-    animation: scroll-reveal 1s linear 0s 1 normal both running;
-    animation-timeline: --gallery-scroll;
-}
-
-.view-timeline-subject {
-    animation: view-reveal 1s linear 0s 1 normal both running;
-    animation-timeline: view(block);
-}
-
-/* ── Vector morph ─────────────────────────────────────────────────────── */
-
-.morph-demo {
-    gap: 12px;
-}
-
-morph-icon.morph-stage {
-    height: 220px;
-    color: var(--foreground);
-}
-
-.morph-controls {
-    width: 1s;
-    alignment: center-left;
-    wrap: wrap;
-}
-
-/* ── Interaction examples ─────────────────────────────────────────────── */
-
-.interaction-examples {
-    width: 1s;
-    height: auto;
-    horizontal-gap: 28px;
-}
-
-.interaction-example {
-    width: 1s;
-    height: auto;
-    gap: 8px;
-}
-
-.popover-anchor {
-    width: auto;
-    height: auto;
-}
-
-.animation-blur-popover {
-    animation: popover-blur-reveal 220ms ease-out 0s 1 normal both running;
-}
-
-.animation-popover-content {
-    width: 250px;
-    height: auto;
-    gap: 7px;
-    padding: 14px;
-}
-
-.animation-popover-title {
-    width: 1s;
-    height: auto;
-    font-weight: semi-bold;
-}
-
-.animation-popover-copy {
-    width: 1s;
-    height: auto;
-    color: var(--muted-foreground);
-    font-size: 12px;
-    text-wrap: true;
-}
-
-.text-throbber {
-    width: auto;
-    height: 36px;
-    alignment: center-left;
-    horizontal-gap: 5px;
-}
-
-.throbber-label {
-    width: auto;
-    height: auto;
-    color: var(--muted-foreground);
-    font-size: 13px;
-}
-
-.throbber-dot {
-    width: 6px;
-    height: 6px;
-    corner-radius: 50%;
-    background-color: var(--muted-foreground);
-    animation: throbber-dot 900ms ease-in-out 0s infinite normal both running;
-}
-
-.throbber-dot-b { animation-delay: 140ms; }
-.throbber-dot-c { animation-delay: 280ms; }
-
-/* ── Level 1 regression sampler ───────────────────────────────────────── */
-
-.baseline-sampler {
-    gap: 12px;
-}
-
-.baseline-sample-stage {
-    height: 190px;
-    padding: 14px;
-}
-
-.baseline-surface {
-    width: auto;
-    height: auto;
-    min-width: 170px;
-    min-height: 56px;
-    padding: 12px 20px;
-    alignment: center;
-    corner-radius: 9px;
-    background-color: var(--primary);
-    color: #ffffff;
-    font-weight: bold;
-    border-width: 1px;
-    border-color: var(--border);
-}
-
-.baseline-entrance {
-    animation: baseline-entrance-kf 1400ms ease-in-out -350ms infinite alternate both running;
-}
-
-.baseline-track-stack {
-    width: 1s;
-    height: auto;
-    gap: 12px;
-}
-
-.baseline-track-row {
-    width: 1s;
-    height: 50px;
-    alignment: center-left;
-}
-
-.baseline-track-label {
-    width: 130px;
-    height: auto;
-    color: var(--muted-foreground);
-    font-size: 11px;
-}
-
-.baseline-track {
-    width: 1s;
-    height: 44px;
-    alignment: center;
-    overflow: hidden;
-    corner-radius: 22px;
-    border-width: 1px;
-    border-color: var(--border);
-}
-
-.baseline-orb {
-    width: 26px;
-    height: 26px;
-    corner-radius: 50%;
-}
-
-.baseline-alternate {
-    background-color: #22c55e;
-    animation: baseline-travel-kf 1100ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-alternate-reverse {
-    background-color: #f97316;
-    animation: baseline-travel-kf 1100ms ease-in-out 0s infinite alternate-reverse both running;
-}
-
-.baseline-step-stage {
-    width: 360px;
-    height: 66px;
-    alignment: center;
-    overflow: hidden;
-    corner-radius: 8px;
-    border-width: 1px;
-    border-color: var(--border);
-}
-
-.baseline-step-cursor {
-    width: 28px;
-    height: 28px;
-    corner-radius: 7px;
-    background-color: #eab308;
-}
-
-.baseline-steps {
-    animation: baseline-steps-kf 1200ms steps(6, end) 0s infinite alternate both running;
-}
-
-.baseline-running {
-    background-color: #22c55e;
-    animation: baseline-play-kf 1200ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-paused {
-    background-color: #ef4444;
-    animation: baseline-play-kf 1200ms ease-in-out -600ms infinite alternate both paused;
-}
-
-.baseline-multiple {
-    animation: baseline-pulse-kf 900ms ease-in-out 0s infinite alternate both running,
-               baseline-color-kf 1500ms linear 0s infinite alternate both running;
-}
-
-.baseline-layout-row {
-    width: 1s;
-    height: 110px;
-    alignment: center;
-    animation: baseline-gap-kf 1400ms steps(4, end) 0s infinite alternate both running;
-}
-
-.baseline-layout-box {
-    height: 68px;
-    background-color: #06b6d4;
-    animation: baseline-layout-kf 1400ms steps(4, end) 0s infinite alternate both running;
-}
-
-.baseline-layout-static {
-    width: 76px;
-    height: 68px;
-    corner-radius: 8px;
-    background-color: var(--border);
-}
-
-.baseline-style {
-    min-width: 210px;
-    min-height: 66px;
-    border-width: 2px;
-    animation: baseline-style-kf 1500ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-transform {
-    width: 54px;
-    height: 54px;
-    corner-radius: 10px;
-    background-color: #ec4899;
-    animation: baseline-transform-kf 1300ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-filter-sample {
-    width: 250px;
-    height: 74px;
-    alignment: center;
-    corner-radius: 9px;
-    border-width: 1px;
-    border-color: var(--border);
-    background-color: var(--primary);
-    color: var(--primary-foreground);
+    padding: 4px 8px 10px 8px;
     font-size: 16px;
     font-weight: bold;
 }
 
-.baseline-filter {
-    animation: baseline-filter-kf 1600ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-backdrop-stage {
-    width: 380px;
-    height: 150px;
-    overflow: hidden;
-    alignment: center;
-    corner-radius: 10px;
-    border-width: 1px;
-    border-color: var(--border);
-    background-color: var(--background-alt);
-}
-
-.baseline-backdrop-orb {
-    position-type: absolute;
-    width: 82px;
-    height: 82px;
-    corner-radius: 50%;
-}
-
-.backdrop-orb-one {
-    background-color: #22d3ee;
-    animation: baseline-orb-one-kf 1100ms ease-in-out 0s infinite alternate both running;
-}
-
-.backdrop-orb-two {
-    background-color: #f43f5e;
-    animation: baseline-orb-two-kf 1300ms ease-in-out 0s infinite alternate both running;
-}
-
-.baseline-glass {
-    position-type: absolute;
-    width: 230px;
-    height: 88px;
-    alignment: center;
-    gap: 3px;
-    corner-radius: 12px;
-    background-color: #66111827;
-    border-width: 1px;
-    border-color: #88ffffff;
-}
-
-.baseline-glass-title {
-    width: auto;
+label.animation-doc-nav-category {
+    width: 1s;
     height: auto;
-    color: #ffffff;
+    padding: 16px 8px 5px 8px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+button.animation-doc-nav-item {
+    width: 1s;
+    height: 32px;
+    min-height: 32px;
+    padding: 4px 8px;
+    alignment: center-left;
+    corner-radius: 4px;
+    justify-content: flex-start;
+}
+
+button.animation-doc-nav-item-active {
+    background-color: var(--background-alt);
+    color: var(--foreground);
+}
+
+vstack.animation-doc-content {
+    width: 1s;
+    min-width: 520px;
+    height: auto;
+    gap: 14px;
+}
+
+label.animation-doc-title {
+    width: 1s;
+    height: auto;
+    font-size: 30px;
     font-weight: bold;
 }
 
-.baseline-glass-copy {
-    width: auto;
+label.animation-doc-description {
+    width: 1s;
     height: auto;
-    color: #e2e8f0;
-    font-size: 11px;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    text-wrap: true;
 }
 
-.baseline-backdrop {
-    animation: baseline-backdrop-kf 1600ms ease-in-out 0s infinite alternate both running;
+hstack.animation-doc-example {
+    width: 1s;
+    height: auto;
+    min-height: 390px;
+    border-width: 1px;
+    border-color: var(--border);
+    corner-radius: 6px;
+    overflow: hidden;
+    gap: 0px;
+    align-items: stretch;
 }
+
+vstack.animation-doc-code-pane,
+vstack.animation-doc-result-pane {
+    width: 1s;
+    min-width: 380px;
+    min-height: 390px;
+    height: auto;
+}
+
+vstack.animation-doc-code-pane {
+    background-color: var(--background-alt);
+    border-right-width: 1px;
+    border-right-color: var(--border);
+}
+
+hstack.animation-doc-code-header {
+    width: 1s;
+    height: 42px;
+    min-height: 42px;
+    padding: 0px 14px;
+    alignment: center-left;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--border);
+}
+
+label.animation-doc-pane-title {
+    width: auto;
+    height: auto;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+label.animation-doc-code {
+    width: 1s;
+    height: auto;
+    padding: 18px;
+    color: var(--muted-foreground);
+    font-family: monospace;
+    font-size: 13px;
+    text-wrap: true;
+}
+
+vstack.animation-doc-result-pane {
+    background-color: var(--background);
+    padding: 0px;
+    gap: 0px;
+}
+
+vstack.animation-doc-result-pane > label.animation-doc-pane-title {
+    width: 1s;
+    height: 42px;
+    min-height: 42px;
+    padding: 0px 14px;
+    alignment: center-left;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--border);
+}
+
+vstack.animation-doc-note {
+    width: 1s;
+    height: auto;
+    padding: 12px 0px;
+    gap: 4px;
+}
+
+label.animation-doc-note-title {
+    width: 1s;
+    height: auto;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+label.animation-doc-note-copy {
+    width: 1s;
+    height: auto;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    text-wrap: true;
+}
+
+hstack.animation-doc-stage,
+zstack.animation-doc-stage {
+    width: 1s;
+    height: 340px;
+    padding: 28px;
+    alignment: center;
+    overflow: hidden;
+}
+
+.animation-doc-target {
+    width: auto;
+    height: auto;
+    min-width: 130px;
+    min-height: 58px;
+    padding: 14px 20px;
+    alignment: center;
+    corner-radius: 8px;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: bold;
+}
+
+zstack.animation-doc-track {
+    width: 1s;
+    height: 340px;
+    alignment: center;
+    overflow: hidden;
+}
+
+element.animation-doc-track-line {
+    position-type: absolute;
+    width: 72%;
+    height: 1px;
+    background-color: var(--border);
+}
+
+element.animation-doc-dot {
+    width: 42px;
+    height: 42px;
+    corner-radius: 50%;
+    background-color: var(--primary);
+}
+
+@keyframes doc-motion {
+    from { translate: -118px 0px; opacity: 0.42; scale: 0.82; }
+    to { translate: 118px 0px; opacity: 1; scale: 1.08; }
+}
+
+@keyframes doc-x {
+    from { translate: -105px 0px; }
+    to { translate: 105px 0px; }
+}
+
+@keyframes doc-y {
+    from { translate: 0px -54px; }
+    to { translate: 0px 54px; }
+}
+
+@keyframes doc-color {
+    from { background-color: #3b82f6; corner-radius: 6px; }
+    to { background-color: #8b5cf6; corner-radius: 26px; }
+}
+
+@keyframes doc-settle {
+    from { translate: -90px 0px; opacity: 0.35; }
+    to { translate: 90px 0px; opacity: 1; }
+}
+
+.animation-doc-motion { animation: doc-motion 1600ms ease-in-out -300ms infinite alternate both running; }
+.animation-doc-duration { animation: doc-motion 3500ms ease-in-out 0s infinite alternate both running; }
+.animation-doc-delay { animation: doc-motion 1600ms ease-in-out -800ms infinite alternate both running; }
+.animation-doc-steps { animation: doc-motion 1800ms steps(6, end) 0s infinite alternate both running; }
+.animation-doc-iterations { animation: doc-motion 900ms ease-in-out 0s 3 normal forwards running; }
+.animation-doc-direction { animation: doc-motion 1400ms ease-in-out 0s infinite alternate-reverse both running; }
+.animation-doc-fill-mode { animation: doc-settle 900ms ease-out 0s 1 normal forwards running; }
+.animation-doc-paused { animation: doc-motion 1600ms ease-in-out -800ms infinite alternate both paused; }
+.animation-doc-composition {
+    animation: doc-x 1800ms ease-in-out 0s infinite alternate both running,
+               doc-y 1100ms ease-in-out 0s infinite alternate both running;
+    animation-composition: add, add;
+}
+.animation-doc-document {
+    animation: doc-motion 2000ms linear 0s infinite alternate both running;
+    animation-timeline: auto;
+}
+.animation-doc-multiple {
+    animation: doc-motion 1600ms ease-in-out 0s infinite alternate both running,
+               doc-color 2400ms linear 0s infinite alternate both running;
+}
+
+scrollview.animation-doc-scrollview {
+    width: 1s;
+    height: 340px;
+    background-color: var(--background);
+}
+
+vstack.animation-doc-scroll-content {
+    width: 1s;
+    height: auto;
+    min-height: 920px;
+    alignment: top-center;
+    gap: 12px;
+    padding: 18px;
+}
+
+label.animation-doc-hint {
+    width: 1s;
+    height: auto;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    text-align: center;
+}
+
+element.animation-doc-scroll-spacer { width: 1s; height: 270px; }
+element.animation-doc-view-spacer { width: 1s; height: 230px; }
+
+label.animation-doc-scroll-subject,
+label.animation-doc-view-subject {
+    width: auto;
+    height: auto;
+    padding: 16px 20px;
+    alignment: center;
+    corner-radius: 7px;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: bold;
+}
+
+@keyframes doc-scroll-reveal {
+    from { translate: -180px 0px; opacity: 0.2; scale: 0.78; rotate: -12deg; }
+    to { translate: 180px 0px; opacity: 1; scale: 1.08; rotate: 12deg; }
+}
+
+.animation-doc-scroll-subject {
+    animation: doc-scroll-reveal 1s linear both;
+    animation-timeline: --docs-scroll;
+}
+
+.animation-doc-view-subject {
+    animation: doc-scroll-reveal 1s linear both;
+    animation-timeline: view(block);
+}
+
+@keyframes doc-opacity { from { opacity: 0.15; } to { opacity: 1; } }
+.animation-doc-opacity { animation: doc-opacity 1400ms ease-in-out infinite alternate; }
+
+@keyframes doc-transform {
+    from { transform: translate(-90px, 0px) rotate(-25deg) scale(0.78, 0.78); }
+    to { transform: translate(90px, 0px) rotate(335deg) scale(1.08, 1.08); }
+}
+.animation-doc-transform { animation: doc-transform 1800ms ease-in-out infinite alternate; }
+
+@keyframes doc-transform-origin {
+    from { transform-origin: 0% 50%; rotate: -35deg; }
+    to { transform-origin: 100% 50%; rotate: 35deg; }
+}
+.animation-doc-transform-origin { animation: doc-transform-origin 1600ms ease-in-out infinite alternate; }
+
+@keyframes doc-translate { from { translate: -110px 0px; } to { translate: 110px 0px; } }
+.animation-doc-translate { animation: doc-translate 1500ms ease-in-out infinite alternate; }
+
+@keyframes doc-rotate { from { rotate: -30deg; } to { rotate: 330deg; } }
+.animation-doc-rotate { animation: doc-rotate 1800ms linear infinite; }
+
+@keyframes doc-scale { from { scale: 0.65; } to { scale: 1.25; } }
+.animation-doc-scale { animation: doc-scale 1200ms ease-in-out infinite alternate; }
+
+@keyframes doc-clip { from { clip-path: inset(18px); } to { clip-path: inset(0px); } }
+.animation-doc-clip { animation: doc-clip 1400ms ease-in-out infinite alternate; }
+
+@keyframes doc-filter { 0%, 100% { filter: blur(0px); } 50% { filter: blur(10px); } }
+.animation-doc-filter { animation: doc-filter 1600ms ease-in-out infinite; }
+
+zstack.animation-doc-backdrop-stage {
+    width: 1s;
+    height: 340px;
+    alignment: center;
+    overflow: hidden;
+}
+
+hstack.animation-doc-backdrop-colors {
+    position-type: absolute;
+    width: 300px;
+    height: 150px;
+    corner-radius: 12px;
+    overflow: hidden;
+}
+.animation-doc-backdrop-colors > element { width: 1s; height: 1s; }
+.animation-doc-backdrop-a { background-color: #3b82f6; }
+.animation-doc-backdrop-b { background-color: #f97316; }
+.animation-doc-backdrop-c { background-color: #22c55e; }
+
+@keyframes doc-backdrop { from { backdrop-filter: blur(1px); } to { backdrop-filter: blur(12px); } }
+label.animation-doc-backdrop-glass {
+    position-type: absolute;
+    width: 190px;
+    height: 78px;
+    alignment: center;
+    corner-radius: 9px;
+    background-color: #88ffffff;
+    color: #111827;
+    font-weight: bold;
+    animation: doc-backdrop 1600ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-background-color { from { background-color: #3b82f6; } to { background-color: #8b5cf6; } }
+.animation-doc-background-color { animation: doc-background-color 1500ms ease-in-out infinite alternate; }
+
+@keyframes doc-background-geometry {
+    from { background-position: 0% 50%; background-size: 90% 90%; }
+    to { background-position: 100% 50%; background-size: 125% 125%; }
+}
+.animation-doc-background-geometry {
+    background-image: linear-gradient(90deg, #3b82f6, #8b5cf6, #f97316);
+    background-repeat: no-repeat;
+    animation: doc-background-geometry 1800ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-border-width {
+    from { border-top-width: 1px; border-bottom-width: 1px; }
+    to { border-top-width: 12px; border-bottom-width: 12px; }
+}
+.animation-doc-border-width {
+    border-style: solid;
+    border-color: var(--primary);
+    animation: doc-border-width 1600ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-border-color { from { border-color: #3b82f6; } to { border-color: #f43f5e; } }
+.animation-doc-border-color { border-width: 5px; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
+
+@keyframes doc-radius { from { corner-radius: 4px; } to { corner-radius: 34px; } }
+.animation-doc-radius { animation: doc-radius 1300ms ease-in-out infinite alternate; }
+
+@keyframes doc-outline {
+    from { outline-width: 1px; outline-color: #3b82f6; outline-offset: 1px; }
+    to { outline-width: 6px; outline-color: #a855f7; outline-offset: 8px; }
+}
+.animation-doc-outline { animation: doc-outline 1600ms ease-in-out infinite alternate; }
+
+@keyframes doc-shadow { from { shadow: 0px 2px 6px #22000000; } to { shadow: 0px 16px 34px #55000000; } }
+.animation-doc-shadow { animation: doc-shadow 1500ms ease-in-out infinite alternate; }
+
+@keyframes doc-text-color { from { color: #3b82f6; } to { color: #f43f5e; } }
+.animation-doc-text-color { background-color: transparent; animation: doc-text-color 1200ms ease-in-out infinite alternate; }
+
+@keyframes doc-font-size { from { font-size: 20px; } to { font-size: 42px; } }
+.animation-doc-font-size { background-color: transparent; color: var(--foreground); animation: doc-font-size 1600ms ease-in-out infinite alternate; }
+
+@keyframes doc-letter-spacing { from { letter-spacing: 0px; } to { letter-spacing: 8px; } }
+.animation-doc-letter-spacing { background-color: transparent; color: var(--foreground); animation: doc-letter-spacing 1500ms ease-in-out infinite alternate; }
+
+@keyframes doc-line-height { from { line-height: 1; } to { line-height: 1.8; } }
+label.animation-doc-line-height {
+    width: auto;
+    height: auto;
+    color: var(--foreground);
+    font-size: 22px;
+    text-align: center;
+    animation: doc-line-height 1500ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-text-paint {
+    from { caret-color: #3b82f6; selection-color: #3b82f6; text-decoration-color: #3b82f6; }
+    to { caret-color: #f43f5e; selection-color: #f43f5e; text-decoration-color: #f43f5e; }
+}
+.animation-doc-text-paint {
+    background-color: transparent;
+    color: var(--foreground);
+    text-decoration-line: underline;
+    animation: doc-text-paint 1400ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-fill { from { fill: #3b82f6; } to { fill: #22c55e; } }
+.animation-doc-fill { animation: doc-fill 1400ms ease-in-out infinite alternate; }
+
+@keyframes doc-position { from { left: 20px; top: 24px; } to { left: 220px; top: 150px; } }
+element.animation-doc-position {
+    position-type: absolute;
+    width: 48px;
+    height: 48px;
+    corner-radius: 8px;
+    background-color: var(--primary);
+    animation: doc-position 1800ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-padding { from { padding: 6px; } to { padding: 28px; } }
+.animation-doc-padding { animation: doc-padding 1500ms ease-in-out infinite alternate; }
+
+@keyframes doc-gap { from { horizontal-gap: 6px; } to { horizontal-gap: 44px; } }
+.animation-doc-gap-stage { animation: doc-gap 1500ms ease-in-out infinite alternate; }
+element.animation-doc-gap-item { width: 44px; height: 44px; corner-radius: 6px; background-color: var(--primary); }
+
+@keyframes doc-size { from { width: 90px; height: 58px; } to { width: 240px; height: 92px; } }
+.animation-doc-size { animation: doc-size 1600ms steps(8, end) infinite alternate; }
+
+@keyframes doc-constraints { from { min-width: 90px; max-width: 140px; } to { min-width: 180px; max-width: 280px; } }
+.animation-doc-constraints { width: 1s; animation: doc-constraints 1600ms steps(8, end) infinite alternate; }
+
+@keyframes doc-display { 0%, 49% { display: none; } 50%, 100% { display: flex; } }
+label.animation-doc-display {
+    width: auto;
+    height: auto;
+    padding: 14px 18px;
+    corner-radius: 7px;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    animation: doc-display 1800ms steps(1, end) infinite;
+}
+
+label.animation-doc-static-title { width: auto; height: auto; font-weight: bold; }
+label.animation-doc-static-copy { width: 70%; height: auto; color: var(--muted-foreground); text-align: center; text-wrap: true; }
+
+vstack.animation-doc-runtime {
+    width: 1s;
+    height: auto;
+    padding: 0px 18px 18px 18px;
+    gap: 10px;
+}
+
+@keyframes doc-runtime {
+    from { translate: -110px 0px; rotate: -10deg; background-color: #3b82f6; }
+    to { translate: 110px 0px; rotate: 350deg; background-color: #8b5cf6; }
+}
+.animation-doc-runtime-target { animation: doc-runtime 6000ms linear infinite alternate; }
+
+hstack.animation-doc-controls { width: 1s; height: auto; gap: 8px; }
+hstack.animation-doc-seek-row { width: 1s; height: auto; gap: 10px; alignment: center-left; }
+label.animation-doc-control-label { width: 44px; height: auto; color: var(--muted-foreground); font-size: 12px; }
+label.animation-doc-runtime-readout { width: 1s; height: auto; color: var(--muted-foreground); font-family: monospace; font-size: 12px; text-wrap: true; }
+
+@keyframes doc-popover-reveal {
+    from { opacity: 0; filter: blur(8px); translate: 0px -5px; scale: 0.97; }
+    to { opacity: 1; filter: blur(0px); translate: 0px 0px; scale: 1; }
+}
+popup.animation-doc-popover { animation: doc-popover-reveal 180ms ease-out both; }
+vstack.animation-doc-popover-content { width: 250px; height: auto; padding: 14px; gap: 8px; }
+label.animation-doc-popover-title { width: 1s; height: auto; font-weight: bold; }
+label.animation-doc-popover-copy { width: 1s; height: auto; color: var(--muted-foreground); font-size: 12px; text-wrap: true; }
+
+@keyframes doc-throb {
+    from { opacity: 0.25; translate: 0px 2px; scale: 0.72; }
+    to { opacity: 1; translate: 0px -3px; scale: 1; }
+}
+label.animation-doc-throbber-label { width: auto; height: auto; color: var(--muted-foreground); }
+element.animation-doc-throbber-dot {
+    width: 6px;
+    height: 6px;
+    corner-radius: 50%;
+    background-color: var(--foreground);
+    animation: doc-throb 900ms ease-in-out infinite alternate;
+}
+.animation-doc-throbber-a { animation-delay: 0ms; }
+.animation-doc-throbber-b { animation-delay: -300ms; }
+.animation-doc-throbber-c { animation-delay: -600ms; }
