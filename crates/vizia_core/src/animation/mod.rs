@@ -5,9 +5,7 @@ mod animation_event;
 pub use animation_event::{AnimationEvent, AnimationEventKind};
 
 mod css_timing;
-pub(crate) use css_timing::{
-    CssAnimationClock, CssAnimationPhase, CssAnimationSample, CssAnimationTiming,
-};
+pub(crate) use css_timing::{CssAnimationClock, CssAnimationPhase, CssAnimationTiming};
 
 mod animation_state;
 pub(crate) use animation_state::{AnimationState, Keyframe};
