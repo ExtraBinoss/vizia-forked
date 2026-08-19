@@ -25,13 +25,15 @@ jobs:
       - name: Install native dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libfreetype6-dev libfontconfig1-dev libwayland-dev
       - name: Apply performance patch
         run: python tools/fix_keyframes_gallery_perf.py
       - name: Format
         run: cargo fmt
       - name: Check widget gallery
         run: cargo check -p widget_gallery
+      - name: Load animation gallery stylesheet
+        run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
       - name: Verify formatting
         run: cargo fmt -- --check
       - name: Commit materialized changes
