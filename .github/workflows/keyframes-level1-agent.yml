@@ -3,65 +3,34 @@ name: Keyframes Level 1 Agent
 on:
   push:
     branches: [ agent/css-keyframes-level1-complete ]
-    paths:
-      - tools/keyframes_level1_*.py
-      - .github/workflows/keyframes-level1-agent.yml
   pull_request:
     branches: [ main ]
-    paths:
-      - tools/keyframes_level1_*.py
-      - .github/workflows/keyframes-level1-agent.yml
   workflow_dispatch:
 
 concurrency:
-  group: keyframes-level1-macos-${{ github.repository }}
+  group: keyframes-level1-source-${{ github.repository }}
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  apply-and-validate:
+  validate-source:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/css-keyframes-level1-complete
-          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: css-keyframes-level1-macos
           cache-on-failure: true
-      - name: Apply CSS Animations Level 1 implementation
-        run: |
-          python3 tools/keyframes_level1_apply.py || true
-          python3 tools/keyframes_level1_finish.py
-          python3 tools/keyframes_level1_runtime.py
-          python3 tools/keyframes_level1_stores.py
-          python3 tools/keyframes_level1_css_resolver.py
-          python3 tools/keyframes_level1_filters.py
-          python3 tools/keyframes_level1_integration.py
-          python3 tools/keyframes_level1_semantics.py
-          python3 tools/keyframes_level1_composition.py
-          python3 tools/keyframes_level1_fixups.py
-      - name: Format
-        run: cargo fmt --all
-      - name: Materialize generated implementation
-        run: |
-          if git diff --quiet; then
-            echo "No generated changes"
-            exit 0
-          fi
-          git config user.name "OpenAI Keyframes Agent"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Implement CSS Animations Level 1 runtime and CSS integration"
-          git pull --rebase origin agent/css-keyframes-level1-complete
-          git push origin HEAD:agent/css-keyframes-level1-complete
+      - name: Check formatting
+        run: cargo fmt --all -- --check
       - name: Test style parser
         run: cargo test -p vizia_style
       - name: Test core library
