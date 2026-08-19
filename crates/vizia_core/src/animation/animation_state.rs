@@ -148,6 +148,7 @@ where
             css_default_timing: TimingFunction::ease(),
             css_instance_id: None,
             css_order: 0,
+            css_composition: AnimationComposition::Replace,
         }
     }
 }

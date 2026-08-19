@@ -104,7 +104,9 @@ pub(crate) use transform::*;
 mod css_animation;
 pub(crate) use css_animation::CssAnimationInstance;
 
-use crate::animation::{AnimationEvent, AnimationState, Interpolator, Keyframe, TimingFunction};
+use crate::animation::{
+    AnimationEvent, AnimationState, Compositor, Interpolator, Keyframe, TimingFunction,
+};
 use crate::storage::animatable_set::AnimatableSet;
 use crate::storage::style_set::StyleSet;
 use bitflags::bitflags;
@@ -601,7 +603,9 @@ impl Style {
         time: f32,
         properties: &[Property],
     ) {
-        fn insert_keyframe<T: 'static + Interpolator + Debug + Clone + PartialEq + Default>(
+        fn insert_keyframe<
+            T: 'static + Interpolator + Compositor + Debug + Clone + PartialEq + Default,
+        >(
             storage: &mut AnimatableSet<T>,
             animation_id: Animation,
             time: f32,
@@ -617,7 +621,9 @@ impl Style {
             }
         }
 
-        fn insert_keyframe2<T: 'static + Interpolator + Debug + Clone + PartialEq + Default>(
+        fn insert_keyframe2<
+            T: 'static + Interpolator + Compositor + Debug + Clone + PartialEq + Default,
+        >(
             storage: &mut AnimatableVarSet<T>,
             animation_id: Animation,
             time: f32,

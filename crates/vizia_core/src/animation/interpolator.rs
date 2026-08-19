@@ -320,7 +320,6 @@ replace_compositor!(
     Shadow,
     Gradient,
     LinearGradient,
-    ColorStop,
     Matrix,
 );
 
