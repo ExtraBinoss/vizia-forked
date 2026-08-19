@@ -133,3 +133,5 @@ vstack.animation-doc-nav {
           git add examples/widget_gallery/src/views/animation.rs examples/widget_gallery/resources/themes/animation.css
           git commit -m "ui: keep animation reference rail visible"
           git push origin HEAD:agent/css-keyframes-level2
+
+# synchronize trigger after retargeting the stacked PR for validation
