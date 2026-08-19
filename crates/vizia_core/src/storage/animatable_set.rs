@@ -428,6 +428,8 @@ where
         self.refresh_animation_index(entity);
     }
 
+    // CSS playback is installed as one cohesive operation across both store variants.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn play_css_animation(
         &mut self,
         entity: Entity,
