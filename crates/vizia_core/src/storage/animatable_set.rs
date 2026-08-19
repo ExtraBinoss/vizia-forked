@@ -494,16 +494,6 @@ where
         self.refresh_animation_index(entity);
     }
 
-    /// Stop an active animation for the given entity.
-    pub(crate) fn stop_animation(&mut self, entity: Entity, animation: Animation) {
-        for state in self.active_animations.iter_mut() {
-            if state.id == animation {
-                state.entities.remove(&entity);
-            }
-        }
-        self.refresh_animation_index(entity);
-    }
-
     /// Tick the animation for the given time and return entities whose animated value may change.
     pub fn tick(&mut self, time: Instant) -> Vec<Entity> {
         self.remove_innactive_animations();

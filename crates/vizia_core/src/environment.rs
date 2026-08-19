@@ -67,6 +67,11 @@ fn apply_direction_class(cx: &mut EventContext, direction: Direction) {
 }
 
 fn detect_reduced_motion() -> bool {
+    #[cfg(target_os = "macos")]
+    if std::thread::current().name() != Some("main") {
+        return false;
+    }
+
     let preferences =
         Preferences::once_blocking(Interest::ReducedMotion, Duration::from_millis(100));
     preferences.is_some_and(|preferences| preferences.reduced_motion == ReducedMotion::Reduce)

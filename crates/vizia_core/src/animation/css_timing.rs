@@ -82,10 +82,6 @@ impl CssAnimationTiming {
         }
     }
 
-    fn final_progress(self) -> f32 {
-        self.final_iteration_and_progress().1
-    }
-
     pub fn sample(self, active_elapsed: f32) -> CssAnimationSample {
         let active_duration = self.active_duration();
         let local = active_elapsed - self.delay;

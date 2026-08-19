@@ -80,13 +80,6 @@ where
         self.output.as_ref()
     }
 
-    pub(crate) fn play(&mut self, entity: Entity) {
-        self.active = true;
-        self.t = 0.0;
-        self.start_time = Instant::now();
-        self.entities.insert(entity);
-    }
-
     pub(crate) fn configure_css(
         &mut self,
         timing: CssAnimationTiming,
