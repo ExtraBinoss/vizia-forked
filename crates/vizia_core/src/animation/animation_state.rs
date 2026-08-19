@@ -58,10 +58,6 @@ where
             css_default_timing: TimingFunction::ease(),
             css_instance_id: None,
             css_order: 0,
-            css_instance_id: None,
-            css_order: 0,
-            css_instance_id: None,
-            css_order: 0,
         }
     }
 
@@ -153,6 +149,8 @@ where
             to_rule: usize::MAX,
             css_clock: None,
             css_default_timing: TimingFunction::ease(),
+            css_instance_id: None,
+            css_order: 0,
         }
     }
 }
