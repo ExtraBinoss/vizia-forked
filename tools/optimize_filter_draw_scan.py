@@ -54,6 +54,37 @@ replace_once(
 ''',
 )
 
+# Inline Rust modifiers must register entities too, otherwise this optimization
+# would regress non-CSS filter/backdrop usage.
+replace_once(
+    "crates/vizia_core/src/modifiers/style.rs",
+    '''                let value = v.get_value(cx).into();
+                cx.style.filter.insert(entity, value);
+
+                cx.needs_redraw(entity);
+''',
+    '''                let value = v.get_value(cx).into();
+                cx.style.filter.insert(entity, value);
+                cx.style.filter_entities.insert(entity);
+
+                cx.needs_redraw(entity);
+''',
+)
+replace_once(
+    "crates/vizia_core/src/modifiers/style.rs",
+    '''                let value = v.get_value(cx).into();
+                cx.style.backdrop_filter.insert(entity, value);
+
+                cx.needs_redraw(entity);
+''',
+    '''                let value = v.get_value(cx).into();
+                cx.style.backdrop_filter.insert(entity, value);
+                cx.style.filter_entities.insert(entity);
+
+                cx.needs_redraw(entity);
+''',
+)
+
 # Animated filters may exist without a static base declaration, so register them from tick output.
 replace_once(
     "crates/vizia_core/src/systems/animation.rs",
