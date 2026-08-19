@@ -1,840 +1,672 @@
-use std::{cell::Cell, rc::Rc, time::Instant};
+use vizia::prelude::*;
 
-use vizia::{
-    icons::{ICON_HEART, ICON_STAR},
-    prelude::*,
-    vg,
-};
+const DOC_RUNTIME_TARGET_ID: &str = "animation-doc-runtime-target";
+const DOC_RUNTIME_DURATION: f32 = 6.0;
 
-const ANIMATION_PAGE_ID: &str = "animation-showcase-page";
-const RUNTIME_TARGET_ID: &str = "animation-runtime-target";
-const REPLACE_TARGET_ID: &str = "animation-replace-target";
-const ADD_TARGET_ID: &str = "animation-add-target";
-const ACCUMULATE_TARGET_ID: &str = "animation-accumulate-target";
-const RUNTIME_DURATION: f32 = 8.0;
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ExampleKind {
+    Motion,
+    Duration,
+    Delay,
+    Steps,
+    Iterations,
+    Direction,
+    FillMode,
+    Paused,
+    Composition,
+    DocumentTimeline,
+    ScrollTimeline,
+    ViewTimeline,
+    Multiple,
+    Opacity,
+    Transform,
+    TransformOrigin,
+    Translate,
+    Rotate,
+    Scale,
+    ClipPath,
+    Filter,
+    BackdropFilter,
+    BackgroundColor,
+    BackgroundGeometry,
+    BorderWidth,
+    BorderColor,
+    CornerRadius,
+    Outline,
+    Shadow,
+    TextColor,
+    FontSize,
+    LetterSpacing,
+    LineHeight,
+    TextPaint,
+    Fill,
+    Position,
+    Padding,
+    Gap,
+    Size,
+    Constraints,
+    Display,
+    StaticInfo,
+    Runtime,
+    Popover,
+    Throbber,
+}
 
-const DOCUMENT_TARGET_IDS: &[&str] =
-    &[RUNTIME_TARGET_ID, REPLACE_TARGET_ID, ADD_TARGET_ID, ACCUMULATE_TARGET_ID];
+struct DocEntry {
+    category: &'static str,
+    title: &'static str,
+    css: &'static str,
+    description: &'static str,
+    example: ExampleKind,
+}
 
-const DEMOS: &[(&str, &str)] = &[
-    (
-        "Shorthand + delay + fill",
-        "Negative delay, alternate direction and fill mode on a single CSS animation shorthand.",
-    ),
-    (
-        "Iterations + direction",
-        "The same keyframes run with alternate and alternate-reverse directions.",
-    ),
-    (
-        "Steps easing",
-        "A steps() timing function advances discretely instead of interpolating continuously.",
-    ),
-    (
-        "Play state",
-        "The first marker runs while the second copy stays paused halfway through the same keyframes.",
-    ),
-    (
-        "Multiple animations",
-        "Two named Level 1 animations affect one element with different periods.",
-    ),
-    (
-        "Layout invalidation",
-        "Width, padding and gap animate with stepped timing so layout changes are easy to inspect.",
-    ),
-    (
-        "Visual interpolation",
-        "Background, text color, radius, border and shadow interpolate on the same surface.",
-    ),
-    ("Transform family", "Translate, rotate and scale move through multiple keyframes."),
-    ("Filter blur", "filter: blur() interpolates between crisp and blurred states."),
-    ("Backdrop filter", "backdrop-filter blurs moving content behind a translucent surface."),
+const DOCS: &[DocEntry] = &[
+    DocEntry {
+        category: "Animation properties",
+        title: "animation",
+        css: r#"@keyframes move {
+  from { translate: -110px 0; opacity: .45; }
+  to   { translate: 110px 0; opacity: 1; }
+}
+
+.target {
+  animation: move 1.6s ease-in-out
+             -300ms infinite alternate both;
+}"#,
+        description: "The shorthand wires name, duration, easing, delay, iteration count, direction, fill mode and play state into one CSS animation occurrence.",
+        example: ExampleKind::Motion,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-name",
+        css: r#".target {
+  animation-name: move;
+  animation-duration: 1.6s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}"#,
+        description: "Selects the @keyframes rule by name. Vizia starts, updates and cancels the CSS animation automatically from computed style.",
+        example: ExampleKind::Motion,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-duration",
+        css: r#".target {
+  animation-name: move;
+  animation-duration: 3.5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}"#,
+        description: "Controls the active interval for one iteration. Negative durations are rejected.",
+        example: ExampleKind::Duration,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-delay",
+        css: r#".target {
+  animation: move 1.6s ease-in-out;
+  animation-delay: -800ms;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}"#,
+        description: "Positive and negative delays are supported. A negative delay begins as if the animation had already been running.",
+        example: ExampleKind::Delay,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-timing-function",
+        css: r#".target {
+  animation: move 1.8s
+    cubic-bezier(.2, .8, .2, 1)
+    infinite alternate;
+}"#,
+        description: "Supports CSS easing keywords, validated cubic-bezier() and steps() timing functions.",
+        example: ExampleKind::Motion,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "steps() / step-start / step-end",
+        css: r#".target {
+  animation: move 1.8s
+    steps(6, end)
+    infinite alternate;
+}"#,
+        description: "Discrete timing functions jump between sampled positions instead of interpolating continuously.",
+        example: ExampleKind::Steps,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-iteration-count",
+        css: r#".target {
+  animation: move 900ms ease-in-out;
+  animation-iteration-count: 3;
+  animation-fill-mode: forwards;
+}"#,
+        description: "Finite, fractional and infinite iteration counts are supported. This example runs three times and keeps its final value.",
+        example: ExampleKind::Iterations,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-direction",
+        css: r#".target {
+  animation: move 1.4s ease-in-out
+             infinite alternate-reverse;
+}"#,
+        description: "normal, reverse, alternate and alternate-reverse affect iteration progress without changing the keyframe data.",
+        example: ExampleKind::Direction,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-fill-mode",
+        css: r#".target {
+  animation: settle 900ms ease-out;
+  animation-fill-mode: forwards;
+}"#,
+        description: "none, forwards, backwards and both control whether sampled values apply before or after the active phase.",
+        example: ExampleKind::FillMode,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-play-state",
+        css: r#".target {
+  animation: move 1.6s ease-in-out
+             -800ms infinite alternate;
+  animation-play-state: paused;
+}"#,
+        description: "running and paused operate on the same CSS occurrence and preserve local progress when resumed.",
+        example: ExampleKind::Paused,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-composition",
+        css: r#".target {
+  animation:
+    move-x 1.8s infinite alternate,
+    move-y 1.1s infinite alternate;
+
+  animation-composition: add, add;
+}"#,
+        description: "replace, add and accumulate are resolved inside Vizia's property stores using a stable per-property effect stack.",
+        example: ExampleKind::Composition,
+    },
+    DocEntry {
+        category: "Animation properties",
+        title: "animation-timeline",
+        css: r#".target {
+  animation: reveal 1s linear both;
+  animation-timeline: auto;
+}
+
+/* Also supported:
+   --named-timeline
+   scroll(nearest block)
+   view(block)
+*/"#,
+        description: "The effect can be sampled from document time, a named scroll source, scroll() or view() progress.",
+        example: ExampleKind::DocumentTimeline,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "@keyframes",
+        css: r#"@keyframes pulse {
+  from {
+    opacity: .35;
+    scale: .8;
+  }
+  to {
+    opacity: 1;
+    scale: 1.15;
+  }
+}"#,
+        description: "from/to and percentage offsets are parsed into the same animation storage used by Rust-side animations and transitions.",
+        example: ExampleKind::Motion,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "percentage keyframes",
+        css: r#"@keyframes orbit {
+  0%   { translate: -120px 0; }
+  35%  { translate: -20px -35px; }
+  70%  { translate: 80px 24px; }
+  100% { translate: 120px 0; }
+}"#,
+        description: "Multiple offsets, duplicate offsets, implicit endpoints and underlying values are normalized by the CSS animation runtime.",
+        example: ExampleKind::Transform,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "multiple animations",
+        css: r#".target {
+  animation:
+    move 1.6s ease-in-out infinite alternate,
+    color 2.4s linear infinite alternate;
+}"#,
+        description: "Comma-separated animation lists create independent occurrences. CSS list repetition rules resolve shorter longhand lists.",
+        example: ExampleKind::Multiple,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "document timeline",
+        css: r#".target {
+  animation: move 2s linear infinite alternate;
+  animation-timeline: auto;
+}"#,
+        description: "The default document timeline advances from wall-clock time and requests frames only while sampled values are changing.",
+        example: ExampleKind::DocumentTimeline,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "named scroll timeline",
+        css: r#".target {
+  animation: reveal 1s linear both;
+  animation-timeline: --docs-scroll;
+}
+
+/* Rust source */
+ScrollView::new(cx, content)
+  .timeline_name("--docs-scroll");"#,
+        description: "A Vizia ScrollView can publish a named normalized progress source that CSS animations consume directly.",
+        example: ExampleKind::ScrollTimeline,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "scroll()",
+        css: r#".target {
+  animation: reveal 1s linear both;
+  animation-timeline:
+    scroll(nearest block);
+}"#,
+        description: "scroll() uses the selected scroll source and axis as the animation clock. Stop scrolling and the animation freezes.",
+        example: ExampleKind::ScrollTimeline,
+    },
+    DocEntry {
+        category: "Keyframes & timelines",
+        title: "view()",
+        css: r#".target {
+  animation: reveal 1s linear both;
+  animation-timeline: view(block);
+}"#,
+        description: "view() derives progress from the subject entering and leaving its nearest scroll viewport.",
+        example: ExampleKind::ViewTimeline,
+    },
+    DocEntry { category: "Animated values", title: "opacity", css: r#"@keyframes demo {
+  from { opacity: .15; }
+  to   { opacity: 1; }
+}"#, description: "Paint-only interpolation. It does not require layout or text reconstruction.", example: ExampleKind::Opacity },
+    DocEntry { category: "Animated values", title: "transform", css: r#"@keyframes demo {
+  from { transform: translateX(-90px) rotate(-25deg); }
+  to   { transform: translateX(90px) rotate(335deg); }
+}"#, description: "Transform lists are sampled through the retransform path rather than layout.", example: ExampleKind::Transform },
+    DocEntry { category: "Animated values", title: "transform-origin", css: r#"@keyframes demo {
+  from { transform-origin: 0% 50%; rotate: -35deg; }
+  to   { transform-origin: 100% 50%; rotate: 35deg; }
+}"#, description: "Transform origin is store-backed and participates in the same animation clock as transforms.", example: ExampleKind::TransformOrigin },
+    DocEntry { category: "Animated values", title: "translate", css: r#"@keyframes demo {
+  from { translate: -110px 0; }
+  to   { translate: 110px 0; }
+}"#, description: "Individual translate is independently animatable and supports additive effect composition.", example: ExampleKind::Translate },
+    DocEntry { category: "Animated values", title: "rotate", css: r#"@keyframes demo {
+  from { rotate: -30deg; }
+  to   { rotate: 330deg; }
+}"#, description: "Individual rotate is independently animatable and supports add/accumulate composition.", example: ExampleKind::Rotate },
+    DocEntry { category: "Animated values", title: "scale", css: r#"@keyframes demo {
+  from { scale: .65; }
+  to   { scale: 1.25; }
+}"#, description: "Individual scale is independently animatable and participates in transform invalidation.", example: ExampleKind::Scale },
+    DocEntry { category: "Animated values", title: "clip-path", css: r#"@keyframes demo {
+  from { clip-path: inset(18px); }
+  to   { clip-path: inset(0px); }
+}"#, description: "Clip path changes use the reclip path. Incompatible shapes fall back deterministically.", example: ExampleKind::ClipPath },
+    DocEntry { category: "Animated values", title: "filter", css: r#"@keyframes demo {
+  from { filter: blur(0px); }
+  50%  { filter: blur(10px); }
+  to   { filter: blur(0px); }
+}"#, description: "Compatible filter lists interpolate; incompatible lists use discrete fallback.", example: ExampleKind::Filter },
+    DocEntry { category: "Animated values", title: "backdrop-filter", css: r#"@keyframes demo {
+  from { backdrop-filter: blur(1px); }
+  to   { backdrop-filter: blur(12px); }
+}"#, description: "Backdrop filter interpolation is tracked sparsely so only filter-bearing entities take the filter-aware draw path.", example: ExampleKind::BackdropFilter },
+    DocEntry { category: "Animated values", title: "background-color", css: r#"@keyframes demo {
+  from { background-color: #3b82f6; }
+  to   { background-color: #8b5cf6; }
+}"#, description: "Background colors interpolate as paint-only values.", example: ExampleKind::BackgroundColor },
+    DocEntry { category: "Animated values", title: "background-image / position / repeat / size", css: r#"@keyframes demo {
+  from {
+    background-position: 0% 50%;
+    background-size: 90% 90%;
+  }
+  to {
+    background-position: 100% 50%;
+    background-size: 125% 125%;
+  }
+}"#, description: "The background image, position, repeat and size stores participate in keyframe playback. Incompatible image/repeat values use deterministic fallback.", example: ExampleKind::BackgroundGeometry },
+    DocEntry { category: "Animated values", title: "border-top/right/bottom/left-width", css: r#"@keyframes demo {
+  from { border-top-width: 1px; }
+  to   { border-top-width: 12px; }
+}"#, description: "All four border width stores are animatable. Width changes are layout-affecting and use change-aware relayout ticking.", example: ExampleKind::BorderWidth },
+    DocEntry { category: "Animated values", title: "border-top/right/bottom/left-color", css: r#"@keyframes demo {
+  from { border-color: #3b82f6; }
+  to   { border-color: #f43f5e; }
+}"#, description: "All four border colors interpolate as paint values.", example: ExampleKind::BorderColor },
+    DocEntry { category: "Animated values", title: "corner-*-radius / smoothing", css: r#"@keyframes demo {
+  from { corner-radius: 4px; }
+  to   { corner-radius: 34px; }
+}"#, description: "Per-corner radius and smoothing stores are animatable. Radius changes also trigger rounded re-clipping.", example: ExampleKind::CornerRadius },
+    DocEntry { category: "Animated values", title: "outline-width / color / offset", css: r#"@keyframes demo {
+  from {
+    outline-width: 1px;
+    outline-color: #3b82f6;
+    outline-offset: 1px;
+  }
+  to {
+    outline-width: 6px;
+    outline-color: #a855f7;
+    outline-offset: 8px;
+  }
+}"#, description: "Outline width, color and offset are all backed by animatable stores.", example: ExampleKind::Outline },
+    DocEntry { category: "Animated values", title: "shadow", css: r#"@keyframes demo {
+  from { shadow: 0px 2px 6px #22000000; }
+  to   { shadow: 0px 16px 34px #55000000; }
+}"#, description: "Compatible shadow lists interpolate and redraw without relayout.", example: ExampleKind::Shadow },
+    DocEntry { category: "Animated values", title: "color", css: r#"@keyframes demo {
+  from { color: #3b82f6; }
+  to   { color: #f43f5e; }
+}"#, description: "Font color is a paint-only text property and does not reconstruct text layout.", example: ExampleKind::TextColor },
+    DocEntry { category: "Animated values", title: "font-size", css: r#"@keyframes demo {
+  from { font-size: 20px; }
+  to   { font-size: 42px; }
+}"#, description: "Font size animation requests text reconstruction because glyph metrics change.", example: ExampleKind::FontSize },
+    DocEntry { category: "Animated values", title: "letter-spacing", css: r#"@keyframes demo {
+  from { letter-spacing: 0px; }
+  to   { letter-spacing: 8px; }
+}"#, description: "Letter spacing is reflow-affecting and uses the text construction path.", example: ExampleKind::LetterSpacing },
+    DocEntry { category: "Animated values", title: "line-height", css: r#"@keyframes demo {
+  from { line-height: 1; }
+  to   { line-height: 1.8; }
+}"#, description: "Line height is reflow-affecting and shares the animation clock with other text properties.", example: ExampleKind::LineHeight },
+    DocEntry { category: "Animated values", title: "caret / selection / text-decoration color", css: r#"@keyframes demo {
+  from {
+    caret-color: #3b82f6;
+    selection-color: #3b82f6;
+    text-decoration-color: #3b82f6;
+  }
+  to {
+    caret-color: #f43f5e;
+    selection-color: #f43f5e;
+    text-decoration-color: #f43f5e;
+  }
+}"#, description: "These text paint stores are animatable without text reconstruction.", example: ExampleKind::TextPaint },
+    DocEntry { category: "Animated values", title: "fill", css: r#"@keyframes demo {
+  from { fill: #3b82f6; }
+  to   { fill: #22c55e; }
+}"#, description: "The fill color store is animatable and redraw-only.", example: ExampleKind::Fill },
+    DocEntry { category: "Animated values", title: "left / right / top / bottom", css: r#"@keyframes demo {
+  from { left: 12px; top: 8px; }
+  to   { left: 110px; top: 36px; }
+}"#, description: "Position offsets are layout-affecting. The runtime only requests relayout when the sampled value actually changes.", example: ExampleKind::Position },
+    DocEntry { category: "Animated values", title: "padding-left/right/top/bottom", css: r#"@keyframes demo {
+  from { padding: 6px; }
+  to   { padding: 28px; }
+}"#, description: "All four padding stores are animatable and layout-affecting.", example: ExampleKind::Padding },
+    DocEntry { category: "Animated values", title: "horizontal-gap / vertical-gap", css: r#"@keyframes demo {
+  from { horizontal-gap: 6px; }
+  to   { horizontal-gap: 44px; }
+}"#, description: "Row/column gaps are animatable layout values and participate in change-aware relayout ticking.", example: ExampleKind::Gap },
+    DocEntry { category: "Animated values", title: "width / height", css: r#"@keyframes demo {
+  from { width: 90px; height: 58px; }
+  to   { width: 240px; height: 92px; }
+}"#, description: "Width and height support keyframe interpolation, including the existing auto-size animation resolution path.", example: ExampleKind::Size },
+    DocEntry { category: "Animated values", title: "min/max width/height + min/max gaps", css: r#"@keyframes demo {
+  from { min-width: 90px; max-width: 140px; }
+  to   { min-width: 180px; max-width: 280px; }
+}"#, description: "Constraint stores and min/max horizontal/vertical gap stores participate in CSS animation playback.", example: ExampleKind::Constraints },
+    DocEntry { category: "Animated values", title: "display", css: r#"@keyframes demo {
+  0%, 49% { display: none; }
+  50%, 100% { display: flex; }
+}"#, description: "Display is store-backed but fundamentally discrete rather than numerically interpolated.", example: ExampleKind::Display },
+    DocEntry { category: "Animated values", title: "typed custom properties", css: r#"/* Vizia typed custom-property stores share
+   the same CSS animation clock for:
+   color, length, font-size, letter-spacing,
+   line-height, units, opacity and shadow. */"#, description: "Typed Vizia custom property families use the same animation/composition machinery as built-in properties.", example: ExampleKind::StaticInfo },
+    DocEntry { category: "Runtime & UI patterns", title: "runtime controls", css: r#".target {
+  animation: move 6s linear infinite alternate;
+}
+
+/* Rust */
+cx.pause_css_animation(id);
+cx.resume_css_animation(id);
+cx.seek_css_animation(id, seconds);
+cx.reverse_css_animation(id);
+cx.set_css_animation_playback_rate(id, 2.0);"#, description: "Runtime control operates on the same stable CSS occurrence and the same property-store clocks that render the effect.", example: ExampleKind::Runtime },
+    DocEntry { category: "Runtime & UI patterns", title: "blur reveal popover", css: r#"@keyframes reveal {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    translate: 0 -5px;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    translate: 0 0;
+  }
+}
+
+popover {
+  animation: reveal 180ms ease-out both;
+}"#, description: "A native Vizia Popover can use the same CSS animation engine for a short entrance effect.", example: ExampleKind::Popover },
+    DocEntry { category: "Runtime & UI patterns", title: "text throbber", css: r#".dot {
+  animation: throb 900ms ease-in-out
+             infinite alternate;
+}
+
+.dot:nth-child(2) { animation-delay: -300ms; }
+.dot:nth-child(3) { animation-delay: -600ms; }"#, description: "A small staggered loading indicator uses independent animation occurrences and negative delays.", example: ExampleKind::Throbber },
 ];
-
-const HEART_POINTS: [(f32, f32); 16] = [
-    (0.0, -0.48),
-    (-0.28, -0.86),
-    (-0.68, -0.92),
-    (-0.98, -0.62),
-    (-1.0, -0.18),
-    (-0.84, 0.18),
-    (-0.58, 0.45),
-    (-0.29, 0.72),
-    (0.0, 1.0),
-    (0.29, 0.72),
-    (0.58, 0.45),
-    (0.84, 0.18),
-    (1.0, -0.18),
-    (0.98, -0.62),
-    (0.68, -0.92),
-    (0.28, -0.86),
-];
-
-const STAR_POINTS: [(f32, f32); 16] = [
-    (0.0, -1.0),
-    (0.16, -0.38),
-    (0.71, -0.71),
-    (0.38, -0.16),
-    (1.0, 0.0),
-    (0.38, 0.16),
-    (0.71, 0.71),
-    (0.16, 0.38),
-    (0.0, 1.0),
-    (-0.16, 0.38),
-    (-0.71, 0.71),
-    (-0.38, 0.16),
-    (-1.0, 0.0),
-    (-0.38, -0.16),
-    (-0.71, -0.71),
-    (-0.16, -0.38),
-];
-
-struct MorphIcon {
-    progress: Signal<f32>,
-}
-
-impl MorphIcon {
-    fn new(cx: &mut Context, progress: Signal<f32>) -> Handle<'_, Self> {
-        let handle = Self { progress }.build(cx, |_| {});
-        let entity = handle.entity();
-        handle.bind(progress, move |mut handle| {
-            let _ = progress.get();
-            handle.context().needs_redraw(entity);
-        })
-    }
-}
-
-impl View for MorphIcon {
-    fn element(&self) -> Option<&'static str> {
-        Some("morph-icon")
-    }
-
-    fn draw(&self, cx: &mut DrawContext, canvas: &Canvas) {
-        cx.draw_background(canvas);
-        let bounds = cx.bounds();
-        if bounds.w <= 0.0 || bounds.h <= 0.0 {
-            return;
-        }
-
-        let t = self.progress.get().clamp(0.0, 1.0);
-        let radius = bounds.w.min(bounds.h) * 0.34;
-        let center_x = bounds.x + bounds.w * 0.5;
-        let center_y = bounds.y + bounds.h * 0.5;
-
-        let mut path = vg::PathBuilder::new();
-        for index in 0..HEART_POINTS.len() {
-            let a = HEART_POINTS[index];
-            let b = STAR_POINTS[index];
-            let x = center_x + (a.0 + (b.0 - a.0) * t) * radius;
-            let y = center_y + (a.1 + (b.1 - a.1) * t) * radius;
-            let point = vg::Point::new(x, y);
-            if index == 0 {
-                path.move_to(point);
-            } else {
-                path.line_to(point);
-            }
-        }
-        path.close();
-
-        let mut paint = vg::Paint::default();
-        paint.set_color(cx.font_color());
-        paint.set_style(vg::PaintStyle::Stroke);
-        paint.set_stroke_width(3.0 * cx.scale_factor());
-        paint.set_stroke_cap(vg::PaintCap::Round);
-        paint.set_stroke_join(vg::PaintJoin::Round);
-        paint.set_anti_alias(true);
-        canvas.draw_path(&path.detach(), &paint);
-    }
-}
-
-fn section_header(cx: &mut Context, title: &'static str, description: &'static str) {
-    VStack::new(cx, |cx| {
-        Label::new(cx, title).class("animation-section-title");
-        Label::new(cx, description).class("animation-section-description");
-    })
-    .class("animation-section-header");
-}
-
-fn baseline_track(cx: &mut Context, class: &'static str) {
-    ZStack::new(cx, move |cx| {
-        Element::new(cx).class("baseline-orb").class(class);
-    })
-    .class("baseline-track");
-}
-
-fn render_demo_visual(cx: &mut Context, index: usize) {
-    match index {
-        0 => {
-            Label::new(cx, "@KEYFRAMES").class("baseline-surface").class("baseline-entrance");
-        }
-        1 => {
-            VStack::new(cx, |cx| {
-                HStack::new(cx, |cx| {
-                    Label::new(cx, "alternate").class("baseline-track-label");
-                    baseline_track(cx, "baseline-alternate");
-                })
-                .class("baseline-track-row");
-                HStack::new(cx, |cx| {
-                    Label::new(cx, "alternate-reverse").class("baseline-track-label");
-                    baseline_track(cx, "baseline-alternate-reverse");
-                })
-                .class("baseline-track-row");
-            })
-            .class("baseline-track-stack");
-        }
-        2 => {
-            ZStack::new(cx, |cx| {
-                Element::new(cx).class("baseline-step-cursor").class("baseline-steps");
-            })
-            .class("baseline-step-stage");
-        }
-        3 => {
-            VStack::new(cx, |cx| {
-                HStack::new(cx, |cx| {
-                    Label::new(cx, "running").class("baseline-track-label");
-                    baseline_track(cx, "baseline-running");
-                })
-                .class("baseline-track-row");
-                HStack::new(cx, |cx| {
-                    Label::new(cx, "paused at 50%").class("baseline-track-label");
-                    baseline_track(cx, "baseline-paused");
-                })
-                .class("baseline-track-row");
-            })
-            .class("baseline-track-stack");
-        }
-        4 => {
-            Label::new(cx, "TWO EFFECTS").class("baseline-surface").class("baseline-multiple");
-        }
-        5 => {
-            HStack::new(cx, |cx| {
-                Element::new(cx).class("baseline-layout-box");
-                Element::new(cx).class("baseline-layout-static");
-            })
-            .class("baseline-layout-row");
-        }
-        6 => {
-            Label::new(cx, "STYLE").class("baseline-surface").class("baseline-style");
-        }
-        7 => {
-            Element::new(cx).class("baseline-transform");
-        }
-        8 => {
-            Label::new(cx, "FILTER  /  BLUR")
-                .class("baseline-filter-sample")
-                .class("baseline-filter");
-        }
-        9 => {
-            ZStack::new(cx, |cx| {
-                Element::new(cx).class("baseline-backdrop-orb").class("backdrop-orb-one");
-                Element::new(cx).class("baseline-backdrop-orb").class("backdrop-orb-two");
-                VStack::new(cx, |cx| {
-                    Label::new(cx, "Backdrop filter").class("baseline-glass-title");
-                    Label::new(cx, "blur over moving content").class("baseline-glass-copy");
-                })
-                .class("baseline-glass")
-                .class("baseline-backdrop");
-            })
-            .class("baseline-backdrop-stage");
-        }
-        _ => {}
-    }
-}
 
 fn runtime_animation_id(cx: &EventContext) -> Option<CssAnimationId> {
-    let entity = cx.resolve_entity_identifier(RUNTIME_TARGET_ID)?;
+    let entity = cx.resolve_entity_identifier(DOC_RUNTIME_TARGET_ID)?;
     cx.css_animations(entity).into_iter().next().map(|snapshot| snapshot.id)
 }
 
 fn runtime_snapshot_text(cx: &EventContext) -> String {
-    let Some(entity) = cx.resolve_entity_identifier(RUNTIME_TARGET_ID) else {
-        return "Document timeline is starting…".to_string();
+    let Some(entity) = cx.resolve_entity_identifier(DOC_RUNTIME_TARGET_ID) else {
+        return "Animation not mounted yet".to_string();
     };
     let Some(snapshot) = cx.css_animations(entity).into_iter().next() else {
         return "No active CSS animation occurrence".to_string();
     };
-    let progress = snapshot
-        .progress
-        .map(|value| format!("{:.0}%", value * 100.0))
-        .unwrap_or_else(|| "—".to_string());
-    format!(
-        "{:?}  ·  {}  ·  {:.1}×  ·  id {}",
-        snapshot.state,
-        progress,
-        snapshot.playback_rate,
-        snapshot.id.get(),
-    )
+    let progress = snapshot.progress.map(|value| format!("{:.0}%", value * 100.0)).unwrap_or_else(|| "—".to_string());
+    format!("id={}  ·  {:?}  ·  {:.2}s  ·  {}  ·  {:.2}×", snapshot.id.get(), snapshot.state, snapshot.current_time, progress, snapshot.playback_rate)
 }
 
-fn collect_document_animation_ids(cx: &EventContext) -> Vec<CssAnimationId> {
-    DOCUMENT_TARGET_IDS
-        .iter()
-        .filter_map(|identifier| cx.resolve_entity_identifier(identifier))
-        .flat_map(|entity| cx.css_animations(entity).into_iter().map(|snapshot| snapshot.id))
-        .collect()
+fn simple_stage(cx: &mut Context, label: &'static str, class: &'static str) {
+    HStack::new(cx, move |cx| { Label::new(cx, label).class("animation-doc-target").class(class); })
+        .class("animation-doc-stage")
+        .alignment(Alignment::Center);
 }
 
-fn pause_document_animations(cx: &mut EventContext) {
-    for id in collect_document_animation_ids(cx) {
-        let _ = cx.pause_css_animation(id);
-    }
+fn motion_track(cx: &mut Context, class: &'static str) {
+    ZStack::new(cx, move |cx| {
+        Element::new(cx).class("animation-doc-track-line");
+        Element::new(cx).class("animation-doc-dot").class(class);
+    })
+    .class("animation-doc-track");
 }
 
-fn resume_document_animations(cx: &mut EventContext) {
-    for id in collect_document_animation_ids(cx) {
-        let _ = cx.resume_css_animation(id);
-    }
-}
-
-fn level_two_composition(cx: &mut Context) {
-    VStack::new(cx, |cx| {
-        HStack::new(cx, |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Replace").class("animation-example-title");
-                Label::new(cx, "The later translate effect replaces the earlier one.")
-                    .class("animation-example-copy");
-                ZStack::new(cx, |cx| {
-                    Element::new(cx)
-                        .id(REPLACE_TARGET_ID)
-                        .class("composition-target")
-                        .class("composition-replace");
-                })
-                .class("composition-stage");
-            })
-            .class("animation-example-column");
-
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Add").class("animation-example-title");
-                Label::new(cx, "Both translate effects remain in the effect stack.")
-                    .class("animation-example-copy");
-                ZStack::new(cx, |cx| {
-                    Element::new(cx)
-                        .id(ADD_TARGET_ID)
-                        .class("composition-target")
-                        .class("composition-add");
-                })
-                .class("composition-stage");
-            })
-            .class("animation-example-column");
-        })
-        .class("composition-comparison");
-
+fn render_scroll_preview(cx: &mut Context) {
+    ScrollView::new(cx, |cx| {
         VStack::new(cx, |cx| {
-            Label::new(cx, "Accumulate").class("animation-example-title");
-            Label::new(
-                cx,
-                "Two rotate effects accumulate while scale stays an independent effect.",
-            )
-            .class("animation-example-copy");
-            ZStack::new(cx, |cx| {
-                Label::new(cx, "A + B").id(ACCUMULATE_TARGET_ID).class("accumulate-target");
-            })
-            .class("accumulate-stage");
+            Label::new(cx, "Scroll inside this result").class("animation-doc-hint");
+            Element::new(cx).class("animation-doc-scroll-spacer");
+            Label::new(cx, "SCROLL TIMELINE").class("animation-doc-scroll-subject");
+            Element::new(cx).class("animation-doc-scroll-spacer");
+            Label::new(cx, "End").class("animation-doc-hint");
         })
-        .class("animation-example-column");
+        .class("animation-doc-scroll-content");
     })
-    .class("composition-content");
+    .timeline_name("--docs-scroll")
+    .show_horizontal_scrollbar(false)
+    .show_vertical_scrollbar(false)
+    .class("animation-doc-scrollview");
 }
 
-fn document_timeline_demo(cx: &mut Context, readout: Signal<String>, seek: Signal<f32>) {
-    VStack::new(cx, move |cx| {
-        HStack::new(cx, |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Document timeline · autoplay").class("animation-example-title");
-                Label::new(
-                    cx,
-                    "This one is time-driven. The scrubber follows the animation continuously and can also seek it.",
-                )
-                .class("animation-example-copy");
-            })
-            .width(Stretch(1.0));
-
-            HStack::new(cx, |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Play"))
-                    .on_press(move |cx| {
-                        if let Some(id) = runtime_animation_id(cx) {
-                            let _ = cx.resume_css_animation(id);
-                        }
-                    });
-                Button::new(cx, |cx| Label::new(cx, "Pause"))
-                    .variant(ButtonVariant::Secondary)
-                    .on_press(move |cx| {
-                        if let Some(id) = runtime_animation_id(cx) {
-                            let _ = cx.pause_css_animation(id);
-                        }
-                    });
-                Button::new(cx, |cx| Label::new(cx, "Reverse"))
-                    .variant(ButtonVariant::Outline)
-                    .on_press(move |cx| {
-                        if let Some(id) = runtime_animation_id(cx) {
-                            let _ = cx.reverse_css_animation(id);
-                        }
-                    });
-            })
-            .class("animation-inline-controls");
-        })
-        .class("animation-example-heading");
-
-        ZStack::new(cx, |cx| {
-            Label::new(cx, "DOCUMENT TIMELINE")
-                .id(RUNTIME_TARGET_ID)
-                .class("runtime-target");
-        })
-        .class("runtime-stage");
-
-        HStack::new(cx, move |cx| {
-            Slider::new(cx, seek)
-                .on_change(move |cx, value| {
-                    seek.set(value);
-                    if let Some(id) = runtime_animation_id(cx) {
-                        let _ = cx.seek_css_animation(id, value * RUNTIME_DURATION);
-                    }
-                })
-                .width(Stretch(1.0));
-            Label::new(cx, seek.map(|value| format!("{:>3.0}%", value * 100.0)))
-                .class("timeline-value");
-        })
-        .class("timeline-scrubber");
-
-        HStack::new(cx, move |cx| {
-            Label::new(cx, readout).class("runtime-readout");
-            HStack::new(cx, |cx| {
-                for (label, rate) in [("½×", 0.5_f32), ("1×", 1.0_f32), ("2×", 2.0_f32)] {
-                    Button::new(cx, move |cx| Label::new(cx, label))
-                        .variant(ButtonVariant::Text)
-                        .on_press(move |cx| {
-                            if let Some(id) = runtime_animation_id(cx) {
-                                let _ = cx.set_css_animation_playback_rate(id, rate);
-                            }
-                        });
-                }
-                Button::new(cx, |cx| Label::new(cx, "Restart"))
-                    .variant(ButtonVariant::Text)
-                    .on_press(move |cx| {
-                        if let Some(id) = runtime_animation_id(cx) {
-                            let _ = cx.seek_css_animation(id, 0.0);
-                            let _ = cx.resume_css_animation(id);
-                        }
-                    });
-            })
-            .class("animation-inline-controls");
-        })
-        .class("runtime-meta-row");
-    })
-    .class("timeline-document-demo");
-}
-
-fn scroll_timeline_demo(cx: &mut Context) {
-    let progress = Signal::new(0.0_f32);
-
-    VStack::new(cx, move |cx| {
-        HStack::new(cx, move |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Scroll timeline · scrubbed by scroll")
-                    .class("animation-example-title");
-                Label::new(
-                    cx,
-                    "This intentionally does not autoplay: scroll position is the clock. Stop scrolling and the effect freezes exactly there.",
-                )
-                .class("animation-example-copy");
-            })
-            .width(Stretch(1.0));
-            Label::new(cx, progress.map(|value| format!("{:.0}%", value * 100.0)))
-                .class("timeline-progress-copy");
-        })
-        .class("animation-example-heading");
-
-        ScrollView::new(cx, |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Scroll inside this area").class("timeline-hint");
-                Element::new(cx).class("timeline-spacer");
-                Label::new(cx, "SCROLL SCRUB")
-                    .class("scroll-timeline-subject");
-                Element::new(cx).class("timeline-spacer");
-                Label::new(cx, "End").class("timeline-hint");
-            })
-            .class("scroll-timeline-content");
-        })
-        .timeline_name("--gallery-scroll")
-        .on_scroll(move |_cx, _x, y| progress.set(y))
-        .show_horizontal_scrollbar(false)
-        .show_vertical_scrollbar(false)
-        .class("timeline-scrollview");
-    })
-    .class("timeline-source-demo");
-}
-
-fn view_timeline_demo(cx: &mut Context) {
-    VStack::new(cx, |cx| {
+fn render_view_preview(cx: &mut Context) {
+    ScrollView::new(cx, |cx| {
         VStack::new(cx, |cx| {
-            Label::new(cx, "View timeline · visibility progress")
-                .class("animation-example-title");
-            Label::new(
-                cx,
-                "The subject samples its own entry/exit progress through the local viewport. Scroll the viewport, then stop to freeze it.",
-            )
-            .class("animation-example-copy");
+            Label::new(cx, "approach").class("animation-doc-hint");
+            Element::new(cx).class("animation-doc-view-spacer");
+            Label::new(cx, "VIEW TIMELINE").class("animation-doc-view-subject");
+            Element::new(cx).class("animation-doc-view-spacer");
+            Label::new(cx, "depart").class("animation-doc-hint");
         })
-        .class("animation-example-heading");
-
-        ScrollView::new(cx, |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "approach").class("timeline-hint");
-                Element::new(cx).class("view-timeline-spacer");
-                Label::new(cx, "VIEW PROGRESS").class("view-timeline-subject");
-                Element::new(cx).class("view-timeline-spacer");
-                Label::new(cx, "depart").class("timeline-hint");
-            })
-            .class("view-timeline-content");
-        })
-        .show_horizontal_scrollbar(false)
-        .show_vertical_scrollbar(false)
-        .class("timeline-scrollview");
+        .class("animation-doc-scroll-content");
     })
-    .class("timeline-source-demo");
+    .show_horizontal_scrollbar(false)
+    .show_vertical_scrollbar(false)
+    .class("animation-doc-scrollview");
 }
 
-fn morph_demo(
-    cx: &mut Context,
-    progress: Signal<f32>,
-    target: Signal<f32>,
-    active: Signal<bool>,
-    autoplay: Signal<bool>,
-) {
+fn render_runtime_preview(cx: &mut Context) {
+    let readout = Signal::new("Use the controls, then inspect the stable occurrence snapshot.".to_string());
+    let seek = Signal::new(0.0_f32);
     VStack::new(cx, move |cx| {
         HStack::new(cx, |cx| {
-            VStack::new(cx, |cx| {
-                Label::new(cx, "Vector path morph · Tabler Heart ↔ Star")
-                    .class("animation-example-title");
-                Label::new(
-                    cx,
-                    "A single normalized vector contour is interpolated geometrically — not cross-faded. Scrub it manually or play the sequence.",
-                )
-                .class("animation-example-copy");
-            })
-            .width(Stretch(1.0));
-
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| {
-                    HStack::new(cx, |cx| {
-                        Svg::new(cx, ICON_HEART).class("icon");
-                        Label::new(cx, "Heart");
-                    })
-                })
-                .variant(ButtonVariant::Outline)
-                .on_press(move |_cx| {
-                    autoplay.set(false);
-                    target.set(0.0);
-                    active.set(true);
-                });
-
-                Button::new(cx, |cx| {
-                    HStack::new(cx, |cx| {
-                        Svg::new(cx, ICON_STAR).class("icon");
-                        Label::new(cx, "Star");
-                    })
-                })
-                .variant(ButtonVariant::Outline)
-                .on_press(move |_cx| {
-                    autoplay.set(false);
-                    target.set(1.0);
-                    active.set(true);
-                });
-            })
-            .class("animation-inline-controls");
+            Label::new(cx, "RUNTIME").id(DOC_RUNTIME_TARGET_ID).class("animation-doc-target").class("animation-doc-runtime-target");
         })
-        .class("animation-example-heading");
-
-        MorphIcon::new(cx, progress).class("morph-stage");
-
+        .class("animation-doc-stage")
+        .alignment(Alignment::Center);
         HStack::new(cx, move |cx| {
-            Button::new(cx, |cx| Label::new(cx, "Play sequence")).on_press(move |_cx| {
-                autoplay.set(true);
-                if !active.get() {
-                    target.set(if progress.get() >= 0.5 { 0.0 } else { 1.0 });
-                    active.set(true);
-                }
-            });
-            Button::new(cx, |cx| Label::new(cx, "Pause"))
-                .variant(ButtonVariant::Secondary)
-                .on_press(move |_cx| {
-                    autoplay.set(false);
-                    active.set(false);
-                });
-            Slider::new(cx, progress)
-                .on_change(move |_cx, value| {
-                    autoplay.set(false);
-                    active.set(false);
-                    progress.set(value);
-                })
-                .width(Stretch(1.0));
-            Label::new(cx, progress.map(|value| format!("{:.0}%", value * 100.0)))
-                .class("timeline-value");
+            Button::new(cx, |cx| Label::new(cx, "Pause")).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.pause_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
+            Button::new(cx, |cx| Label::new(cx, "Resume")).variant(ButtonVariant::Secondary).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.resume_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
+            Button::new(cx, |cx| Label::new(cx, "Reverse")).variant(ButtonVariant::Outline).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.reverse_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
+            Button::new(cx, |cx| Label::new(cx, "2×")).variant(ButtonVariant::Text).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.set_css_animation_playback_rate(id, 2.0); } readout.set(runtime_snapshot_text(cx)); });
         })
-        .class("morph-controls");
+        .class("animation-doc-controls");
+        HStack::new(cx, move |cx| {
+            Label::new(cx, "Seek").class("animation-doc-control-label");
+            Slider::new(cx, seek).on_change(move |cx, value| { seek.set(value); if let Some(id) = runtime_animation_id(cx) { let _ = cx.seek_css_animation(id, value * DOC_RUNTIME_DURATION); } readout.set(runtime_snapshot_text(cx)); }).width(Stretch(1.0));
+        })
+        .class("animation-doc-seek-row");
+        Label::new(cx, readout).class("animation-doc-runtime-readout");
     })
-    .class("morph-demo");
+    .class("animation-doc-runtime");
 }
 
-fn interaction_examples(cx: &mut Context) {
-    let popover_open = Signal::new(false);
-
+fn render_popover_preview(cx: &mut Context) {
+    let open = Signal::new(false);
     HStack::new(cx, move |cx| {
-        VStack::new(cx, move |cx| {
-            Label::new(cx, "Blur reveal popover").class("animation-example-title");
-            Label::new(cx, "A native Vizia Popover gets a short CSS blur/opacity entrance.")
-                .class("animation-example-copy");
-
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Open popover"))
-                    .on_press(move |_cx| popover_open.set(true));
-
-                Binding::new(cx, popover_open, move |cx| {
-                    if popover_open.get() {
-                        Popover::new(cx, move |cx| {
-                            VStack::new(cx, |cx| {
-                                Label::new(cx, "Blur reveal").class("animation-popover-title");
-                                Label::new(cx, "Mounted once, animated by CSS @keyframes.")
-                                    .class("animation-popover-copy");
-                                Button::new(cx, |cx| Label::new(cx, "Close"))
-                                    .variant(ButtonVariant::Secondary)
-                                    .on_press(move |_cx| popover_open.set(false));
-                            })
-                            .class("animation-popover-content");
-                        })
-                        .class("animation-blur-popover")
-                        .on_blur(move |_cx| popover_open.set(false))
-                        .placement(Placement::BottomStart)
-                        .show_arrow(false);
-                    }
-                });
-            })
-            .class("popover-anchor");
-        })
-        .class("interaction-example");
-
-        VStack::new(cx, |cx| {
-            Label::new(cx, "Text throbber").class("animation-example-title");
-            Label::new(cx, "A small ChatGPT-style thinking indicator using staggered keyframes.")
-                .class("animation-example-copy");
-            HStack::new(cx, |cx| {
-                Label::new(cx, "Thinking").class("throbber-label");
-                for class in ["throbber-dot-a", "throbber-dot-b", "throbber-dot-c"] {
-                    Element::new(cx).class("throbber-dot").class(class);
-                }
-            })
-            .class("text-throbber");
-        })
-        .class("interaction-example");
-    })
-    .class("interaction-examples");
-}
-
-fn level_one_sampler(cx: &mut Context, selected: Signal<usize>) {
-    VStack::new(cx, move |cx| {
-        HStack::new(cx, move |cx| {
-            VStack::new(cx, move |cx| {
-                Label::new(
-                    cx,
-                    selected.map(|index| format!("{:02} · {}", *index + 1, DEMOS[*index].0)),
-                )
-                .class("animation-example-title");
-                Label::new(cx, selected.map(|index| DEMOS[*index].1.to_string()))
-                    .class("animation-example-copy");
-            })
-            .width(Stretch(1.0));
-
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Previous"))
-                    .variant(ButtonVariant::Outline)
-                    .on_press(move |_cx| {
-                        selected.set((selected.get() + DEMOS.len() - 1) % DEMOS.len());
-                    });
-                Button::new(cx, |cx| Label::new(cx, "Next"))
-                    .variant(ButtonVariant::Outline)
-                    .on_press(move |_cx| {
-                        selected.set((selected.get() + 1) % DEMOS.len());
-                    });
-            })
-            .class("animation-inline-controls");
-        })
-        .class("animation-example-heading");
-
-        Binding::new(cx, selected, move |cx| {
-            let index = selected.get();
-            HStack::new(cx, move |cx| render_demo_visual(cx, index))
-                .class("baseline-sample-stage")
-                .alignment(Alignment::Center);
+        Button::new(cx, |cx| Label::new(cx, "Open popover")).on_press(move |_cx| open.set(true));
+        Binding::new(cx, open, move |cx| {
+            if open.get() {
+                Popover::new(cx, move |cx| {
+                    VStack::new(cx, |cx| {
+                        Label::new(cx, "Blur reveal").class("animation-doc-popover-title");
+                        Label::new(cx, "Native Popover + CSS @keyframes").class("animation-doc-popover-copy");
+                        Button::new(cx, |cx| Label::new(cx, "Close")).variant(ButtonVariant::Secondary).on_press(move |_cx| open.set(false));
+                    }).class("animation-doc-popover-content");
+                }).class("animation-doc-popover").on_blur(move |_cx| open.set(false)).placement(Placement::BottomStart).show_arrow(false);
+            }
         });
-    })
-    .class("baseline-sampler");
+    }).class("animation-doc-stage").alignment(Alignment::Center);
 }
 
-fn install_page_ticker(
-    cx: &mut Context,
-    readout: Signal<String>,
-    seek: Signal<f32>,
-    morph_progress: Signal<f32>,
-    morph_target: Signal<f32>,
-    morph_active: Signal<bool>,
-    morph_autoplay: Signal<bool>,
-) {
-    let timer_slot = Rc::new(Cell::new(None));
-    let timer_slot_for_callback = Rc::clone(&timer_slot);
-    let last_tick = Rc::new(Cell::new(Instant::now()));
-    let last_tick_for_callback = Rc::clone(&last_tick);
+fn render_throbber_preview(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Label::new(cx, "Thinking").class("animation-doc-throbber-label");
+        for class in ["animation-doc-throbber-a", "animation-doc-throbber-b", "animation-doc-throbber-c"] { Element::new(cx).class("animation-doc-throbber-dot").class(class); }
+    }).class("animation-doc-stage").alignment(Alignment::Center);
+}
 
-    let timer = cx.add_timer(std::time::Duration::from_millis(33), None, move |cx, _action| {
-        if cx.resolve_entity_identifier(ANIMATION_PAGE_ID).is_none() {
-            if let Some(timer) = timer_slot_for_callback.get() {
-                cx.stop_timer(timer);
-            }
-            return;
+fn render_preview(cx: &mut Context, example: ExampleKind) {
+    match example {
+        ExampleKind::Motion => motion_track(cx, "animation-doc-motion"),
+        ExampleKind::Duration => motion_track(cx, "animation-doc-duration"),
+        ExampleKind::Delay => motion_track(cx, "animation-doc-delay"),
+        ExampleKind::Steps => motion_track(cx, "animation-doc-steps"),
+        ExampleKind::Iterations => motion_track(cx, "animation-doc-iterations"),
+        ExampleKind::Direction => motion_track(cx, "animation-doc-direction"),
+        ExampleKind::FillMode => simple_stage(cx, "FORWARDS", "animation-doc-fill-mode"),
+        ExampleKind::Paused => motion_track(cx, "animation-doc-paused"),
+        ExampleKind::Composition => simple_stage(cx, "ADD", "animation-doc-composition"),
+        ExampleKind::DocumentTimeline => motion_track(cx, "animation-doc-document"),
+        ExampleKind::ScrollTimeline => render_scroll_preview(cx),
+        ExampleKind::ViewTimeline => render_view_preview(cx),
+        ExampleKind::Multiple => simple_stage(cx, "TWO ANIMATIONS", "animation-doc-multiple"),
+        ExampleKind::Opacity => simple_stage(cx, "opacity", "animation-doc-opacity"),
+        ExampleKind::Transform => simple_stage(cx, "transform", "animation-doc-transform"),
+        ExampleKind::TransformOrigin => simple_stage(cx, "origin", "animation-doc-transform-origin"),
+        ExampleKind::Translate => simple_stage(cx, "translate", "animation-doc-translate"),
+        ExampleKind::Rotate => simple_stage(cx, "rotate", "animation-doc-rotate"),
+        ExampleKind::Scale => simple_stage(cx, "scale", "animation-doc-scale"),
+        ExampleKind::ClipPath => simple_stage(cx, "clip-path", "animation-doc-clip"),
+        ExampleKind::Filter => simple_stage(cx, "FILTER", "animation-doc-filter"),
+        ExampleKind::BackdropFilter => { ZStack::new(cx, |cx| { HStack::new(cx, |cx| { Element::new(cx).class("animation-doc-backdrop-a"); Element::new(cx).class("animation-doc-backdrop-b"); Element::new(cx).class("animation-doc-backdrop-c"); }).class("animation-doc-backdrop-colors"); Label::new(cx, "BACKDROP").class("animation-doc-backdrop-glass"); }).class("animation-doc-backdrop-stage"); }
+        ExampleKind::BackgroundColor => simple_stage(cx, "background", "animation-doc-background-color"),
+        ExampleKind::BackgroundGeometry => simple_stage(cx, "background geometry", "animation-doc-background-geometry"),
+        ExampleKind::BorderWidth => simple_stage(cx, "border width", "animation-doc-border-width"),
+        ExampleKind::BorderColor => simple_stage(cx, "border color", "animation-doc-border-color"),
+        ExampleKind::CornerRadius => simple_stage(cx, "radius", "animation-doc-radius"),
+        ExampleKind::Outline => simple_stage(cx, "outline", "animation-doc-outline"),
+        ExampleKind::Shadow => simple_stage(cx, "shadow", "animation-doc-shadow"),
+        ExampleKind::TextColor => simple_stage(cx, "Animated text", "animation-doc-text-color"),
+        ExampleKind::FontSize => simple_stage(cx, "Font size", "animation-doc-font-size"),
+        ExampleKind::LetterSpacing => simple_stage(cx, "Spacing", "animation-doc-letter-spacing"),
+        ExampleKind::LineHeight => { VStack::new(cx, |cx| { Label::new(cx, "First line\nSecond line").class("animation-doc-line-height"); }).class("animation-doc-stage").alignment(Alignment::Center); }
+        ExampleKind::TextPaint => simple_stage(cx, "Text paint", "animation-doc-text-paint"),
+        ExampleKind::Fill => simple_stage(cx, "fill", "animation-doc-fill"),
+        ExampleKind::Position => { ZStack::new(cx, |cx| { Element::new(cx).class("animation-doc-position"); }).class("animation-doc-stage"); }
+        ExampleKind::Padding => simple_stage(cx, "padding", "animation-doc-padding"),
+        ExampleKind::Gap => { HStack::new(cx, |cx| { Element::new(cx).class("animation-doc-gap-item"); Element::new(cx).class("animation-doc-gap-item"); Element::new(cx).class("animation-doc-gap-item"); }).class("animation-doc-stage").class("animation-doc-gap-stage").alignment(Alignment::Center); }
+        ExampleKind::Size => simple_stage(cx, "size", "animation-doc-size"),
+        ExampleKind::Constraints => simple_stage(cx, "constraints", "animation-doc-constraints"),
+        ExampleKind::Display => { HStack::new(cx, |cx| { Label::new(cx, "discrete display").class("animation-doc-display"); }).class("animation-doc-stage").alignment(Alignment::Center); }
+        ExampleKind::StaticInfo => { VStack::new(cx, |cx| { Label::new(cx, "Typed custom properties use the same stores").class("animation-doc-static-title"); Label::new(cx, "color · length · font-size · letter-spacing · line-height · units · opacity · shadow").class("animation-doc-static-copy"); }).class("animation-doc-stage").alignment(Alignment::Center); }
+        ExampleKind::Runtime => render_runtime_preview(cx),
+        ExampleKind::Popover => render_popover_preview(cx),
+        ExampleKind::Throbber => render_throbber_preview(cx),
+    }
+}
+
+fn render_doc_content(cx: &mut Context, index: usize) {
+    let doc = &DOCS[index];
+    VStack::new(cx, move |cx| {
+        Label::new(cx, doc.title).class("animation-doc-title");
+        Label::new(cx, doc.description).class("animation-doc-description");
+        HStack::new(cx, move |cx| {
+            VStack::new(cx, |cx| { HStack::new(cx, |cx| { Label::new(cx, "CSS").class("animation-doc-pane-title"); }).class("animation-doc-code-header"); Label::new(cx, doc.css).class("animation-doc-code").text_wrap(true); }).class("animation-doc-code-pane");
+            VStack::new(cx, move |cx| { Label::new(cx, "Result").class("animation-doc-pane-title"); render_preview(cx, doc.example); }).class("animation-doc-result-pane");
+        }).class("animation-doc-example").wrap(LayoutWrap::Wrap);
+        VStack::new(cx, |cx| {
+            Label::new(cx, "Implementation note").class("animation-doc-note-title");
+            Label::new(cx, "CSS animations are sampled directly through Vizia's existing AnimatableSet / AnimatableVarSet property stores. The documentation mounts only the selected live example, so browsing the catalogue does not keep unrelated animations running in the background.").class("animation-doc-note-copy");
+        }).class("animation-doc-note");
+    }).class("animation-doc-content");
+}
+
+fn build_doc_navigation(cx: &mut Context, selected: Signal<usize>) {
+    VStack::new(cx, move |cx| {
+        Label::new(cx, "Animation reference").class("animation-doc-nav-title");
+        let mut category: Option<&'static str> = None;
+        for (index, doc) in DOCS.iter().enumerate() {
+            if category != Some(doc.category) { category = Some(doc.category); Label::new(cx, doc.category).class("animation-doc-nav-category"); }
+            Button::new(cx, move |cx| Label::new(cx, doc.title)).variant(ButtonVariant::Text).class("animation-doc-nav-item").toggle_class("animation-doc-nav-item-active", selected.map(move |current| *current == index)).on_press(move |_cx| selected.set(index));
         }
-
-        let now = Instant::now();
-        let dt = now.saturating_duration_since(last_tick_for_callback.get()).as_secs_f32();
-        last_tick_for_callback.set(now);
-
-        if morph_active.get() {
-            let current = morph_progress.get();
-            let target = morph_target.get();
-            let direction = if target >= current { 1.0 } else { -1.0 };
-            let mut next = current + direction * dt / 0.42;
-            let reached = if direction > 0.0 { next >= target } else { next <= target };
-            if reached {
-                next = target;
-            }
-            morph_progress.set_if_changed(next.clamp(0.0, 1.0));
-
-            if reached {
-                if morph_autoplay.get() {
-                    morph_target.set(if target >= 0.5 { 0.0 } else { 1.0 });
-                } else {
-                    morph_active.set(false);
-                }
-            }
-        }
-
-        if let Some(entity) = cx.resolve_entity_identifier(RUNTIME_TARGET_ID) {
-            if let Some(snapshot) = cx.css_animations(entity).into_iter().next() {
-                if let Some(progress) = snapshot.progress {
-                    seek.set_if_changed(progress.clamp(0.0, 1.0));
-                }
-                readout.set_if_changed(runtime_snapshot_text(cx));
-            }
-        }
-    });
-
-    timer_slot.set(Some(timer));
-    cx.start_timer(timer);
+    }).class("animation-doc-nav");
 }
 
 pub fn animation(cx: &mut Context) {
-    let runtime_readout = Signal::new("Starting document timeline…".to_string());
-    let runtime_seek = Signal::new(0.0_f32);
-    let morph_progress = Signal::new(0.0_f32);
-    let morph_target = Signal::new(1.0_f32);
-    let morph_active = Signal::new(false);
-    let morph_autoplay = Signal::new(false);
-    let baseline_selected = Signal::new(0_usize);
-
+    let selected = Signal::new(0_usize);
     VStack::new(cx, move |cx| {
         VStack::new(cx, |cx| {
             Label::new(cx, "CSS Animations").class("panel-title");
-            Label::new(
-                cx,
-                "Level 2 composition, timeline sources and runtime control, shown with the same native controls and spacing as the rest of Widget Gallery.",
-            )
-            .class("panel-description");
-
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Play document animations"))
-                    .on_press(move |cx| {
-                        resume_document_animations(cx);
-                        morph_autoplay.set(true);
-                        if !morph_active.get() {
-                            morph_target.set(if morph_progress.get() >= 0.5 { 0.0 } else { 1.0 });
-                            morph_active.set(true);
-                        }
-                    });
-                Button::new(cx, |cx| Label::new(cx, "Pause document animations"))
-                    .variant(ButtonVariant::Secondary)
-                    .on_press(move |cx| {
-                        pause_document_animations(cx);
-                        morph_autoplay.set(false);
-                        morph_active.set(false);
-                    });
-            })
-            .class("animation-page-controls");
-        })
-        .class("animation-page-header");
-
+            Label::new(cx, "Interactive reference for the CSS animation properties, timelines, runtime controls and every property family currently wired into Vizia's keyframe storage.").class("panel-description");
+        }).class("animation-doc-intro");
         Divider::new(cx);
-
-        VStack::new(cx, |cx| {
-            section_header(
-                cx,
-                "Effect stack & composition",
-                "The same property can now receive multiple ordered effects. Compare replacement with additive composition directly.",
-            );
-            level_two_composition(cx);
-        })
-        .class("animation-section");
-
-        Divider::new(cx);
-
-        VStack::new(cx, move |cx| {
-            section_header(
-                cx,
-                "Timeline sources & runtime control",
-                "Document time autoplays; scroll and view timelines intentionally scrub from user movement instead of wall-clock time.",
-            );
-            document_timeline_demo(cx, runtime_readout, runtime_seek);
-            scroll_timeline_demo(cx);
-            view_timeline_demo(cx);
-        })
-        .class("animation-section");
-
-        Divider::new(cx);
-
-        VStack::new(cx, move |cx| {
-            section_header(
-                cx,
-                "Vector morph & interaction",
-                "A geometric icon morph, a native blur-reveal popover and a lightweight text throbber exercise animation in actual UI patterns.",
-            );
-            morph_demo(cx, morph_progress, morph_target, morph_active, morph_autoplay);
-            interaction_examples(cx);
-        })
-        .class("animation-section");
-
-        Divider::new(cx);
-
-        VStack::new(cx, move |cx| {
-            section_header(
-                cx,
-                "Level 1 regression sampler",
-                "Only one Level 1 witness is mounted at a time. This keeps the page smooth while preserving the complete regression set.",
-            );
-            level_one_sampler(cx, baseline_selected);
-        })
-        .class("animation-section");
-    })
-    .id(ANIMATION_PAGE_ID)
-    .class("panel")
-    .class("animation-page")
-    .width(Stretch(1.0))
-    .max_width(Pixels(1120.0));
-
-    install_page_ticker(
-        cx,
-        runtime_readout,
-        runtime_seek,
-        morph_progress,
-        morph_target,
-        morph_active,
-        morph_autoplay,
-    );
+        HStack::new(cx, move |cx| {
+            build_doc_navigation(cx, selected);
+            Binding::new(cx, selected, move |cx| { render_doc_content(cx, selected.get()); });
+        }).class("animation-doc-layout").alignment(Alignment::TopLeft);
+    }).class("animation-doc-page");
 }
 
 #[cfg(test)]
@@ -845,16 +677,6 @@ mod tests {
     fn animation_gallery_stylesheet_loads() {
         let mut cx = Context::default();
         cx.add_stylesheet(include_style!("resources/themes/animation.css"))
-            .expect("animation gallery stylesheet should parse and load");
-    }
-
-    #[test]
-    fn gallery_contains_all_level_one_demos() {
-        assert_eq!(DEMOS.len(), 10);
-    }
-
-    #[test]
-    fn morph_paths_have_matching_topology() {
-        assert_eq!(HEART_POINTS.len(), STAR_POINTS.len());
+            .expect("animation gallery stylesheet should parse");
     }
 }
