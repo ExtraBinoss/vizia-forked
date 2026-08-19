@@ -21,14 +21,10 @@ If a selector appears correct but only some demos style/animate, check this firs
 
 ## Vizia CSS is CSS-like, not browser CSS
 
-Do not assume arbitrary browser properties exist. Prefer properties that are present in
+Do not assume arbitrary browser properties or syntax exist. Prefer properties that are present in
 `vizia_style::Property` / the value modules and verify them with a runtime stylesheet smoke test.
 For spacing in Widget Gallery code, the normal Vizia layout tools (`gap`, padding, explicit sizing)
 are safer than assuming browser margin behavior.
-
-Concrete example from the animation gallery: `border-style` is not currently a Vizia CSS property in
-this fork. A browser-style `border-style: solid` declaration therefore should not be copied blindly
-into Vizia CSS; use the supported border width/color properties and verify the stylesheet in `Context`.
 
 A useful regression test is:
 
@@ -38,6 +34,16 @@ cx.add_stylesheet(include_style!("resources/themes/animation.css"))?;
 ```
 
 This catches syntax/property mistakes that a Rust-only compile cannot.
+
+## Prefer class-only selectors for demo-specific styling
+
+Widget Gallery examples are composed from Rust views and wrappers. For demo-only CSS, prefer a stable
+class selector such as `.animation-doc-surface-target` over unnecessarily type-qualified selectors
+such as `label.animation-doc-surface-target` or `vstack.animation-doc-backdrop-glass`.
+
+A type-qualified selector can silently stop matching if a view wrapper emits a different semantic
+element name. That can make configured width, padding, transparency, or animation declarations appear
+to be ignored even though the class itself is present.
 
 ## CSS animations must use the existing property stores
 
@@ -51,6 +57,15 @@ This also means every newly supported property needs all of the following wired 
 - CSS occurrence playback and updates,
 - interpolation/composition semantics,
 - the correct invalidation path (redraw, retransform, reclip, reflow, or relayout).
+
+## Compatible transform functions need real interpolation
+
+Do not implement `Transform::interpolate` as a blanket `end.clone()`. Compatible transform functions
+(`translate`, `translateX/Y`, `scale`, `rotate`, `skew`, and matrix pairs) need component-wise
+interpolation. Only incompatible function pairs should fall back to a discrete switch.
+
+A transform demo that is already rotated but never visibly travels is a strong signal to inspect the
+interpolator rather than only the CSS parser or frame scheduler.
 
 ## Invalidation category matters for performance
 
@@ -87,6 +102,13 @@ sparse set of entities that can require filter-aware dirty-bound work and remove
 entities disappear or no longer have those values.
 
 This matters a lot once a filter animation keeps frames flowing continuously.
+
+## A backdrop-filter demo needs visible content behind transparent glass
+
+A backdrop filter is difficult to verify over a flat or opaque surface. Use moving, high-contrast
+content behind a translucent overlay. The overlay itself must remain transparent enough that the
+backdrop is visible; a misread 8-digit hex color can accidentally turn the glass into an opaque panel
+and make a working blur look broken.
 
 ## `auto` size animation is inherently expensive
 
@@ -136,11 +158,15 @@ include the declaration that applies the shown keyframes (`animation: ...`) and 
 should use the same keyframe shape/timing. Otherwise a static or mismatched demo looks like an engine
 bug even when the animation system is working.
 
+For grouped properties (for example border sides or background position/size/repeat), use explicit
+variants rather than one ambiguous example. The selected variant should update both the source snippet
+and the mounted preview.
+
 ## Text/border demos need a real surface
 
 Animating `border-color`, `font-size`, `letter-spacing`, outline, shadow, etc. on a label sized only to
-its text produces cramped, hard-to-read demos. Use a stable min-size plus padding so the animated
-property has room to be perceived.
+its text produces cramped, hard-to-read demos. Use a stable min-size plus generous padding so the
+animated property has room to be perceived.
 
 Also demonstrate properties on semantically relevant views when possible. For example, `fill` is much
 clearer on an `Svg` than on a text label.
