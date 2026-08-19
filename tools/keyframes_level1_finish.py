@@ -13,11 +13,14 @@ def replace_once(path: str, old: str, new: str) -> None:
     p.write_text(text.replace(old, new, 1))
 
 
-replace_once(
-    "crates/vizia_style/src/rules/keyframes.rs",
-    "        if let Ok(val) = input.try_parse(Percentage::parse) {\n            return Ok(KeyframeSelector::Percentage(val));\n        }\n",
-    "        let location = input.current_source_location();\n        if let Ok(val) = input.try_parse(Percentage::parse) {\n            if (0.0..=100.0).contains(&val.0) {\n                return Ok(KeyframeSelector::Percentage(val));\n            }\n            return Err(ParseError {\n                kind: ParseErrorKind::Custom(CustomParseError::InvalidValue),\n                location,\n            });\n        }\n",
-)
+keyframes_path = ROOT / "crates/vizia_style/src/rules/keyframes.rs"
+keyframes_text = keyframes_path.read_text()
+if "(0.0..=100.0).contains(&val.0)" not in keyframes_text:
+    old = "        if let Ok(val) = input.try_parse(Percentage::parse) {\n            return Ok(KeyframeSelector::Percentage(val));\n        }\n"
+    new = "        let location = input.current_source_location();\n        if let Ok(val) = input.try_parse(Percentage::parse) {\n            if (0.0..=100.0).contains(&val.0) {\n                return Ok(KeyframeSelector::Percentage(val));\n            }\n            return Err(location.new_custom_error(CustomParseError::InvalidValue));\n        }\n"
+    if old not in keyframes_text:
+        raise RuntimeError("keyframe percentage parser anchor not found")
+    keyframes_path.write_text(keyframes_text.replace(old, new, 1))
 
 replace_once(
     "crates/vizia_style/src/stylesheet.rs",
