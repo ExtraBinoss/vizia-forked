@@ -81,9 +81,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
                     }
                 })
                 .class("animation-step-grid");
-                Element::new(cx)
-                    .class("animation-step-cursor")
-                    .class("css-animation-steps");
+                Element::new(cx).class("animation-step-cursor").class("css-animation-steps");
             })
             .class("animation-step-track");
         }
@@ -103,9 +101,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
             .class("animation-track-stack");
         }
         4 => {
-            Label::new(cx, "2 ANIMATIONS")
-                .class("animation-card")
-                .class("css-animation-composed");
+            Label::new(cx, "2 ANIMATIONS").class("animation-card").class("css-animation-composed");
         }
         5 => {
             HStack::new(cx, |cx| {
@@ -115,9 +111,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
             .class("css-animation-layout-row");
         }
         6 => {
-            Label::new(cx, "STYLE MORPH")
-                .class("animation-card")
-                .class("css-animation-style");
+            Label::new(cx, "STYLE MORPH").class("animation-card").class("css-animation-style");
         }
         7 => {
             ZStack::new(cx, |cx| {
@@ -135,8 +129,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
                     Element::new(cx).class("filter-stripe-d");
                 })
                 .class("filter-poster-stripes");
-                Label::new(cx, "CRISP / BLUR")
-                    .class("filter-poster-title");
+                Label::new(cx, "CRISP / BLUR").class("filter-poster-title");
             })
             .class("animation-filter-poster")
             .class("css-animation-filter");
@@ -154,18 +147,11 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
                 })
                 .class("animation-backdrop-stripes");
 
-                Label::new(cx, "CSS  GPU  BLUR")
-                    .class("animation-backdrop-copy");
+                Label::new(cx, "CSS  GPU  BLUR").class("animation-backdrop-copy");
 
-                Element::new(cx)
-                    .class("animation-gpu-orb")
-                    .class("gpu-one");
-                Element::new(cx)
-                    .class("animation-gpu-orb")
-                    .class("gpu-two");
-                Element::new(cx)
-                    .class("animation-gpu-orb")
-                    .class("gpu-three");
+                Element::new(cx).class("animation-gpu-orb").class("gpu-one");
+                Element::new(cx).class("animation-gpu-orb").class("gpu-two");
+                Element::new(cx).class("animation-gpu-orb").class("gpu-three");
 
                 VStack::new(cx, |cx| {
                     Label::new(cx, "BACKDROP FILTER").class("glass-title");
