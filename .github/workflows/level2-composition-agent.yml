@@ -1,3 +1,4 @@
+# Temporary materializer; removed after the composition phase is validated.
 name: Level 2 Composition Agent
 
 on:
