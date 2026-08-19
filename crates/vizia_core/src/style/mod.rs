@@ -331,6 +331,9 @@ pub struct Style {
     // Filters
     pub(crate) filter: AnimatableSet<Filter>,
     pub(crate) backdrop_filter: AnimatableSet<Filter>,
+    /// Entities which currently have, or are actively animating, a filter/backdrop-filter.
+    /// Draw uses this sparse set instead of scanning the entire layout tree every frame.
+    pub(crate) filter_entities: HashSet<Entity>,
 
     pub(crate) blend_mode: StyleSet<BlendMode>,
 

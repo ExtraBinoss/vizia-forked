@@ -99,9 +99,13 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     // Properties which affect rendering
     // Opacity
     redraw_entities.extend(cx.style.opacity.tick(time));
-    // Filters
-    redraw_entities.extend(cx.style.filter.tick(time));
-    redraw_entities.extend(cx.style.backdrop_filter.tick(time));
+    // Filters. Track only the entities which can require filter-aware dirty-bound work.
+    let filter_entities = cx.style.filter.tick(time);
+    cx.style.filter_entities.extend(filter_entities.iter().copied());
+    redraw_entities.extend(filter_entities);
+    let backdrop_filter_entities = cx.style.backdrop_filter.tick(time);
+    cx.style.filter_entities.extend(backdrop_filter_entities.iter().copied());
+    redraw_entities.extend(backdrop_filter_entities);
     // Corner Colour
     redraw_entities.extend(cx.style.border_top_color.tick(time));
     redraw_entities.extend(cx.style.border_right_color.tick(time));

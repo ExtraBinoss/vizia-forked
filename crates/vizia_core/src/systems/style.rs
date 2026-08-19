@@ -716,6 +716,12 @@ fn link_style_data(
         should_redraw = true;
     }
 
+    if style.filter.get(entity).is_some() || style.backdrop_filter.get(entity).is_some() {
+        style.filter_entities.insert(entity);
+    } else {
+        style.filter_entities.remove(&entity);
+    }
+
     if style.blend_mode.link(entity, matched_rules) {
         should_redraw = true;
     }
