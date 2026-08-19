@@ -158,3 +158,5 @@ cargo run --release -p widget_gallery
 
 A release build is not a substitute for profiling, but it avoids diagnosing debug-codegen overhead as
 an animation-engine regression.
+
+<!-- validation trigger -->
