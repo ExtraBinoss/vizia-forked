@@ -31,3 +31,5 @@ jobs:
       run: cargo fmt -- --check
     - name: Check Clippy
       run: cargo clippy
+    - name: Load animation gallery stylesheet
+      run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
