@@ -1,0 +1,114 @@
+name: Animation Docs Perf Materializer
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Patch sparse timeline propagation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('crates/vizia_core/src/systems/animation.rs')
+          text = path.read_text()
+          start = text.index('fn refresh_progress_timelines(cx: &mut Context) {')
+          end = text.index('\npub(crate) fn animation_system', start)
+          replacement = r'''fn timeline_progress_changed(previous: Option<f32>, next: Option<f32>) -> bool {
+              match (previous, next) {
+                  (Some(previous), Some(next)) => (previous - next).abs() > f32::EPSILON,
+                  (None, None) => false,
+                  _ => true,
+              }
+          }
+
+          fn refresh_progress_timelines(cx: &mut Context) {
+              let requests = cx
+                  .style
+                  .css_animation_instances
+                  .iter()
+                  .flat_map(|(entity, instances)| {
+                      instances.iter().map(move |instance| {
+                          (
+                              *entity,
+                              instance.instance_id,
+                              instance.timeline.clone(),
+                              instance.timeline_driven,
+                              instance.timeline_progress,
+                          )
+                      })
+                  })
+                  .collect::<Vec<_>>();
+
+              let mut samples = Vec::new();
+              for (entity, instance_id, timeline, was_driven, previous_progress) in requests {
+                  let (driven, progress) = match timeline {
+                      AnimationTimeline::Auto => (false, None),
+                      AnimationTimeline::None => (true, None),
+                      AnimationTimeline::Named(name) => {
+                          let progress = cx
+                              .style
+                              .named_scroll_timelines
+                              .get(&name)
+                              .copied()
+                              .and_then(|source| {
+                                  source_progress(cx, source, AnimationTimelineAxis::Block)
+                              });
+                          (true, progress)
+                      }
+                      AnimationTimeline::Scroll { scroller, axis } => {
+                          let source = match scroller {
+                              AnimationScroller::Self_ => cx
+                                  .style
+                                  .scroll_timeline_sources
+                                  .contains_key(&entity)
+                                  .then_some(entity),
+                              AnimationScroller::Nearest => nearest_scroll_source(cx, entity),
+                              AnimationScroller::Root => root_scroll_source(cx, entity),
+                          };
+                          (true, source.and_then(|source| source_progress(cx, source, axis)))
+                      }
+                      AnimationTimeline::View { axis } => {
+                          (true, view_timeline_progress(cx, entity, axis))
+                      }
+                  };
+
+                  if driven != was_driven
+                      || timeline_progress_changed(previous_progress, progress)
+                  {
+                      samples.push((entity, instance_id, driven, progress));
+                  }
+              }
+
+              for (entity, instance_id, driven, progress) in samples {
+                  cx.style.set_css_timeline_progress(entity, instance_id, driven, progress);
+              }
+          }
+          '''
+          path.write_text(text[:start] + replacement + text[end:])
+          PY
+          cargo fmt
+      - name: Commit source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No source changes"
+          else
+            git add crates/vizia_core/src/systems/animation.rs examples/widget_gallery/src/views/animation.rs
+            git commit -m "perf: skip unchanged CSS timeline propagation"
+            git push origin HEAD:agent/css-keyframes-level2
+          fi
