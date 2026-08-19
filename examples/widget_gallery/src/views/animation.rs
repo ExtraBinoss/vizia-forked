@@ -34,10 +34,7 @@ fn css_animation_demo(
 
 fn feature_list(cx: &mut Context) {
     let features = Signal::new(
-        ANIMATION_FEATURES
-            .iter()
-            .map(|feature| (*feature).to_string())
-            .collect::<Vec<_>>(),
+        ANIMATION_FEATURES.iter().map(|feature| (*feature).to_string()).collect::<Vec<_>>(),
     );
 
     DemoRegion::new(cx, "Level 1 live matrix", move |cx| {
