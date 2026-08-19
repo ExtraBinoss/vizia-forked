@@ -517,6 +517,24 @@ where
         }
     }
 
+    pub(crate) fn control_css_animation(
+        &mut self,
+        entity: Entity,
+        instance_id: u64,
+        control: crate::animation::CssAnimationControl,
+        now: Instant,
+    ) -> bool {
+        let mut found = false;
+        for state in self.active_animations.iter_mut() {
+            if state.css_instance_id == Some(instance_id) && state.entities.contains(&entity) {
+                if let Some(clock) = state.css_clock.as_mut() {
+                    found |= clock.apply_control(control, now);
+                }
+            }
+        }
+        found
+    }
+
     pub(crate) fn set_css_timeline_progress(
         &mut self,
         entity: Entity,
@@ -610,7 +628,9 @@ where
 
             if let Some(clock) = &state.css_clock {
                 let sample = if state.css_timeline_driven {
-                    clock.timing.sample_timeline_progress(state.css_timeline_progress)
+                    clock.timing.sample_timeline_progress(
+                        clock.map_timeline_progress(state.css_timeline_progress),
+                    )
                 } else {
                     clock.sample(time)
                 };

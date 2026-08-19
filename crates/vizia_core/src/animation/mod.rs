@@ -4,6 +4,10 @@ pub use animation_id::{AnimId, Animation};
 mod animation_event;
 pub use animation_event::{AnimationEvent, AnimationEventKind};
 
+mod runtime;
+pub(crate) use runtime::CssAnimationControl;
+pub use runtime::{CssAnimationId, CssAnimationPlaybackState, CssAnimationSnapshot};
+
 mod css_timing;
 pub(crate) use css_timing::{CssAnimationClock, CssAnimationPhase, CssAnimationTiming};
 
