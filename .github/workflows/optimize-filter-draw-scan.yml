@@ -25,7 +25,7 @@ jobs:
       - name: Install native dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libfreetype6-dev libfontconfig1-dev libwayland-dev
       - name: Apply filter draw optimization
         run: python tools/optimize_filter_draw_scan.py
       - name: Format
@@ -43,7 +43,7 @@ jobs:
             exit 0
           fi
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add crates/vizia_core/src/style/mod.rs crates/vizia_core/src/systems/style.rs crates/vizia_core/src/systems/animation.rs crates/vizia_core/src/systems/draw.rs
+          git config user.email "41898282+ExtraBinoss@users.noreply.github.com"
+          git add crates/vizia_core/src/style/mod.rs crates/vizia_core/src/systems/style.rs crates/vizia_core/src/systems/animation.rs crates/vizia_core/src/systems/draw.rs crates/vizia_core/src/modifiers/style.rs
           git commit -m "perf: avoid full-tree filter draw scan"
           git push origin HEAD:agent/css-keyframes-level1-complete
