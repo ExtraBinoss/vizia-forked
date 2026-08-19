@@ -1,8 +1,10 @@
 use crate::animation::{
-    AnimationState, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
+    AnimationState, Compositor, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
 };
 use crate::prelude::*;
+use hashbrown::HashMap;
 use vizia_storage::{SparseSet, SparseSetGeneric, SparseSetIndex};
+use vizia_style::AnimationComposition;
 
 const INDEX_MASK: u32 = u32::MAX / 4;
 const INLINE_MASK: u32 = 1 << 31;
@@ -143,11 +145,13 @@ pub(crate) struct AnimatableSet<T: Interpolator> {
     animations: SparseSet<AnimationState<T>>,
     /// Animations which are currently playing
     active_animations: Vec<AnimationState<T>>,
+    /// Final Level 2 CSS effect-stack result per entity.
+    css_composed_outputs: HashMap<Entity, T>,
 }
 
 impl<T> AnimatableSet<T>
 where
-    T: 'static + Default + Clone + Interpolator + PartialEq + std::fmt::Debug,
+    T: 'static + Default + Clone + Interpolator + Compositor + PartialEq + std::fmt::Debug,
 {
     /// Insert an inline value for an entity.
     pub fn insert(&mut self, entity: Entity, value: T) {
@@ -156,6 +160,7 @@ where
 
     /// Remove an entity and any inline data.
     pub fn remove(&mut self, entity: Entity) -> Option<T> {
+        self.css_composed_outputs.remove(&entity);
         let entity_index = entity.index();
 
         if entity_index < self.inline_data.sparse.len() {
@@ -439,6 +444,7 @@ where
         start_time: Instant,
         timing: CssAnimationTiming,
         default_timing: TimingFunction,
+        composition: AnimationComposition,
         timeline: &[(f32, TimingFunction)],
     ) {
         let entity_index = entity.index();
@@ -464,6 +470,7 @@ where
         state.configure_css(timing, default_timing, start_time);
         state.css_instance_id = Some(instance_id);
         state.css_order = order;
+        state.css_composition = composition;
         state.output = None;
         state.entities.insert(entity);
         self.active_animations.push(state);
@@ -477,13 +484,53 @@ where
         order: usize,
         timing: CssAnimationTiming,
         default_timing: TimingFunction,
+        composition: AnimationComposition,
         now: Instant,
     ) {
         for state in self.active_animations.iter_mut() {
             if state.css_instance_id == Some(instance_id) && state.entities.contains(&entity) {
                 state.css_order = order;
+                state.css_composition = composition;
                 state.update_css_timing(timing, default_timing, now);
             }
+        }
+    }
+
+    fn refresh_css_composed_outputs(&mut self) {
+        let mut effects: HashMap<Entity, Vec<(usize, u64, AnimationComposition, T)>> =
+            HashMap::new();
+
+        for state in &self.active_animations {
+            let Some(instance_id) = state.css_instance_id else {
+                continue;
+            };
+            let Some(output) = state.get_output() else {
+                continue;
+            };
+            for entity in state.entities.iter().copied() {
+                effects.entry(entity).or_default().push((
+                    state.css_order,
+                    instance_id,
+                    state.css_composition,
+                    output.clone(),
+                ));
+            }
+        }
+
+        let bases = effects
+            .keys()
+            .copied()
+            .map(|entity| (entity, self.get_base(entity).cloned().unwrap_or_default()))
+            .collect::<HashMap<_, _>>();
+
+        self.css_composed_outputs.clear();
+        for (entity, mut stack) in effects {
+            stack.sort_by_key(|(order, instance_id, _, _)| (*order, *instance_id));
+            let mut value = bases.get(&entity).cloned().unwrap_or_default();
+            for (_, _, composition, effect) in stack {
+                value = T::compose(&value, &effect, composition);
+            }
+            self.css_composed_outputs.insert(entity, value);
         }
     }
 
@@ -494,6 +541,7 @@ where
             }
         }
         self.refresh_animation_index(entity);
+        self.refresh_css_composed_outputs();
     }
 
     /// Tick the animation for the given time and return entities whose animated value may change.
@@ -501,6 +549,7 @@ where
         self.remove_innactive_animations();
 
         if !self.has_animations() {
+            self.refresh_css_composed_outputs();
             return Vec::new();
         }
 
@@ -590,6 +639,8 @@ where
             let timing_t = start.timing_function.value(local);
             state.output = Some(T::interpolate(&start.value, &end.value, timing_t));
         }
+
+        self.refresh_css_composed_outputs();
 
         self.active_animations
             .iter()
@@ -723,20 +774,8 @@ where
     pub fn get(&self, entity: Entity) -> Option<&T> {
         let entity_index = entity.index();
         if entity_index < self.inline_data.sparse.len() {
-            // CSS animations override transitions/base style. The greatest current list order wins.
-            let mut css_output = None;
-            let mut css_order = 0usize;
-            for state in &self.active_animations {
-                if state.css_instance_id.is_some() && state.entities.contains(&entity) {
-                    if let Some(output) = state.get_output() {
-                        if css_output.is_none() || state.css_order >= css_order {
-                            css_order = state.css_order;
-                            css_output = Some(output);
-                        }
-                    }
-                }
-            }
-            if let Some(output) = css_output {
+            // CSS Animations Level 2 effect stack, already sampled in stable composite order.
+            if let Some(output) = self.css_composed_outputs.get(&entity) {
                 return Some(output);
             }
 

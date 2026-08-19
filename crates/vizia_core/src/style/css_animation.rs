@@ -10,8 +10,8 @@ use crate::{
 use std::time::Instant;
 use vizia_id::GenerationalId;
 use vizia_style::{
-    AnimationDirection, AnimationFillMode, AnimationIterationCount, AnimationName,
-    AnimationPlayState, EasingFunction,
+    AnimationComposition, AnimationDirection, AnimationFillMode, AnimationIterationCount,
+    AnimationName, AnimationPlayState, EasingFunction,
 };
 
 #[derive(Clone, Debug)]
@@ -21,6 +21,7 @@ pub(crate) struct CssAnimationInstance {
     pub animation: Animation,
     pub clock: CssAnimationClock,
     pub default_timing: TimingFunction,
+    pub composition: AnimationComposition,
     pub started: bool,
     pub last_iteration: u64,
     pub ended: bool,
@@ -32,6 +33,7 @@ struct ResolvedCssAnimation {
     animation: Animation,
     timing: CssAnimationTiming,
     default_timing: TimingFunction,
+    composition: AnimationComposition,
 }
 
 fn repeated<T: Clone>(items: &[T], index: usize, default: T) -> T {
@@ -53,6 +55,8 @@ impl Style {
             self.animation_direction.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
         let fills = self.animation_fill_mode.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
         let states = self.animation_play_state.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
+        let compositions =
+            self.animation_composition.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
         let reduce_motion = self.reduced_motion_override.unwrap_or(self.system_reduced_motion);
 
         names
@@ -88,6 +92,7 @@ impl Style {
                         play_state: repeated(states, index, AnimationPlayState::Running),
                     },
                     default_timing: TimingFunction::from_easing(easing),
+                    composition: repeated(compositions, index, AnimationComposition::Replace),
                 })
             })
             .collect()
@@ -112,6 +117,7 @@ impl Style {
                     start_time,
                     spec.timing,
                     spec.default_timing,
+                    spec.composition,
                     &timeline,
                 );
             };
@@ -221,6 +227,7 @@ impl Style {
                     order,
                     spec.timing,
                     spec.default_timing,
+                    spec.composition,
                     now,
                 );
             };
@@ -449,6 +456,7 @@ impl Style {
                 if instance.animation == spec.animation {
                     instance.clock.update_timing(spec.timing, now);
                     instance.default_timing = spec.default_timing;
+                    instance.composition = spec.composition;
                     self.update_css_on_stores(entity, spec, instance.instance_id, order, now);
                     next_reversed.push(instance);
                     continue;
@@ -467,6 +475,7 @@ impl Style {
                 animation: spec.animation,
                 clock: CssAnimationClock::new(spec.timing, now),
                 default_timing: spec.default_timing,
+                composition: spec.composition,
                 started: false,
                 last_iteration: 0,
                 ended: false,

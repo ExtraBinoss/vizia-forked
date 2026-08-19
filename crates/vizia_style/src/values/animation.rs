@@ -228,6 +228,36 @@ impl<'i> Parse<'i> for AnimationPlayStates {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AnimationComposition {
+    #[default]
+    Replace,
+    Add,
+    Accumulate,
+}
+
+impl<'i> Parse<'i> for AnimationComposition {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        let location = input.current_source_location();
+        let ident = input.expect_ident_cloned()?;
+        match_ignore_ascii_case! { &ident,
+            "replace" => Ok(Self::Replace),
+            "add" => Ok(Self::Add),
+            "accumulate" => Ok(Self::Accumulate),
+            _ => Err(location.new_unexpected_token_error(Token::Ident(ident))),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct AnimationCompositions(pub Vec<AnimationComposition>);
+
+impl<'i> Parse<'i> for AnimationCompositions {
+    fn parse<'t>(input: &mut Parser<'i, 't>) -> Result<Self, ParseError<'i, CustomParseError<'i>>> {
+        input.parse_comma_separated(AnimationComposition::parse).map(Self)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct AnimationShorthandItem {
     pub name: AnimationName,
@@ -361,6 +391,22 @@ mod tests {
         let mut input = ParserInput::new(text);
         let mut parser = Parser::new(&mut input);
         AnimationShorthand::parse(&mut parser).expect("animation shorthand should parse")
+    }
+
+    #[test]
+    fn parses_animation_composition_list() {
+        let mut input = ParserInput::new("replace, add, accumulate");
+        let mut parser = Parser::new(&mut input);
+        let parsed =
+            AnimationCompositions::parse(&mut parser).expect("composition list should parse");
+        assert_eq!(
+            parsed.0,
+            vec![
+                AnimationComposition::Replace,
+                AnimationComposition::Add,
+                AnimationComposition::Accumulate,
+            ]
+        );
     }
 
     #[test]

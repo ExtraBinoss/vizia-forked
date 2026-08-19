@@ -1563,6 +1563,7 @@ pub(crate) fn style_system(cx: &mut Context) {
         cx.style.animation_direction.link(entity, rules);
         cx.style.animation_fill_mode.link(entity, rules);
         cx.style.animation_play_state.link(entity, rules);
+        cx.style.animation_composition.link(entity, rules);
         cx.style.sync_css_animations(entity, animation_sync_time);
     }
 

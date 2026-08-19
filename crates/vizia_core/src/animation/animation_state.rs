@@ -1,5 +1,6 @@
 use crate::animation::Interpolator;
 use hashbrown::HashSet;
+use vizia_style::AnimationComposition;
 
 use crate::prelude::*;
 
@@ -33,6 +34,7 @@ pub(crate) struct AnimationState<T: Interpolator> {
     pub css_default_timing: TimingFunction,
     pub css_instance_id: Option<u64>,
     pub css_order: usize,
+    pub css_composition: AnimationComposition,
 }
 
 impl<T> AnimationState<T>
@@ -58,6 +60,8 @@ where
             css_default_timing: TimingFunction::ease(),
             css_instance_id: None,
             css_order: 0,
+            css_composition: AnimationComposition::Replace,
+            css_composition: AnimationComposition::Replace,
         }
     }
 
