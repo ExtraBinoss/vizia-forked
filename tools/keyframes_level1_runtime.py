@@ -20,11 +20,29 @@ def ensure_after(path: str, anchor: str, insertion: str) -> None:
     p.write_text(text.replace(anchor, anchor + insertion, 1))
 
 
-# Repair the last parser regressions left behind by the obsolete bootstrap generator.
+def dedupe_test(path: str, function_name: str) -> None:
+    p = ROOT / path
+    text = p.read_text()
+    marker = f"\n    #[test]\n    fn {function_name}()"
+    while text.count(marker) > 1:
+        start = text.find(marker, text.find(marker) + len(marker))
+        next_test = text.find("\n    #[test]\n", start + len(marker))
+        if next_test < 0:
+            raise RuntimeError(f"could not bound duplicate test {function_name} in {path}")
+        text = text[:start] + text[next_test:]
+    p.write_text(text)
+
+
+# Repair parser artifacts left by the obsolete bootstrap/finish generators.
 replace_if_present(
     "crates/vizia_style/src/values/mod.rs",
     "pub mod animation;\npub mod animation;\n",
     "pub mod animation;\n",
+)
+replace_if_present(
+    "crates/vizia_style/src/values/mod.rs",
+    "pub use animation::*;\npub use animation::*;\n",
+    "pub use animation::*;\n",
 )
 replace_if_present(
     "crates/vizia_style/src/values/animation.rs",
@@ -36,9 +54,10 @@ replace_if_present(
     "use cssparser::{ParseError, ParseErrorKind, Parser, Token};",
     "use cssparser::{match_ignore_ascii_case, ParseError, ParseErrorKind, Parser, Token};",
 )
+dedupe_test("crates/vizia_style/src/stylesheet.rs", "parses_css_animation_level_one_declarations")
+dedupe_test("crates/vizia_style/src/stylesheet.rs", "rejects_out_of_range_keyframe_percentages")
 
-# The runtime and stores are already materialized in Rust. This script applies only the remaining
-# integration fixes discovered by compiling the materialized source on stable Rust.
+# Core integration fixes discovered by compiling the materialized source on stable Rust.
 replace_if_present(
     "crates/vizia_core/src/animation/mod.rs",
     "    CssAnimationClock, CssAnimationPhase, CssAnimationSample, CssAnimationTiming,\n",
@@ -180,8 +199,7 @@ replace_if_present(
 """,
 )
 
-# The later generator stages have already been materialized. Make them idempotent for this
-# validation rerun so the job tests the source tree instead of trying to regenerate it again.
+# All later generator stages have already been materialized. Keep them as no-ops for validation.
 for script in [
     "keyframes_level1_stores.py",
     "keyframes_level1_css_resolver.py",
