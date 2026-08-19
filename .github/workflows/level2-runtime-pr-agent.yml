@@ -1,36 +1,49 @@
-name: Level 2 Polish Agent
+name: Level 2 Focused Validation
 
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: write
-
 jobs:
-  materialize-polish:
-    if: github.actor != 'github-actions[bot]'
+  parser-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: agent/css-keyframes-level2
       - uses: dtolnay/rust-toolchain@stable
-      - name: Apply coherence fixes
-        run: python tools/level2_polish.py
-      - name: Format
-        run: cargo fmt
-      - name: Commit source changes
+      - name: CSS animation parser tests
+        run: cargo test -p vizia_style animation --lib
+
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install native dependencies
         run: |
-          if git diff --quiet; then
-            echo "No source changes to commit"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            crates/vizia_core/src/animation/runtime.rs \
-            crates/vizia_core/src/style/css_animation.rs
-          git commit -m "fix: keep Level 2 runtime sampling coherent"
-          git push origin HEAD:agent/css-keyframes-level2
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
+            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libfreetype6-dev libfontconfig1-dev libwayland-dev
+      - name: Runtime control tests
+        run: cargo test -p vizia_core --lib runtime_
+      - name: Progress timeline tests
+        run: cargo test -p vizia_core --lib timeline
+      - name: Composition tests
+        run: cargo test -p vizia_core --lib level_two
+
+  gallery-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
+            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libfreetype6-dev libfontconfig1-dev libwayland-dev
+      - name: Widget Gallery stylesheet smoke test
+        run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
