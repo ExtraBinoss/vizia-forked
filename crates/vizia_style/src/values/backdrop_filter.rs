@@ -1,17 +1,12 @@
 use crate::{CustomParseError, Length, Parse};
 use cssparser::*;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum Filter {
+    #[default]
     None,
     Blur(Length),
     List(Vec<Filter>),
-}
-
-impl Default for Filter {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl Filter {
