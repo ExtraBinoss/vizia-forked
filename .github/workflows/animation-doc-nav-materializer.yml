@@ -1,0 +1,135 @@
+name: Animation Docs Nav Materializer
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Make reference rail independently scrollable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          rust = Path('examples/widget_gallery/src/views/animation.rs')
+          text = rust.read_text()
+          old = '''fn build_doc_navigation(cx: &mut Context, selected: Signal<usize>) {
+    VStack::new(cx, move |cx| {
+        Label::new(cx, "Animation reference").class("animation-doc-nav-title");
+        let mut category: Option<&'static str> = None;
+        for (index, doc) in DOCS.iter().enumerate() {
+            if category != Some(doc.category) {
+                category = Some(doc.category);
+                Label::new(cx, doc.category).class("animation-doc-nav-category");
+            }
+            Button::new(cx, move |cx| Label::new(cx, doc.title))
+                .variant(ButtonVariant::Text)
+                .class("animation-doc-nav-item")
+                .toggle_class(
+                    "animation-doc-nav-item-active",
+                    selected.map(move |current| *current == index),
+                )
+                .on_press(move |_cx| selected.set(index));
+        }
+    })
+    .class("animation-doc-nav");
+}
+'''
+          new = '''fn build_doc_navigation(cx: &mut Context, selected: Signal<usize>) {
+    ScrollView::new(cx, move |cx| {
+        VStack::new(cx, move |cx| {
+            Label::new(cx, "Animation reference").class("animation-doc-nav-title");
+            let mut category: Option<&'static str> = None;
+            for (index, doc) in DOCS.iter().enumerate() {
+                if category != Some(doc.category) {
+                    category = Some(doc.category);
+                    Label::new(cx, doc.category).class("animation-doc-nav-category");
+                }
+                Button::new(cx, move |cx| Label::new(cx, doc.title))
+                    .variant(ButtonVariant::Text)
+                    .class("animation-doc-nav-item")
+                    .toggle_class(
+                        "animation-doc-nav-item-active",
+                        selected.map(move |current| *current == index),
+                    )
+                    .on_press(move |_cx| selected.set(index));
+            }
+        })
+        .class("animation-doc-nav");
+    })
+    .show_horizontal_scrollbar(false)
+    .class("animation-doc-nav-scroll");
+}
+'''
+          if old not in text:
+              raise SystemExit('navigation anchor not found')
+          rust.write_text(text.replace(old, new, 1))
+
+          css = Path('examples/widget_gallery/resources/themes/animation.css')
+          text = css.read_text()
+          anchor = '''vstack.animation-doc-nav {
+    width: 238px;
+    min-width: 238px;
+    height: auto;
+    padding-right: 18px;
+    border-right-width: 1px;
+    border-right-color: var(--border);
+    gap: 2px;
+}
+'''
+          replacement = '''scrollview.animation-doc-nav-scroll {
+    width: 250px;
+    min-width: 250px;
+    height: 720px;
+    border-right-width: 1px;
+    border-right-color: var(--border);
+}
+
+vstack.animation-doc-nav {
+    width: 232px;
+    min-width: 232px;
+    height: auto;
+    padding-right: 10px;
+    gap: 2px;
+}
+'''
+          if anchor not in text:
+              raise SystemExit('css nav anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          text = text.replace('''vstack.animation-doc-content {
+    width: 1s;
+    min-width: 520px;
+    height: auto;
+    gap: 14px;
+}
+''', '''vstack.animation-doc-content {
+    width: 1s;
+    min-width: 520px;
+    min-height: 720px;
+    height: auto;
+    gap: 14px;
+}
+''', 1)
+          css.write_text(text)
+          PY
+          cargo fmt
+      - name: Commit source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add examples/widget_gallery/src/views/animation.rs examples/widget_gallery/resources/themes/animation.css
+          git commit -m "ui: keep animation reference rail visible"
+          git push origin HEAD:agent/css-keyframes-level2
