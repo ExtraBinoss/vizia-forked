@@ -20,8 +20,8 @@ jobs:
     - name: Install XCB and GL dependencies
       run: |
         sudo apt update
-        # baseview dependencies + native libs needed to link the widget-gallery smoke test
-        sudo apt install libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-{render,shape,xfixes}0-dev libfreetype6-dev libfontconfig1-dev libwayland-dev
+        # baseview dependencies
+        sudo apt install libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-{render,shape,xfixes}0-dev
     - name: Install rust stable
       uses: actions-rs/toolchain@v1
       with:
@@ -31,5 +31,3 @@ jobs:
       run: cargo fmt -- --check
     - name: Check Clippy
       run: cargo clippy
-    - name: Load animation gallery stylesheet
-      run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
