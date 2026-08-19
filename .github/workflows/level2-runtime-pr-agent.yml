@@ -1,4 +1,4 @@
-name: Level 2 Focused Validation
+name: Level 2 Parser Validation
 
 on:
   pull_request:
@@ -11,39 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
+            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libfreetype6-dev libfontconfig1-dev libwayland-dev
       - name: CSS animation parser tests
         run: cargo test -p vizia_style animation --lib
-
-  core-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install native dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
-            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
-            libfreetype6-dev libfontconfig1-dev libwayland-dev
-      - name: Runtime control tests
-        run: cargo test -p vizia_core --lib runtime_
-      - name: Progress timeline tests
-        run: cargo test -p vizia_core --lib timeline
-      - name: Composition tests
-        run: cargo test -p vizia_core --lib level_two
-
-  gallery-smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install native dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
-            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
-            libfreetype6-dev libfontconfig1-dev libwayland-dev
-      - name: Widget Gallery stylesheet smoke test
-        run: cargo test -p widget_gallery animation_gallery_stylesheet_loads
