@@ -1,0 +1,119 @@
+name: Animation Docs Percentage Fix
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Fix percentage-keyframe preview and selected nav state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          rust = Path('examples/widget_gallery/src/views/animation.rs')
+          text = rust.read_text()
+
+          if '    PercentageKeyframes,\n' not in text:
+              text = text.replace('    ViewTimeline,\n    Multiple,', '    ViewTimeline,\n    PercentageKeyframes,\n    Multiple,', 1)
+
+          old = '''        title: "percentage keyframes",
+        css: r#"@keyframes orbit {
+  0%   { translate: -120px 0; }
+  35%  { translate: -20px -35px; }
+  70%  { translate: 80px 24px; }
+  100% { translate: 120px 0; }
+}"#,
+        description: "Multiple offsets, duplicate offsets, implicit endpoints and underlying values are normalized by the CSS animation runtime.",
+        example: ExampleKind::Transform,
+'''
+          new = '''        title: "percentage keyframes",
+        css: r#"@keyframes orbit {
+  0%   { translate: -120px 0; }
+  35%  { translate: -20px -35px; }
+  70%  { translate: 80px 24px; }
+  100% { translate: 120px 0; }
+}
+
+.target {
+  animation: orbit 1.8s ease-in-out
+             infinite alternate;
+}"#,
+        description: "Multiple offsets, duplicate offsets, implicit endpoints and underlying values are normalized by the CSS animation runtime.",
+        example: ExampleKind::PercentageKeyframes,
+'''
+          if old not in text:
+              raise SystemExit('percentage entry anchor not found')
+          text = text.replace(old, new, 1)
+
+          arm = '        ExampleKind::ViewTimeline => render_view_preview(cx),\n'
+          if 'ExampleKind::PercentageKeyframes =>' not in text:
+              text = text.replace(
+                  arm,
+                  arm + '        ExampleKind::PercentageKeyframes => motion_track(cx, "animation-doc-percentage"),\n',
+                  1,
+              )
+
+          rust.write_text(text)
+
+          css = Path('examples/widget_gallery/resources/themes/animation.css')
+          c = css.read_text()
+          marker = '''@keyframes doc-settle {
+    from { translate: -90px 0px; opacity: 0.35; }
+    to { translate: 90px 0px; opacity: 1; }
+}
+'''
+          percentage = marker + '''
+@keyframes doc-percentage {
+    0% { translate: -120px 0px; }
+    35% { translate: -20px -35px; }
+    70% { translate: 80px 24px; }
+    100% { translate: 120px 0px; }
+}
+'''
+          if '@keyframes doc-percentage' not in c:
+              if marker not in c:
+                  raise SystemExit('keyframe marker not found')
+              c = c.replace(marker, percentage, 1)
+
+          anchor = '.animation-doc-direction { animation: doc-motion 1400ms ease-in-out 0s infinite alternate-reverse both running; }\n'
+          if '.animation-doc-percentage {' not in c:
+              c = c.replace(anchor, anchor + '.animation-doc-percentage { animation: doc-percentage 1800ms ease-in-out 0s infinite alternate both running; }\n', 1)
+
+          c = c.replace(
+              '''button.animation-doc-nav-item-active {
+    background-color: var(--background-alt);
+    color: var(--foreground);
+}
+''',
+              '''button.animation-doc-nav-item.animation-doc-nav-item-active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: bold;
+}
+''',
+              1,
+          )
+          css.write_text(c)
+          PY
+          cargo fmt
+      - name: Commit source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add examples/widget_gallery/src/views/animation.rs examples/widget_gallery/resources/themes/animation.css
+          git commit -m "fix: animate percentage keyframe reference"
+          git push origin HEAD:agent/css-keyframes-level2
