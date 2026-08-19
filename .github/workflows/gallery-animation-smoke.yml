@@ -1,0 +1,15 @@
+name: Gallery Animation Smoke
+
+on:
+  push:
+    branches: [ agent/css-keyframes-level1-complete ]
+  workflow_dispatch:
+
+jobs:
+  animation-gallery:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Load animation gallery stylesheet
+        run: cargo test -p widget_gallery animation_gallery_stylesheet_loads -- --exact
