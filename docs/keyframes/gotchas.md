@@ -108,7 +108,8 @@ when the demo specifically needs a scroll timeline/view timeline or an independe
 reference rail.
 
 Give nested scroll views an explicit bounded height; otherwise their content can expand the outer page
-and defeat the point of the inner scrolling region.
+and defeat the point of the inner scrolling region. A long reference/navigation column should therefore
+be bounded and independently scrollable instead of determining the height of the entire page.
 
 ## Fixed heights are safest on the actual viewport, not whole sections
 
