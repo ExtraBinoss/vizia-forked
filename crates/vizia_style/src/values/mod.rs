@@ -2,7 +2,6 @@ pub mod alignment;
 pub mod alpha;
 pub mod angle;
 pub mod animation;
-pub mod animation;
 pub mod aspect_ratio;
 pub mod backdrop_filter;
 pub mod background_repeat;

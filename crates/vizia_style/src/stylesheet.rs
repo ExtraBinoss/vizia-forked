@@ -208,6 +208,42 @@ test {
     }
 
     #[test]
+    fn parses_css_animation_level_one_declarations() {
+        let stylesheet = StyleSheet::parse(
+            r#"
+                .animated {
+                    animation-name: fade, slide;
+                    animation-duration: 200ms, 1s;
+                    animation-delay: -50ms, 0s;
+                    animation-timing-function: steps(4, end), ease-in-out;
+                    animation-iteration-count: 2.5, infinite;
+                    animation-direction: alternate, reverse;
+                    animation-fill-mode: both, forwards;
+                    animation-play-state: running, paused;
+                    animation: fade 1s ease-in -200ms 2 alternate both running;
+                }
+                @keyframes fade {
+                    from, 25% { opacity: 0; }
+                    25%, 75% { opacity: 0.5; }
+                    to { opacity: 1; }
+                }
+            "#,
+            ParserOptions::default(),
+        )
+        .expect("CSS Animations Level 1 declarations should parse");
+
+        assert_eq!(stylesheet.rules.0.len(), 2);
+    }
+
+    #[test]
+    fn rejects_out_of_range_keyframe_percentages() {
+        assert!(
+            StyleSheet::parse("@keyframes bad { 101% { opacity: 1; } }", ParserOptions::default(),)
+                .is_err()
+        );
+    }
+
+    #[test]
     fn parses_filter_and_backdrop_filter_keyframes() {
         let style_sheet = StyleSheet::parse(
             r#"

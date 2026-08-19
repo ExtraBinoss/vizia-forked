@@ -1,5 +1,5 @@
 use crate::{CustomParseError, EasingFunction, Parse};
-use cssparser::{ParseError, ParseErrorKind, Parser, Token};
+use cssparser::{ParseError, ParseErrorKind, Parser, Token, match_ignore_ascii_case};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum AnimationName {
