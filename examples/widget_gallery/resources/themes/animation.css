@@ -19,18 +19,26 @@ vstack.animation-doc-intro {
 
 hstack.animation-doc-layout {
     width: 1s;
-    height: auto;
+    height: 720px;
+    min-height: 720px;
     gap: 24px;
     align-items: flex-start;
+    overflow: hidden;
+}
+
+scrollview.animation-doc-nav-scroll {
+    width: 250px;
+    min-width: 250px;
+    height: 720px;
+    border-right-width: 1px;
+    border-right-color: var(--border);
 }
 
 vstack.animation-doc-nav {
-    width: 238px;
-    min-width: 238px;
+    width: 232px;
+    min-width: 232px;
     height: auto;
-    padding-right: 18px;
-    border-right-width: 1px;
-    border-right-color: var(--border);
+    padding-right: 10px;
     gap: 2px;
 }
 
@@ -70,8 +78,10 @@ button.animation-doc-nav-item-active {
 vstack.animation-doc-content {
     width: 1s;
     min-width: 520px;
-    height: auto;
+    height: 720px;
+    min-height: 720px;
     gap: 14px;
+    overflow: hidden;
 }
 
 label.animation-doc-title {
@@ -91,8 +101,8 @@ label.animation-doc-description {
 
 hstack.animation-doc-example {
     width: 1s;
-    height: auto;
-    min-height: 390px;
+    height: 430px;
+    min-height: 430px;
     border-width: 1px;
     border-color: var(--border);
     corner-radius: 6px;
@@ -104,9 +114,9 @@ hstack.animation-doc-example {
 vstack.animation-doc-code-pane,
 vstack.animation-doc-result-pane {
     width: 1s;
-    min-width: 380px;
-    min-height: 390px;
-    height: auto;
+    min-width: 360px;
+    height: 430px;
+    min-height: 430px;
 }
 
 vstack.animation-doc-code-pane {
@@ -132,10 +142,18 @@ label.animation-doc-pane-title {
     font-weight: bold;
 }
 
+hstack.animation-doc-code-body {
+    width: 1s;
+    height: 388px;
+    min-height: 388px;
+    padding: 18px;
+    alignment: top-left;
+    overflow: hidden;
+}
+
 label.animation-doc-code {
     width: 1s;
     height: auto;
-    padding: 18px;
     color: var(--muted-foreground);
     font-family: monospace;
     font-size: 13px;
@@ -148,7 +166,7 @@ vstack.animation-doc-result-pane {
     gap: 0px;
 }
 
-vstack.animation-doc-result-pane > label.animation-doc-pane-title {
+hstack.animation-doc-result-header {
     width: 1s;
     height: 42px;
     min-height: 42px;
@@ -156,6 +174,14 @@ vstack.animation-doc-result-pane > label.animation-doc-pane-title {
     alignment: center-left;
     border-bottom-width: 1px;
     border-bottom-color: var(--border);
+}
+
+vstack.animation-doc-result-body {
+    width: 1s;
+    height: 388px;
+    min-height: 388px;
+    alignment: center;
+    overflow: hidden;
 }
 
 vstack.animation-doc-note {
@@ -183,8 +209,9 @@ label.animation-doc-note-copy {
 hstack.animation-doc-stage,
 zstack.animation-doc-stage {
     width: 1s;
-    height: 340px;
-    padding: 28px;
+    height: 388px;
+    min-height: 388px;
+    padding: 34px;
     alignment: center;
     overflow: hidden;
 }
@@ -202,9 +229,27 @@ zstack.animation-doc-stage {
     font-weight: bold;
 }
 
+label.animation-doc-surface-target {
+    width: 230px;
+    min-width: 230px;
+    min-height: 104px;
+    padding: 24px 30px;
+    alignment: center;
+    text-align: center;
+    text-wrap: true;
+}
+
+svg.animation-doc-fill-icon {
+    width: 104px;
+    height: 104px;
+    fill: #3b82f6;
+    animation: doc-fill 1400ms ease-in-out infinite alternate;
+}
+
 zstack.animation-doc-track {
     width: 1s;
-    height: 340px;
+    height: 388px;
+    min-height: 388px;
     alignment: center;
     overflow: hidden;
 }
@@ -272,7 +317,8 @@ element.animation-doc-dot {
 
 scrollview.animation-doc-scrollview {
     width: 1s;
-    height: 340px;
+    height: 388px;
+    min-height: 388px;
     background-color: var(--background);
 }
 
@@ -355,7 +401,8 @@ label.animation-doc-view-subject {
 
 zstack.animation-doc-backdrop-stage {
     width: 1s;
-    height: 340px;
+    height: 388px;
+    min-height: 388px;
     alignment: center;
     overflow: hidden;
 }
@@ -409,7 +456,7 @@ label.animation-doc-backdrop-glass {
 }
 
 @keyframes doc-border-color { from { border-color: #3b82f6; } to { border-color: #f43f5e; } }
-.animation-doc-border-color { border-width: 5px; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-color { border-width: 5px; border-style: solid; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
 
 @keyframes doc-radius { from { corner-radius: 4px; } to { corner-radius: 34px; } }
 .animation-doc-radius { animation: doc-radius 1300ms ease-in-out infinite alternate; }
@@ -424,18 +471,24 @@ label.animation-doc-backdrop-glass {
 .animation-doc-shadow { animation: doc-shadow 1500ms ease-in-out infinite alternate; }
 
 @keyframes doc-text-color { from { color: #3b82f6; } to { color: #f43f5e; } }
-.animation-doc-text-color { background-color: transparent; animation: doc-text-color 1200ms ease-in-out infinite alternate; }
+.animation-doc-text-color { background-color: var(--background-alt); animation: doc-text-color 1200ms ease-in-out infinite alternate; }
 
 @keyframes doc-font-size { from { font-size: 20px; } to { font-size: 42px; } }
-.animation-doc-font-size { background-color: transparent; color: var(--foreground); animation: doc-font-size 1600ms ease-in-out infinite alternate; }
+.animation-doc-font-size { background-color: var(--background-alt); color: var(--foreground); animation: doc-font-size 1600ms ease-in-out infinite alternate; }
 
 @keyframes doc-letter-spacing { from { letter-spacing: 0px; } to { letter-spacing: 8px; } }
-.animation-doc-letter-spacing { background-color: transparent; color: var(--foreground); animation: doc-letter-spacing 1500ms ease-in-out infinite alternate; }
+.animation-doc-letter-spacing { background-color: var(--background-alt); color: var(--foreground); animation: doc-letter-spacing 1500ms ease-in-out infinite alternate; }
 
 @keyframes doc-line-height { from { line-height: 1; } to { line-height: 1.8; } }
 label.animation-doc-line-height {
-    width: auto;
+    width: 250px;
+    min-width: 250px;
+    min-height: 140px;
     height: auto;
+    padding: 22px 28px;
+    alignment: center;
+    corner-radius: 8px;
+    background-color: var(--background-alt);
     color: var(--foreground);
     font-size: 22px;
     text-align: center;
@@ -454,7 +507,6 @@ label.animation-doc-line-height {
 }
 
 @keyframes doc-fill { from { fill: #3b82f6; } to { fill: #22c55e; } }
-.animation-doc-fill { animation: doc-fill 1400ms ease-in-out infinite alternate; }
 
 @keyframes doc-position { from { left: 20px; top: 24px; } to { left: 220px; top: 150px; } }
 element.animation-doc-position {

@@ -1,4 +1,4 @@
-use vizia::prelude::*;
+use vizia::{icons::ICON_HEART, prelude::*};
 
 const DOC_RUNTIME_TARGET_ID: &str = "animation-doc-runtime-target";
 const DOC_RUNTIME_DURATION: f32 = 6.0;
@@ -689,6 +689,17 @@ fn simple_stage(cx: &mut Context, label: &'static str, class: &'static str) {
     .alignment(Alignment::Center);
 }
 
+fn surface_stage(cx: &mut Context, label: &'static str, class: &'static str) {
+    HStack::new(cx, move |cx| {
+        Label::new(cx, label)
+            .class("animation-doc-target")
+            .class("animation-doc-surface-target")
+            .class(class);
+    })
+    .class("animation-doc-stage")
+    .alignment(Alignment::Center);
+}
+
 fn motion_track(cx: &mut Context, class: &'static str) {
     ZStack::new(cx, move |cx| {
         Element::new(cx).class("animation-doc-track-line");
@@ -873,19 +884,19 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             .class("animation-doc-backdrop-stage");
         }
         ExampleKind::BackgroundColor => {
-            simple_stage(cx, "background", "animation-doc-background-color")
+            surface_stage(cx, "background", "animation-doc-background-color")
         }
         ExampleKind::BackgroundGeometry => {
-            simple_stage(cx, "background geometry", "animation-doc-background-geometry")
+            surface_stage(cx, "background geometry", "animation-doc-background-geometry")
         }
-        ExampleKind::BorderWidth => simple_stage(cx, "border width", "animation-doc-border-width"),
-        ExampleKind::BorderColor => simple_stage(cx, "border color", "animation-doc-border-color"),
-        ExampleKind::CornerRadius => simple_stage(cx, "radius", "animation-doc-radius"),
-        ExampleKind::Outline => simple_stage(cx, "outline", "animation-doc-outline"),
-        ExampleKind::Shadow => simple_stage(cx, "shadow", "animation-doc-shadow"),
-        ExampleKind::TextColor => simple_stage(cx, "Animated text", "animation-doc-text-color"),
-        ExampleKind::FontSize => simple_stage(cx, "Font size", "animation-doc-font-size"),
-        ExampleKind::LetterSpacing => simple_stage(cx, "Spacing", "animation-doc-letter-spacing"),
+        ExampleKind::BorderWidth => surface_stage(cx, "border width", "animation-doc-border-width"),
+        ExampleKind::BorderColor => surface_stage(cx, "border color", "animation-doc-border-color"),
+        ExampleKind::CornerRadius => surface_stage(cx, "radius", "animation-doc-radius"),
+        ExampleKind::Outline => surface_stage(cx, "outline", "animation-doc-outline"),
+        ExampleKind::Shadow => surface_stage(cx, "shadow", "animation-doc-shadow"),
+        ExampleKind::TextColor => surface_stage(cx, "Animated text", "animation-doc-text-color"),
+        ExampleKind::FontSize => surface_stage(cx, "Font size", "animation-doc-font-size"),
+        ExampleKind::LetterSpacing => surface_stage(cx, "Spacing", "animation-doc-letter-spacing"),
         ExampleKind::LineHeight => {
             VStack::new(cx, |cx| {
                 Label::new(cx, "First line\nSecond line").class("animation-doc-line-height");
@@ -893,8 +904,14 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             .class("animation-doc-stage")
             .alignment(Alignment::Center);
         }
-        ExampleKind::TextPaint => simple_stage(cx, "Text paint", "animation-doc-text-paint"),
-        ExampleKind::Fill => simple_stage(cx, "fill", "animation-doc-fill"),
+        ExampleKind::TextPaint => surface_stage(cx, "Text paint", "animation-doc-text-paint"),
+        ExampleKind::Fill => {
+            HStack::new(cx, |cx| {
+                Svg::new(cx, ICON_HEART).class("animation-doc-fill-icon");
+            })
+            .class("animation-doc-stage")
+            .alignment(Alignment::Center);
+        }
         ExampleKind::Position => {
             ZStack::new(cx, |cx| {
                 Element::new(cx).class("animation-doc-position");
@@ -935,37 +952,70 @@ fn render_doc_content(cx: &mut Context, index: usize) {
     VStack::new(cx, move |cx| {
         Label::new(cx, doc.title).class("animation-doc-title");
         Label::new(cx, doc.description).class("animation-doc-description");
+
         HStack::new(cx, move |cx| {
-            VStack::new(cx, |cx| { HStack::new(cx, |cx| { Label::new(cx, "CSS").class("animation-doc-pane-title"); }).class("animation-doc-code-header"); Label::new(cx, doc.css).class("animation-doc-code").text_wrap(true); }).class("animation-doc-code-pane");
-            VStack::new(cx, move |cx| { Label::new(cx, "Result").class("animation-doc-pane-title"); render_preview(cx, doc.example); }).class("animation-doc-result-pane");
-        }).class("animation-doc-example").wrap(LayoutWrap::Wrap);
+            VStack::new(cx, |cx| {
+                HStack::new(cx, |cx| {
+                    Label::new(cx, "CSS").class("animation-doc-pane-title");
+                })
+                .class("animation-doc-code-header");
+
+                HStack::new(cx, |cx| {
+                    Label::new(cx, doc.css)
+                        .class("animation-doc-code")
+                        .text_wrap(true);
+                })
+                .class("animation-doc-code-body")
+                .alignment(Alignment::TopLeft);
+            })
+            .class("animation-doc-code-pane");
+
+            VStack::new(cx, move |cx| {
+                HStack::new(cx, |cx| {
+                    Label::new(cx, "Result").class("animation-doc-pane-title");
+                })
+                .class("animation-doc-result-header");
+
+                VStack::new(cx, move |cx| render_preview(cx, doc.example))
+                    .class("animation-doc-result-body");
+            })
+            .class("animation-doc-result-pane");
+        })
+        .class("animation-doc-example");
+
         VStack::new(cx, |cx| {
             Label::new(cx, "Implementation note").class("animation-doc-note-title");
             Label::new(cx, "CSS animations are sampled directly through Vizia's existing AnimatableSet / AnimatableVarSet property stores. The documentation mounts only the selected live example, so browsing the catalogue does not keep unrelated animations running in the background.").class("animation-doc-note-copy");
-        }).class("animation-doc-note");
-    }).class("animation-doc-content");
+        })
+        .class("animation-doc-note");
+    })
+    .class("animation-doc-content");
 }
 
 fn build_doc_navigation(cx: &mut Context, selected: Signal<usize>) {
-    VStack::new(cx, move |cx| {
-        Label::new(cx, "Animation reference").class("animation-doc-nav-title");
-        let mut category: Option<&'static str> = None;
-        for (index, doc) in DOCS.iter().enumerate() {
-            if category != Some(doc.category) {
-                category = Some(doc.category);
-                Label::new(cx, doc.category).class("animation-doc-nav-category");
+    ScrollView::new(cx, move |cx| {
+        VStack::new(cx, move |cx| {
+            Label::new(cx, "Animation reference").class("animation-doc-nav-title");
+            let mut category: Option<&'static str> = None;
+            for (index, doc) in DOCS.iter().enumerate() {
+                if category != Some(doc.category) {
+                    category = Some(doc.category);
+                    Label::new(cx, doc.category).class("animation-doc-nav-category");
+                }
+                Button::new(cx, move |cx| Label::new(cx, doc.title))
+                    .variant(ButtonVariant::Text)
+                    .class("animation-doc-nav-item")
+                    .toggle_class(
+                        "animation-doc-nav-item-active",
+                        selected.map(move |current| *current == index),
+                    )
+                    .on_press(move |_cx| selected.set(index));
             }
-            Button::new(cx, move |cx| Label::new(cx, doc.title))
-                .variant(ButtonVariant::Text)
-                .class("animation-doc-nav-item")
-                .toggle_class(
-                    "animation-doc-nav-item-active",
-                    selected.map(move |current| *current == index),
-                )
-                .on_press(move |_cx| selected.set(index));
-        }
+        })
+        .class("animation-doc-nav");
     })
-    .class("animation-doc-nav");
+    .show_horizontal_scrollbar(false)
+    .class("animation-doc-nav-scroll");
 }
 
 pub fn animation(cx: &mut Context) {
