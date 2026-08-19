@@ -17,6 +17,19 @@ jobs:
         with:
           ref: agent/css-keyframes-level2
       - uses: dtolnay/rust-toolchain@stable
+      - name: Normalize materializer anchor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("crates/vizia_core/src/style/css_animation.rs")
+          text = path.read_text()
+          text = text.replace(
+              """            if let Some(instance) =\n                instances.iter_mut().find(|item| item.instance_id == instance_id)\n            {\n""",
+              """            if let Some(instance) = instances.iter_mut().find(|item| item.instance_id == instance_id) {\n""",
+              1,
+          )
+          path.write_text(text)
+          PY
       - name: Apply runtime control phase
         run: python tools/level2_runtime.py
       - name: Format
