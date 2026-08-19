@@ -149,6 +149,30 @@ replace_if_present(
     "                    cx.needs_restyle();\n",
 )
 
+# mundy requires once_blocking() on the macOS main thread. Environment is also constructed by
+# unit tests on worker threads, so keep tests and off-main construction safe while preserving the
+# real application main-thread system preference read.
+replace_if_present(
+    "crates/vizia_core/src/environment.rs",
+    """fn detect_reduced_motion() -> bool {
+    let preferences =
+        Preferences::once_blocking(Interest::ReducedMotion, Duration::from_millis(100));
+    preferences.is_some_and(|preferences| preferences.reduced_motion == ReducedMotion::Reduce)
+}
+""",
+    """fn detect_reduced_motion() -> bool {
+    #[cfg(target_os = \"macos\")]
+    if std::thread::current().name() != Some(\"main\") {
+        return false;
+    }
+
+    let preferences =
+        Preferences::once_blocking(Interest::ReducedMotion, Duration::from_millis(100));
+    preferences.is_some_and(|preferences| preferences.reduced_motion == ReducedMotion::Reduce)
+}
+""",
+)
+
 ensure_after(
     "crates/vizia_core/src/style/css_animation.rs",
     "use std::time::Instant;\n",
@@ -197,6 +221,64 @@ replace_if_present(
         }
     }
 """,
+)
+
+# This pre-existing virtual-list helper had drifted from its own recycling tests. Fix the slot
+# rotation so the full core test suite can be used as a clean regression gate.
+replace_if_present(
+    "crates/vizia_core/src/views/virtual_list.rs",
+    """    fn evaluate_index(index: usize, start: usize, end: usize) -> usize {
+        let len = end.saturating_sub(start);
+        if len == 0 { 0 } else { start + (index % len) }
+    }
+""",
+    """    fn evaluate_index(index: usize, start: usize, end: usize) -> usize {
+        let len = end.saturating_sub(start);
+        if len == 0 {
+            0
+        } else {
+            start + ((index + len - (start % len)) % len)
+        }
+    }
+""",
+)
+
+# Remove now-unused helpers so the final -D warnings/clippy gate is meaningful.
+replace_if_present(
+    "crates/vizia_core/src/animation/css_timing.rs",
+    """    fn final_progress(self) -> f32 {
+        self.final_iteration_and_progress().1
+    }
+
+""",
+    "",
+)
+replace_if_present(
+    "crates/vizia_core/src/animation/animation_state.rs",
+    """    pub(crate) fn play(&mut self, entity: Entity) {
+        self.active = true;
+        self.t = 0.0;
+        self.start_time = Instant::now();
+        self.entities.insert(entity);
+    }
+
+""",
+    "",
+)
+replace_if_present(
+    "crates/vizia_core/src/storage/animatable_set.rs",
+    """    /// Stop an active animation for the given entity.
+    pub(crate) fn stop_animation(&mut self, entity: Entity, animation: Animation) {
+        for state in self.active_animations.iter_mut() {
+            if state.id == animation {
+                state.entities.remove(&entity);
+            }
+        }
+        self.refresh_animation_index(entity);
+    }
+
+""",
+    "",
 )
 
 # All later generator stages have already been materialized. Keep them as no-ops for validation.
