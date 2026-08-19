@@ -96,21 +96,26 @@ effect while the scroll position is unchanged.
 - [x] Preserve change-aware layout ticking so stepped/paused layout animations do not relayout while their sampled value is unchanged.
 - [x] Keep timeline source state normalized in `ScrollView` so sampling is O(1) per subscribed occurrence.
 
-The Widget Gallery intentionally mounts the large visual witnesses while the Animation page is open.
-That is a showcase choice, not an engine requirement; the animation/timeline runtime itself does not
-need to walk the full widget tree to find effects.
+The Widget Gallery keeps only the small Level 2 showcase set plus one selected Level 1 regression
+witness mounted at a time. Scroll/view examples keep local viewports because the viewport is the
+actual timeline source; the rest of the page uses normal content height and the gallery's outer
+scroll. This avoids turning the visual regression page into a permanent many-animation stress test.
 
 ## L2.5 — Widget Gallery demos
 
-- [x] Add a dedicated full-size Level 2 section before the Level 1 regression witnesses.
+- [x] Use a flat, full-width Level 2 showcase with the same native Button, Slider, Popover, typography, spacing, and theme variables as the rest of Widget Gallery.
 - [x] Add side-by-side `replace` vs `add` composition on the same `translate` property.
 - [x] Add an `accumulate` rotation demo plus an independently composed scale effect.
-- [x] Add a large named scroll-progress timeline viewport with a separate progress indicator.
-- [x] Add a large `view(block)` demo driven by entering/leaving a scroll viewport.
-- [x] Add runtime controls for pause/resume, reverse, seek, finish, cancel, and playback rate.
-- [x] Display stable occurrence ID, time, progress, playback rate, state, and timeline kind.
-- [x] Keep all ten Level 1 visual regression witnesses.
-- [x] Remove the old nested 600px `VirtualList`; the normal Widget Gallery page scroll now owns the full-size showcase.
+- [x] Add a document-timeline demo that autoplays and exposes a continuously-following scrubber.
+- [x] Add clear play/pause/reverse/playback-rate/restart controls for the document-timeline occurrence; `finish` and `cancel` remain covered by the public runtime API and deterministic tests rather than crowding the primary showcase.
+- [x] Add a named scroll-progress timeline whose local scroll position is explicitly presented as the clock.
+- [x] Add a `view(block)` demo driven by entering/leaving a local viewport.
+- [x] Hide local timeline scrollbars and remove decorative guide/axis bars that could be mistaken for animation UI.
+- [x] Add a native Button -> Popover interaction with a short CSS blur/opacity reveal.
+- [x] Add a geometric Heart <-> Star vector-path morph with Tabler Heart/Star target buttons, a manual scrubber, and a play sequence.
+- [x] Add a lightweight staggered text throbber as a practical small animation example.
+- [x] Keep all ten Level 1 visual regression witnesses but mount only one selected witness at a time with Previous/Next controls.
+- [x] Remove `LIVE` badges, card-inside-card nesting, fixed-height section containers, and the old nested 600px `VirtualList`.
 
 ## L2.6 — Quality gate
 
@@ -120,7 +125,7 @@ need to walk the full widget tree to find effects.
 - [x] The Widget Gallery stylesheet has a runtime `Context::add_stylesheet(...)` smoke test.
 - [x] The gallery source is compiled by the official all-target/backend build matrix.
 - [x] Supported additive/accumulative families and deterministic fallbacks are encoded by the property-specific `Compositor` implementations.
-- [x] Formatting, Clippy, focused tests, stylesheet smoke testing, Audit, and the Linux/macOS/Windows build matrix are part of the final validation pass.
+- [x] Formatting, Clippy, stylesheet smoke testing, Audit, and multi-platform build validation are part of the final validation pass.
 
 ## Deliberate scope boundaries
 
@@ -134,6 +139,9 @@ The following are intentionally **not** claimed as part of this Vizia Level 2 im
   `ScrollView::timeline_name(...)` API, while `animation-timeline` remains CSS.
 - Playback-rate magnitude changing an externally supplied scroll/view progress source. A negative
   rate reverses progress; the source itself remains controlled by scrolling/visibility.
+- Browser-defined SVG path-data interpolation. The Widget Gallery Heart/Star demo is a Vizia-native
+  geometric vector morph used to demonstrate interactive animation UI; it is not presented as a CSS
+  `d`-property implementation.
 
 Those boundaries keep the implementation aligned with Vizia's entity, style-store, signal, and
 `ScrollView` architecture while leaving room for future standards work without replacing this
