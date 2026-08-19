@@ -1546,6 +1546,20 @@ pub(crate) fn style_system(cx: &mut Context) {
         }
     }
 
+    let animation_sync_time = Instant::now();
+    for entity in entities.iter().copied() {
+        let rules = matched_rules.get(&entity).unwrap_or(&[]);
+        cx.style.animation_name.link(entity, rules);
+        cx.style.animation_duration.link(entity, rules);
+        cx.style.animation_delay.link(entity, rules);
+        cx.style.animation_timing_function.link(entity, rules);
+        cx.style.animation_iteration_count.link(entity, rules);
+        cx.style.animation_direction.link(entity, rules);
+        cx.style.animation_fill_mode.link(entity, rules);
+        cx.style.animation_play_state.link(entity, rules);
+        cx.style.sync_css_animations(entity, animation_sync_time);
+    }
+
     shared_inheritance_system(cx, &mut redraw_entities);
 
     for entity in redraw_entities {

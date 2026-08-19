@@ -274,30 +274,31 @@ fn draw_entity(
         let mut backdrop_image_filter = ImageFilter::crop(transformed_rect, None, None).unwrap();
 
         if let Some(filter) = filter {
-            match filter {
-                Filter::Blur(radius) => {
-                    let sigma = radius.to_px().unwrap() * cx.scale_factor() / 2.0;
-                    let image_filter = ImageFilter::crop(rect, None, None)
-                        .unwrap()
-                        .blur(None, (sigma, sigma), None)
-                        .unwrap();
-                    paint.set_image_filter(image_filter);
+            let filters = filter.as_list();
+            if filters.iter().any(|filter| matches!(filter, Filter::Blur(_))) {
+                let mut image_filter = ImageFilter::crop(rect, None, None).unwrap();
+                for filter in filters {
+                    if let Filter::Blur(radius) = filter {
+                        let sigma = radius.to_px().unwrap_or(0.0) * cx.scale_factor() / 2.0;
+                        image_filter = image_filter.blur(None, (sigma, sigma), None).unwrap();
+                    }
                 }
+                paint.set_image_filter(image_filter);
             }
         }
 
         let slr = if let Some(backdrop_filter) = backdrop_filter {
-            match backdrop_filter {
-                Filter::Blur(radius) => {
-                    let sigma = radius.to_px().unwrap() * cx.scale_factor() / 2.0;
+            for filter in backdrop_filter.as_list() {
+                if let Filter::Blur(radius) = filter {
+                    let sigma = radius.to_px().unwrap_or(0.0) * cx.scale_factor() / 2.0;
                     backdrop_image_filter =
                         backdrop_image_filter.blur(None, (sigma, sigma), None).unwrap();
-                    SaveLayerRec::default()
-                        .bounds(&transformed_rect)
-                        .paint(&paint)
-                        .backdrop(&backdrop_image_filter)
                 }
             }
+            SaveLayerRec::default()
+                .bounds(&transformed_rect)
+                .paint(&paint)
+                .backdrop(&backdrop_image_filter)
         } else {
             SaveLayerRec::default().paint(&paint)
         };

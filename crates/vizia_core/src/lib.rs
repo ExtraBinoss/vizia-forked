@@ -73,7 +73,9 @@ pub mod prelude {
 
     pub use crate::model::Model;
 
-    pub use super::animation::{Animation, AnimationBuilder, KeyframeBuilder};
+    pub use super::animation::{
+        Animation, AnimationBuilder, AnimationEvent, AnimationEventKind, KeyframeBuilder,
+    };
     pub use super::context::{
         AccessContext, AccessNode, Context, ContextProxy, DataContext, DrawContext, EmitContext,
         EventContext, ProxyEmitError, WindowState,
