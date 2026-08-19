@@ -129,6 +129,13 @@ in matching header rows and place the CSS text in a dedicated body aligned `TopL
 A single label directly inside a stretching `VStack` can end up visually hugging the bottom or being
 laid out unexpectedly, making the pane look empty even though the text exists.
 
+## The code shown in a live reference must actually drive the preview
+
+Do not display one `@keyframes` block while reusing an unrelated preview class. The source pane should
+include the declaration that applies the shown keyframes (`animation: ...`) and the mounted result
+should use the same keyframe shape/timing. Otherwise a static or mismatched demo looks like an engine
+bug even when the animation system is working.
+
 ## Text/border demos need a real surface
 
 Animating `border-color`, `font-size`, `letter-spacing`, outline, shadow, etc. on a label sized only to
