@@ -490,7 +490,7 @@ impl Style {
     pub(crate) fn cancel_css_animations(&mut self, entity: Entity, now: Instant) {
         if let Some(instances) = self.css_animation_instances.remove(&entity) {
             for instance in instances {
-                self.stop_css_on_stores(entity, instance.animation);
+                self.stop_css_on_stores(entity, instance.instance_id);
                 if !instance.ended {
                     self.pending_animation_events.push(Self::cancel_event(&instance, entity, now));
                 }
