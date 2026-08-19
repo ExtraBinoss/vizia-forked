@@ -1,66 +1,73 @@
 # Animation Gallery and Verification
 
-The Widget Gallery owns a top-level **Animation** page. It is a full-size visual stress-test: the
-normal page scroll owns the showcase and there is no nested 600px `VirtualList` around the demos.
-Running Level 1 examples intentionally loop continuously, while Level 2 progress-timeline examples
-move only when their scroll/view source changes.
+The Widget Gallery owns a top-level **Animation** page. The showcase uses the normal page scroll and
+the same native buttons, sliders, popovers, typography, spacing and theme variables as the rest of
+the application. Demo-specific CSS is limited to the animated surfaces themselves.
+
+The page deliberately distinguishes two timeline models:
+
+- The document timeline autoplays and exposes a continuously-following scrubber.
+- Scroll/view timelines are progress timelines: scrolling is the clock, so stopping the scroll must
+  freeze the effect without wall-clock drift.
 
 ## Level 2 showcase
 
-The Level 2 sections appear first and are intentionally large enough to make the new behavior
-obvious without inspecting source code.
+- [x] `replace` vs `add` side-by-side using two effects on the same `translate` property.
+- [x] `accumulate` using two rotation effects plus a separate scale effect.
+- [x] Document-timeline autoplay with live progress, pause/resume, reverse, seek and playback-rate controls.
+- [x] Named scroll timeline using a local `ScrollView` and an explicit live percentage readout.
+- [x] View-progress timeline with a subject entering and leaving a local viewport.
+- [x] Native Vizia `Popover` opened by a native `Button`, with a short CSS blur/opacity reveal.
+- [x] Geometric vector-path morph between Heart and Star shapes, with Tabler Heart/Star controls,
+      manual scrub and an alternating play sequence.
+- [x] Lightweight staggered text throbber as a practical small animation pattern.
+- [x] Page-level play/pause controls for document-time examples.
 
-- [x] `replace` vs `add` side-by-side using two animations on the same `translate` property.
-- [x] `accumulate` witness using two rotation effects plus a separate scale effect.
-- [x] Named scroll timeline with a large local `ScrollView` and an independent progress marker.
-- [x] View-progress timeline with a subject entering and leaving a large viewport.
-- [x] Runtime-control lab with stable occurrence ID and visible time/progress/state/rate readout.
-- [x] Pause, resume, reverse, seek, finish, cancel, 0.5x/1x/2x controls.
-- [x] Large stages and high-contrast geometry rather than thumbnail-sized cards.
-
-The named scroll demo is registered from Rust with `ScrollView::timeline_name("--l2-gallery-scroll")`
-and consumed by CSS through `animation-timeline: --l2-gallery-scroll`. The view demo uses
+The named scroll demo is registered from Rust with `ScrollView::timeline_name("--gallery-scroll")`
+and consumed by CSS through `animation-timeline: --gallery-scroll`. The view demo uses
 `animation-timeline: view(block)`.
 
-## Level 1 regression matrix
+## Level 1 regression sampler
 
-The original Level 1 witnesses remain directly in the page below the Level 2 sections.
+All ten Level 1 witnesses remain available, but only **one witness is mounted at a time**. Previous
+and Next buttons switch the active witness. This preserves the full regression matrix without making
+the normal gallery scroll pay for every continuous animation simultaneously.
 
 - [x] Entrance: opacity + translate + scale.
 - [x] Style interpolation: background/text color + corner radius + border + shadow.
 - [x] Layout: width + padding + gap with visible neighboring content.
-- [x] Multi-keyframe motion: at least three offsets.
-- [x] Timing functions: continuous easing and visibly discrete `steps()` motion.
+- [x] Multi-keyframe transform motion.
+- [x] Continuous easing and visibly discrete `steps()` motion.
 - [x] Delay and negative delay.
 - [x] Infinite iteration and alternate / alternate-reverse direction.
-- [x] Fill mode declarations in the shorthand and play-state examples.
-- [x] Paused state shown beside the same animation running continuously.
+- [x] Fill mode and play-state behavior.
+- [x] Paused state shown beside a running copy of the same animation.
 - [x] Filter blur interpolation.
-- [x] Rounded backdrop-filter animation over moving high-contrast content.
+- [x] Backdrop-filter over moving colored content.
 - [x] Multiple named animations on one entity.
 
-## Interaction rules
+## Interaction and visual rules
 
-1. Level 1 running examples loop continuously with short periods so movement is always visible.
-2. The intentional Level 1 paused example is shown beside a running copy of the same animation.
-3. Progress-timeline examples must stop immediately when the user stops scrolling.
-4. Runtime controls operate on the same CSS animation occurrence; the demo does not call
+1. Do not add `LIVE` badges or debug-looking guide/axis bars to the showcase.
+2. Avoid card-inside-card layouts. Sections are flat; only actual animation viewports receive a border/background.
+3. Native controls keep their normal Widget Gallery styling instead of being restyled in `animation.css`.
+4. Progress-timeline examples must clearly explain that they are scrubbed by scroll, not autoplayed.
+5. Runtime controls operate on the same CSS animation occurrence and do not call
    `Context::play_animation*` to fake CSS playback.
-5. Use high-contrast geometry for blur, transforms, composition, layout, scroll and view progress.
-6. Keep examples independent so one visual witness cannot replace another witness's CSS state.
-7. Keep the Animation page searchable and present in the all-items overview.
-8. Do not put the showcase back into a small nested list. The page itself is the scrolling surface.
+6. The document-timeline scrubber must track current progress continuously while playback is running.
+7. Keep fixed heights limited to the actual demonstration viewport; section containers use content height.
+8. Keep the Animation page searchable and present in the all-items overview.
 
 ## Acceptance
 
-- The first Level 2 section immediately shows a visible difference between `replace` and `add`.
-- Scrolling the named-timeline viewport moves both its subject and progress marker with no wall-clock drift.
-- The view-timeline subject changes while entering/leaving its viewport and freezes when scrolling stops.
-- Runtime pause freezes the current value; resume continues it; reverse preserves current progress and changes direction.
-- Seeking after the finite runtime animation has finished re-samples the same occurrence instead of remaining stuck at its filled end value.
-- Cancel removes the selected runtime occurrence and emits through the normal cancellation path.
-- Level 1 running witnesses still move continuously after the Level 2 work.
-- Resizing the gallery during playback does not panic or corrupt layout.
-- Filter examples remain clipped to rounded bounds.
-- The backdrop scene contains moving colored geometry behind the animated glass plate.
-- The source compiles on all supported Widget Gallery backends, and the stylesheet passes the runtime load smoke test.
+- No headings, labels or animation surfaces overlap at common desktop widths.
+- The page remains visually consistent with the rest of Widget Gallery in light and dark themes.
+- `replace` and `add` visibly produce different motion.
+- Document-timeline playback advances without interaction and its scrubber follows continuously.
+- Named scroll/view timelines move only with their source and freeze when scrolling stops.
+- Runtime pause/resume/reverse/seek/rate controls preserve the stable occurrence ID.
+- The native Popover performs a visible blur reveal without custom button styling.
+- Heart/Star morph visibly interpolates geometry rather than cross-fading two SVG images.
+- Only one Level 1 witness is mounted at once.
+- Resizing during playback does not panic or corrupt layout.
+- The source compiles on supported Widget Gallery backends and `animation.css` passes the runtime stylesheet smoke test.
