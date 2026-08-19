@@ -203,3 +203,15 @@ pub fn animation(cx: &mut Context) {
     })
     .class("panel");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn animation_gallery_stylesheet_loads() {
+        let mut cx = Context::default();
+        cx.add_stylesheet(include_style!("resources/themes/animation.css"))
+            .expect("animation gallery stylesheet should parse and load");
+    }
+}
