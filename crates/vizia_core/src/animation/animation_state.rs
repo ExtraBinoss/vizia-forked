@@ -61,7 +61,6 @@ where
             css_instance_id: None,
             css_order: 0,
             css_composition: AnimationComposition::Replace,
-            css_composition: AnimationComposition::Replace,
         }
     }
 
@@ -77,6 +76,7 @@ where
 
     pub(crate) fn with_keyframe(mut self, key: Keyframe<T>) -> Self {
         self.keyframes.push(key);
+
         self
     }
 
