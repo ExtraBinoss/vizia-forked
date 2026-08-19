@@ -1083,6 +1083,47 @@ mod tests {
     }
 
     #[test]
+    fn runtime_seek_revives_a_filled_finished_effect() {
+        let mut style = Style::default();
+        let entity = Entity::root();
+        let animation = style.add_animation(
+            AnimationBuilder::new()
+                .keyframe(0.0, |key| key.opacity(0.0))
+                .keyframe(1.0, |key| key.opacity(1.0)),
+        );
+        style.animations.insert("revive".into(), animation);
+        style
+            .animation_name
+            .insert(entity, AnimationNames(vec![AnimationName::Custom("revive".into())]));
+        style
+            .animation_duration
+            .insert(entity, AnimationDurations(vec![AnimationDuration(AnimationTime(2.0))]));
+        style
+            .animation_fill_mode
+            .insert(entity, AnimationFillModes(vec![AnimationFillMode::Forwards]));
+        style.opacity.insert(entity, Opacity(0.0));
+
+        let start = Instant::now();
+        style.sync_css_animations(entity, start);
+        style.opacity.tick(start + Duration::from_secs(3));
+        let id = style.css_animation_snapshots(entity, start + Duration::from_secs(3))[0].id;
+        assert_eq!(
+            style.css_animation_snapshots(entity, start + Duration::from_secs(3))[0].state,
+            CssAnimationPlaybackState::Finished
+        );
+
+        let now = start + Duration::from_secs(3);
+        assert!(style.control_css_animation(id, CssAnimationControl::Seek(0.5), now));
+        style.opacity.tick(now);
+        let opacity = style.opacity.get(entity).expect("revived opacity output").0;
+        assert!((opacity - 0.25).abs() < 0.001, "seek should resample a filled effect");
+        assert_ne!(
+            style.css_animation_snapshots(entity, now)[0].state,
+            CssAnimationPlaybackState::Finished
+        );
+    }
+
+    #[test]
     fn list_values_repeat_to_match_animation_name_length() {
         let mut style = Style::default();
         let entity = Entity::root();
