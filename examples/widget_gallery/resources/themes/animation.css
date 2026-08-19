@@ -70,9 +70,14 @@ button.animation-doc-nav-item {
     justify-content: flex-start;
 }
 
-button.animation-doc-nav-item-active {
-    background-color: var(--background-alt);
-    color: var(--foreground);
+button.animation-doc-nav-item.animation-doc-nav-item-active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: bold;
+}
+
+button.animation-doc-nav-item.animation-doc-nav-item-active > label {
+    color: var(--primary-foreground);
 }
 
 vstack.animation-doc-content {
@@ -142,11 +147,11 @@ label.animation-doc-pane-title {
     font-weight: bold;
 }
 
-hstack.animation-doc-code-body {
+vstack.animation-doc-code-body {
     width: 1s;
     height: 388px;
     min-height: 388px;
-    padding: 18px;
+    padding: 20px;
     alignment: top-left;
     overflow: hidden;
 }
@@ -154,10 +159,22 @@ hstack.animation-doc-code-body {
 label.animation-doc-code {
     width: 1s;
     height: auto;
-    color: var(--muted-foreground);
+    color: var(--foreground);
     font-family: monospace;
-    font-size: 13px;
+    font-size: 15px;
+    line-height: 1.45;
     text-wrap: true;
+}
+
+hstack.animation-doc-copy-row {
+    width: 1s;
+    height: auto;
+    min-height: 36px;
+    alignment: center-right;
+}
+
+button.animation-doc-copy-button {
+    min-width: 88px;
 }
 
 vstack.animation-doc-result-pane {
@@ -293,12 +310,20 @@ element.animation-doc-dot {
     to { translate: 90px 0px; opacity: 1; }
 }
 
+@keyframes doc-percentage {
+    0% { translate: -120px 0px; }
+    35% { translate: -20px -35px; }
+    70% { translate: 80px 24px; }
+    100% { translate: 120px 0px; }
+}
+
 .animation-doc-motion { animation: doc-motion 1600ms ease-in-out -300ms infinite alternate both running; }
 .animation-doc-duration { animation: doc-motion 3500ms ease-in-out 0s infinite alternate both running; }
 .animation-doc-delay { animation: doc-motion 1600ms ease-in-out -800ms infinite alternate both running; }
 .animation-doc-steps { animation: doc-motion 1800ms steps(6, end) 0s infinite alternate both running; }
 .animation-doc-iterations { animation: doc-motion 900ms ease-in-out 0s 3 normal forwards running; }
 .animation-doc-direction { animation: doc-motion 1400ms ease-in-out 0s infinite alternate-reverse both running; }
+.animation-doc-percentage { animation: doc-percentage 1800ms ease-in-out 0s infinite alternate both running; }
 .animation-doc-fill-mode { animation: doc-settle 900ms ease-out 0s 1 normal forwards running; }
 .animation-doc-paused { animation: doc-motion 1600ms ease-in-out -800ms infinite alternate both paused; }
 .animation-doc-composition {
@@ -407,29 +432,79 @@ zstack.animation-doc-backdrop-stage {
     overflow: hidden;
 }
 
-hstack.animation-doc-backdrop-colors {
-    position-type: absolute;
-    width: 300px;
+element.animation-doc-backdrop-blob {
+    width: 150px;
     height: 150px;
-    corner-radius: 12px;
-    overflow: hidden;
+    corner-radius: 50%;
 }
-.animation-doc-backdrop-colors > element { width: 1s; height: 1s; }
-.animation-doc-backdrop-a { background-color: #3b82f6; }
-.animation-doc-backdrop-b { background-color: #f97316; }
-.animation-doc-backdrop-c { background-color: #22c55e; }
 
-@keyframes doc-backdrop { from { backdrop-filter: blur(1px); } to { backdrop-filter: blur(12px); } }
-label.animation-doc-backdrop-glass {
-    position-type: absolute;
-    width: 190px;
-    height: 78px;
-    alignment: center;
-    corner-radius: 9px;
-    background-color: #88ffffff;
-    color: #111827;
+@keyframes doc-backdrop-a-motion {
+    from { translate: -135px -55px; scale: 0.78; }
+    to { translate: 125px 48px; scale: 1.18; }
+}
+
+@keyframes doc-backdrop-b-motion {
+    from { translate: 125px -38px; scale: 1.12; }
+    to { translate: -120px 58px; scale: 0.74; }
+}
+
+@keyframes doc-backdrop-c-motion {
+    from { translate: -30px 80px; scale: 0.82; }
+    to { translate: 48px -84px; scale: 1.08; }
+}
+
+.animation-doc-backdrop-a {
+    background-color: #3b82f6;
+    animation: doc-backdrop-a-motion 1700ms ease-in-out infinite alternate;
+}
+.animation-doc-backdrop-b {
+    background-color: #f97316;
+    animation: doc-backdrop-b-motion 2100ms ease-in-out infinite alternate;
+}
+.animation-doc-backdrop-c {
+    background-color: #22c55e;
+    animation: doc-backdrop-c-motion 1900ms ease-in-out infinite alternate;
+}
+
+label.animation-doc-backdrop-behind-text {
+    width: auto;
+    height: auto;
+    font-size: 30px;
     font-weight: bold;
-    animation: doc-backdrop 1600ms ease-in-out infinite alternate;
+    letter-spacing: 5px;
+    color: var(--foreground);
+}
+
+@keyframes doc-backdrop {
+    0%, 100% { backdrop-filter: blur(0px); }
+    50% { backdrop-filter: blur(16px); }
+}
+
+vstack.animation-doc-backdrop-glass {
+    width: 280px;
+    height: 128px;
+    padding: 18px 22px;
+    gap: 6px;
+    alignment: center;
+    corner-radius: 14px;
+    background-color: #66ffffff;
+    animation: doc-backdrop 1800ms ease-in-out infinite;
+}
+
+label.animation-doc-backdrop-title {
+    width: 1s;
+    height: auto;
+    text-align: center;
+    font-weight: bold;
+    color: #111827;
+}
+
+label.animation-doc-backdrop-copy {
+    width: 1s;
+    height: auto;
+    text-align: center;
+    font-size: 12px;
+    color: #374151;
 }
 
 @keyframes doc-background-color { from { background-color: #3b82f6; } to { background-color: #8b5cf6; } }

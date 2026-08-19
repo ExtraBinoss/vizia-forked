@@ -17,6 +17,7 @@ enum ExampleKind {
     DocumentTimeline,
     ScrollTimeline,
     ViewTimeline,
+    PercentageKeyframes,
     Multiple,
     Opacity,
     Transform,
@@ -229,9 +230,14 @@ const DOCS: &[DocEntry] = &[
   35%  { translate: -20px -35px; }
   70%  { translate: 80px 24px; }
   100% { translate: 120px 0; }
+}
+
+.target {
+  animation: orbit 1.8s ease-in-out
+             infinite alternate;
 }"#,
         description: "Multiple offsets, duplicate offsets, implicit endpoints and underlying values are normalized by the CSS animation runtime.",
-        example: ExampleKind::Transform,
+        example: ExampleKind::PercentageKeyframes,
     },
     DocEntry {
         category: "Keyframes & timelines",
@@ -860,6 +866,7 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
         ExampleKind::DocumentTimeline => motion_track(cx, "animation-doc-document"),
         ExampleKind::ScrollTimeline => render_scroll_preview(cx),
         ExampleKind::ViewTimeline => render_view_preview(cx),
+        ExampleKind::PercentageKeyframes => motion_track(cx, "animation-doc-percentage"),
         ExampleKind::Multiple => simple_stage(cx, "TWO ANIMATIONS", "animation-doc-multiple"),
         ExampleKind::Opacity => simple_stage(cx, "opacity", "animation-doc-opacity"),
         ExampleKind::Transform => simple_stage(cx, "transform", "animation-doc-transform"),
@@ -873,13 +880,22 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
         ExampleKind::Filter => simple_stage(cx, "FILTER", "animation-doc-filter"),
         ExampleKind::BackdropFilter => {
             ZStack::new(cx, |cx| {
-                HStack::new(cx, |cx| {
-                    Element::new(cx).class("animation-doc-backdrop-a");
-                    Element::new(cx).class("animation-doc-backdrop-b");
-                    Element::new(cx).class("animation-doc-backdrop-c");
+                Element::new(cx)
+                    .class("animation-doc-backdrop-blob")
+                    .class("animation-doc-backdrop-a");
+                Element::new(cx)
+                    .class("animation-doc-backdrop-blob")
+                    .class("animation-doc-backdrop-b");
+                Element::new(cx)
+                    .class("animation-doc-backdrop-blob")
+                    .class("animation-doc-backdrop-c");
+                Label::new(cx, "SHARP  CONTENT").class("animation-doc-backdrop-behind-text");
+                VStack::new(cx, |cx| {
+                    Label::new(cx, "BACKDROP FILTER").class("animation-doc-backdrop-title");
+                    Label::new(cx, "blur() over moving content")
+                        .class("animation-doc-backdrop-copy");
                 })
-                .class("animation-doc-backdrop-colors");
-                Label::new(cx, "BACKDROP").class("animation-doc-backdrop-glass");
+                .class("animation-doc-backdrop-glass");
             })
             .class("animation-doc-backdrop-stage");
         }
@@ -960,10 +976,21 @@ fn render_doc_content(cx: &mut Context, index: usize) {
                 })
                 .class("animation-doc-code-header");
 
-                HStack::new(cx, |cx| {
+                VStack::new(cx, move |cx| {
                     Label::new(cx, doc.css)
                         .class("animation-doc-code")
                         .text_wrap(true);
+                    Element::new(cx).height(Stretch(1.0));
+                    HStack::new(cx, move |cx| {
+                        Element::new(cx).width(Stretch(1.0));
+                        Button::new(cx, |cx| Label::new(cx, "Copy CSS"))
+                            .variant(ButtonVariant::Outline)
+                            .class("animation-doc-copy-button")
+                            .on_press(move |cx| {
+                                let _ = cx.set_clipboard(doc.css.to_string());
+                            });
+                    })
+                    .class("animation-doc-copy-row");
                 })
                 .class("animation-doc-code-body")
                 .alignment(Alignment::TopLeft);
