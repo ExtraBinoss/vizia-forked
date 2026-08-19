@@ -1,0 +1,37 @@
+name: Level 2 Composition Fix
+
+on:
+  push:
+    branches: [ agent/css-keyframes-level2 ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Apply fixes
+        run: python tools/level2_composition_fix.py
+      - name: Format
+        run: cargo fmt
+      - name: Commit source fixes
+        run: |
+          if git diff --quiet; then
+            echo "No source fixes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            crates/vizia_core/src/animation/interpolator.rs \
+            crates/vizia_core/src/animation/animation_state.rs \
+            crates/vizia_core/src/style/mod.rs
+          git commit -m "fix: stabilize Level 2 composition integration"
+          git push origin HEAD:agent/css-keyframes-level2
