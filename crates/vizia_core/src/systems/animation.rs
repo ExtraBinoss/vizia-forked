@@ -94,23 +94,45 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     let mut relayout_entities = Vec::new();
     let mut retransform_entities = Vec::new();
     let mut reclip_entities = Vec::new();
+    let mut has_active_layout_animations = false;
 
     // Properties which affect rendering
     // Opacity
     redraw_entities.extend(cx.style.opacity.tick(time));
+    // Filters. Track only the entities which can require filter-aware dirty-bound work.
+    let filter_entities = cx.style.filter.tick(time);
+    cx.style.filter_entities.extend(filter_entities.iter().copied());
+    redraw_entities.extend(filter_entities);
+    let backdrop_filter_entities = cx.style.backdrop_filter.tick(time);
+    cx.style.filter_entities.extend(backdrop_filter_entities.iter().copied());
+    redraw_entities.extend(backdrop_filter_entities);
     // Corner Colour
     redraw_entities.extend(cx.style.border_top_color.tick(time));
     redraw_entities.extend(cx.style.border_right_color.tick(time));
     redraw_entities.extend(cx.style.border_bottom_color.tick(time));
     redraw_entities.extend(cx.style.border_left_color.tick(time));
-    // Corner Radius
-    redraw_entities.extend(cx.style.corner_top_left_radius.tick(time));
-    redraw_entities.extend(cx.style.corner_top_right_radius.tick(time));
-    redraw_entities.extend(cx.style.corner_bottom_left_radius.tick(time));
-    redraw_entities.extend(cx.style.corner_bottom_right_radius.tick(time));
+    // Corner Radius and smoothing. Radius changes also affect rounded clipping.
+    let corner_top_left = cx.style.corner_top_left_radius.tick(time);
+    let corner_top_right = cx.style.corner_top_right_radius.tick(time);
+    let corner_bottom_left = cx.style.corner_bottom_left_radius.tick(time);
+    let corner_bottom_right = cx.style.corner_bottom_right_radius.tick(time);
+    redraw_entities.extend(corner_top_left.iter().copied());
+    redraw_entities.extend(corner_top_right.iter().copied());
+    redraw_entities.extend(corner_bottom_left.iter().copied());
+    redraw_entities.extend(corner_bottom_right.iter().copied());
+    reclip_entities.extend(corner_top_left);
+    reclip_entities.extend(corner_top_right);
+    reclip_entities.extend(corner_bottom_left);
+    reclip_entities.extend(corner_bottom_right);
+    redraw_entities.extend(cx.style.corner_top_left_smoothing.tick(time));
+    redraw_entities.extend(cx.style.corner_top_right_smoothing.tick(time));
+    redraw_entities.extend(cx.style.corner_bottom_left_smoothing.tick(time));
+    redraw_entities.extend(cx.style.corner_bottom_right_smoothing.tick(time));
     // Background
     redraw_entities.extend(cx.style.background_color.tick(time));
     redraw_entities.extend(cx.style.background_image.tick(time));
+    redraw_entities.extend(cx.style.background_position.tick(time));
+    redraw_entities.extend(cx.style.background_repeat.tick(time));
     redraw_entities.extend(cx.style.background_size.tick(time));
     // Box Shadow
     redraw_entities.extend(cx.style.shadow.tick(time));
@@ -129,8 +151,11 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
 
     redraw_entities.extend(cx.style.fill.tick(time));
 
-    // Font Color
-    reflow_entities.extend(cx.style.font_color.tick(time));
+    // Pure paint text properties do not require text reconstruction.
+    redraw_entities.extend(cx.style.font_color.tick(time));
+    redraw_entities.extend(cx.style.caret_color.tick(time));
+    redraw_entities.extend(cx.style.selection_color.tick(time));
+    redraw_entities.extend(cx.style.text_decoration_color.tick(time));
     // Font Size
     reflow_entities.extend(cx.style.font_size.tick(time));
     // Letter Spacing
@@ -138,39 +163,47 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     // Line Height
     reflow_entities.extend(cx.style.line_height.tick(time));
 
-    // Properties which affect layout
+    // Properties which affect layout. Keep the animation frame loop alive while
+    // avoiding a relayout when a stepped/paused animation sampled the same value.
+    macro_rules! tick_layout {
+        ($store:expr) => {{
+            has_active_layout_animations |= $store.has_animations();
+            relayout_entities.extend($store.tick_changed(time));
+        }};
+    }
+
     relayout_entities.extend(cx.style.display.tick(time));
     // Border Width
-    relayout_entities.extend(cx.style.border_top_width.tick(time));
-    relayout_entities.extend(cx.style.border_right_width.tick(time));
-    relayout_entities.extend(cx.style.border_bottom_width.tick(time));
-    relayout_entities.extend(cx.style.border_left_width.tick(time));
+    tick_layout!(cx.style.border_top_width);
+    tick_layout!(cx.style.border_right_width);
+    tick_layout!(cx.style.border_bottom_width);
+    tick_layout!(cx.style.border_left_width);
     // Space
-    relayout_entities.extend(cx.style.left.tick(time));
-    relayout_entities.extend(cx.style.right.tick(time));
-    relayout_entities.extend(cx.style.top.tick(time));
-    relayout_entities.extend(cx.style.bottom.tick(time));
+    tick_layout!(cx.style.left);
+    tick_layout!(cx.style.right);
+    tick_layout!(cx.style.top);
+    tick_layout!(cx.style.bottom);
     // Size
-    relayout_entities.extend(cx.style.width.tick(time));
-    relayout_entities.extend(cx.style.height.tick(time));
+    tick_layout!(cx.style.width);
+    tick_layout!(cx.style.height);
     // Min/Max Size
-    relayout_entities.extend(cx.style.max_width.tick(time));
-    relayout_entities.extend(cx.style.max_height.tick(time));
-    relayout_entities.extend(cx.style.min_width.tick(time));
-    relayout_entities.extend(cx.style.min_height.tick(time));
+    tick_layout!(cx.style.max_width);
+    tick_layout!(cx.style.max_height);
+    tick_layout!(cx.style.min_width);
+    tick_layout!(cx.style.min_height);
     // Min/Max Gap
-    relayout_entities.extend(cx.style.max_horizontal_gap.tick(time));
-    relayout_entities.extend(cx.style.max_vertical_gap.tick(time));
-    relayout_entities.extend(cx.style.min_horizontal_gap.tick(time));
-    relayout_entities.extend(cx.style.min_vertical_gap.tick(time));
+    tick_layout!(cx.style.max_horizontal_gap);
+    tick_layout!(cx.style.max_vertical_gap);
+    tick_layout!(cx.style.min_horizontal_gap);
+    tick_layout!(cx.style.min_vertical_gap);
     // Row/Col Between
-    relayout_entities.extend(cx.style.vertical_gap.tick(time));
-    relayout_entities.extend(cx.style.horizontal_gap.tick(time));
+    tick_layout!(cx.style.vertical_gap);
+    tick_layout!(cx.style.horizontal_gap);
     // Child Space
-    relayout_entities.extend(cx.style.padding_left.tick(time));
-    relayout_entities.extend(cx.style.padding_right.tick(time));
-    relayout_entities.extend(cx.style.padding_top.tick(time));
-    relayout_entities.extend(cx.style.padding_bottom.tick(time));
+    tick_layout!(cx.style.padding_left);
+    tick_layout!(cx.style.padding_right);
+    tick_layout!(cx.style.padding_top);
+    tick_layout!(cx.style.padding_bottom);
 
     // Tick animations on custom color properties
     for store in cx.style.custom_color_props.values_mut() {
@@ -194,11 +227,25 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
     }
     // Tick animations on custom units properties
     for store in cx.style.custom_units_props.values_mut() {
-        relayout_entities.extend(store.tick(time));
+        has_active_layout_animations |= store.has_animations();
+        relayout_entities.extend(store.tick_changed(time));
     }
     // Tick animations on custom opacity properties
     for store in cx.style.custom_opacity_props.values_mut() {
         redraw_entities.extend(store.tick(time));
+    }
+    // Tick animations on custom shadow properties.
+    for store in cx.style.custom_shadow_props.values_mut() {
+        redraw_entities.extend(store.tick(time));
+    }
+
+    // CSS animation lifecycle events are emitted once per named animation.
+    let lifecycle_events = cx.style.tick_css_animation_events(time);
+    for lifecycle_event in lifecycle_events {
+        let entity = lifecycle_event.entity;
+        cx.event_queue.push_back(
+            Event::new(lifecycle_event).target(entity).origin(entity).propagate(Propagation::Up),
+        );
     }
 
     for entity in relayout_entities.iter() {
@@ -223,7 +270,8 @@ pub(crate) fn animation_system(cx: &mut Context) -> bool {
         cx.needs_redraw(*entity);
     }
 
-    !redraw_entities.is_empty()
+    has_active_layout_animations
+        | !redraw_entities.is_empty()
         | !relayout_entities.is_empty()
         | !reflow_entities.is_empty()
         | !retransform_entities.is_empty()

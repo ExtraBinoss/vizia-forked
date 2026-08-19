@@ -20,6 +20,7 @@ checkbox = صندوق اختيار
 all = الكل
 
 ## Widget Categories
+category-animation = الرسوم المتحركة
 category-layout = التخطيط
 category-display = العرض
 category-input = الإدخال
@@ -33,6 +34,8 @@ button-group = مجموعة الأزرار
 popup = نافذة منبثقة
 
 ## Widget Gallery Titles
+animation = الرسوم المتحركة
+    .description = تعرض إطارات CSS الرئيسية القابلة لإعادة التشغيل التوقيت والتحويلات وتدرج الأنماط والمرشحات.
 accordion = أكورديون
     .description = يعرض الأكورديون قائمة من الرؤوس التي يمكن توسيعها واحدة تلو الأخرى للكشف عن المحتوى.
 avatar = صورة رمزية

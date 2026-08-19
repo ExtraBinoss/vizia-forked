@@ -20,6 +20,7 @@ checkbox = Checkbox
 all = All
 
 ## Widget Categories
+category-animation = Animation
 category-layout = Layout
 category-display = Display
 category-input = Input
@@ -33,6 +34,8 @@ button-group = Button Group
 popup = Popup
 
 ## Widget Gallery Titles
+animation = Animation
+    .description = Replayable CSS keyframes demonstrate timing, transforms, style interpolation, filters, and backdrop filters.
 accordion = Accordion
     .description = An accordion displays a list of headers that can be expanded one at a time to reveal content.
 avatar = Avatar

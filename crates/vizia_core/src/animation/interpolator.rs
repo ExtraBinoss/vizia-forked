@@ -87,9 +87,29 @@ impl Interpolator for RGBA {
 impl Interpolator for Filter {
     fn interpolate(start: &Self, end: &Self, t: f32) -> Self {
         match (start, end) {
+            (Filter::None, Filter::None) => Filter::None,
             (Filter::Blur(start), Filter::Blur(end)) => {
                 Filter::Blur(Length::interpolate(start, end, t))
             }
+            (Filter::List(start), Filter::List(end)) if start.len() == end.len() => {
+                let compatible = start.iter().zip(end).all(|(a, b)| {
+                    matches!(
+                        (a, b),
+                        (Filter::Blur(_), Filter::Blur(_)) | (Filter::None, Filter::None)
+                    )
+                });
+                if compatible {
+                    Filter::List(
+                        start.iter().zip(end).map(|(a, b)| Filter::interpolate(a, b, t)).collect(),
+                    )
+                } else if t < 0.5 {
+                    Filter::List(start.clone())
+                } else {
+                    Filter::List(end.clone())
+                }
+            }
+            _ if t < 0.5 => start.clone(),
+            _ => end.clone(),
         }
     }
 }

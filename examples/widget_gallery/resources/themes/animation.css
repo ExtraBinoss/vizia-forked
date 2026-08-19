@@ -1,0 +1,625 @@
+/* CSS Animations Level 1 live gallery.
+ * The page uses a VirtualList, so only visible demo rows stay mounted and animate.
+ */
+
+@keyframes gallery-entrance-loop {
+    0% {
+        opacity: 0.35;
+        translate: -135px 16px;
+        scale: 0.74;
+        background-color: #2563eb;
+        corner-radius: 8px;
+    }
+    50% {
+        opacity: 1;
+        translate: 0px -18px;
+        scale: 1.12;
+        background-color: #7c3aed;
+        corner-radius: 30px;
+    }
+    100% {
+        opacity: 0.6;
+        translate: 135px 12px;
+        scale: 0.88;
+        background-color: #16a34a;
+        corner-radius: 12px;
+    }
+}
+
+@keyframes gallery-travel {
+    0% {
+        translate: -125px 0px;
+        scale: 0.78;
+    }
+    50% {
+        translate: 0px -8px;
+        scale: 1.22;
+    }
+    100% {
+        translate: 125px 0px;
+        scale: 0.78;
+    }
+}
+
+@keyframes gallery-step-travel {
+    0% { translate: -132px 0px; }
+    100% { translate: 132px 0px; }
+}
+
+@keyframes gallery-play-state {
+    0% {
+        translate: -118px 0px;
+        opacity: 0.45;
+        scale: 0.76;
+    }
+    100% {
+        translate: 118px 0px;
+        opacity: 1;
+        scale: 1.18;
+    }
+}
+
+@keyframes gallery-pulse {
+    0% {
+        opacity: 0.5;
+        scale: 0.82;
+        translate: -72px 0px;
+    }
+    100% {
+        opacity: 1;
+        scale: 1.14;
+        translate: 72px 0px;
+    }
+}
+
+@keyframes gallery-composed-color {
+    0% {
+        background-color: #0ea5e9;
+        corner-radius: 8px;
+    }
+    50% {
+        background-color: #8b5cf6;
+        corner-radius: 34px;
+    }
+    100% {
+        background-color: #f97316;
+        corner-radius: 12px;
+    }
+}
+
+@keyframes gallery-layout-width {
+    0% {
+        width: 76px;
+        padding-left: 6px;
+        padding-right: 6px;
+        corner-radius: 8px;
+    }
+    100% {
+        width: 230px;
+        padding-left: 28px;
+        padding-right: 28px;
+        corner-radius: 26px;
+    }
+}
+
+@keyframes gallery-layout-gap {
+    0% { horizontal-gap: 8px; }
+    100% { horizontal-gap: 46px; }
+}
+
+@keyframes gallery-style-loop {
+    0% {
+        background-color: #2563eb;
+        color: #ffffff;
+        corner-radius: 6px;
+        border-color: #93c5fd;
+        shadow: 0px 4px 14px #33000000;
+    }
+    50% {
+        background-color: #7c3aed;
+        color: #fef3c7;
+        corner-radius: 36px;
+        border-color: #f0abfc;
+        shadow: 0px 18px 34px #66000000;
+    }
+    100% {
+        background-color: #16a34a;
+        color: #ffffff;
+        corner-radius: 12px;
+        border-color: #86efac;
+        shadow: 0px 8px 20px #44000000;
+    }
+}
+
+@keyframes gallery-transform-loop {
+    0% {
+        translate: -112px 12px;
+        rotate: -45deg;
+        scale: 0.62;
+    }
+    50% {
+        translate: 0px -28px;
+        rotate: 180deg;
+        scale: 1.35;
+    }
+    100% {
+        translate: 112px 12px;
+        rotate: 405deg;
+        scale: 0.78;
+    }
+}
+
+@keyframes gallery-filter-loop {
+    0% {
+        filter: blur(0px);
+        scale: 1;
+    }
+    48% {
+        filter: blur(10px);
+        scale: 0.94;
+    }
+    100% {
+        filter: blur(0px);
+        scale: 1.04;
+    }
+}
+
+@keyframes gallery-backdrop-loop {
+    0% { backdrop-filter: blur(2px); }
+    50% { backdrop-filter: blur(12px); }
+    100% { backdrop-filter: blur(5px); }
+}
+
+@keyframes gallery-gpu-one {
+    0% {
+        translate: -82px -12px;
+        scale: 0.72;
+        rotate: 0deg;
+    }
+    100% {
+        translate: 92px 34px;
+        scale: 1.28;
+        rotate: 180deg;
+    }
+}
+
+@keyframes gallery-gpu-two {
+    0% {
+        translate: 86px 32px;
+        scale: 1.2;
+        rotate: 20deg;
+    }
+    100% {
+        translate: -92px -32px;
+        scale: 0.68;
+        rotate: 250deg;
+    }
+}
+
+@keyframes gallery-gpu-three {
+    0% {
+        translate: -28px 50px;
+        scale: 0.9;
+    }
+    100% {
+        translate: 42px -48px;
+        scale: 1.38;
+    }
+}
+
+.animation-summary {
+    width: 1s;
+    height: auto;
+    alignment: center-left;
+    horizontal-gap: 10px;
+}
+
+.animation-summary-pill,
+.animation-live-badge {
+    width: auto;
+    height: auto;
+    padding: 4px 9px;
+    corner-radius: 999px;
+    background-color: #1634d399;
+    color: #bbf7d0;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.animation-summary-text {
+    color: var(--muted-foreground);
+    font-size: 12px;
+}
+
+.animation-live-list {
+    width: 1s;
+    height: 600px;
+    corner-radius: 14px;
+    border-width: 1px;
+    border-color: var(--border);
+    background-color: var(--background-alt);
+}
+
+.animation-demo-card {
+    width: 1s;
+    height: 280px;
+    padding: 14px;
+    corner-radius: 12px;
+    border-width: 1px;
+    border-color: var(--border);
+    background-color: var(--background);
+    gap: 9px;
+}
+
+.animation-demo-header {
+    width: 1s;
+    height: auto;
+    alignment: center-left;
+}
+
+.animation-demo-title {
+    width: 1s;
+    height: auto;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.animation-live-badge {
+    background-color: #1634d399;
+    color: #bbf7d0;
+}
+
+.animation-demo-description {
+    width: 1s;
+    height: auto;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    text-wrap: true;
+}
+
+hstack.animation-stage {
+    width: 1s;
+    height: 184px;
+    padding: 16px;
+    corner-radius: 12px;
+    overflow: hidden;
+    background-color: #0d1117;
+    border-width: 1px;
+    border-color: #263244;
+}
+
+.animation-card {
+    width: auto;
+    height: auto;
+    min-width: 190px;
+    min-height: 62px;
+    padding: 16px 24px;
+    alignment: center;
+    corner-radius: 12px;
+    background-color: #16a34a;
+    color: white;
+    font-weight: bold;
+    border-width: 2px;
+    border-color: #66ffffff;
+    shadow: 0px 12px 28px #55000000;
+}
+
+.css-animation-entrance {
+    animation: gallery-entrance-loop 1400ms ease-in-out -350ms infinite alternate both running;
+}
+
+.animation-track-stack {
+    width: 1s;
+    height: auto;
+    gap: 16px;
+}
+
+.animation-track-row {
+    width: 1s;
+    height: 58px;
+    alignment: center-left;
+}
+
+.animation-track-label {
+    width: 130px;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.animation-track {
+    width: 1s;
+    height: 56px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 28px;
+    background-color: #111827;
+    border-width: 1px;
+    border-color: #334155;
+}
+
+.animation-track-line {
+    position-type: absolute;
+    width: 76%;
+    height: 2px;
+    background-color: #475569;
+}
+
+.animation-orb {
+    width: 34px;
+    height: 34px;
+    corner-radius: 50%;
+    shadow: 0px 6px 18px #77000000;
+}
+
+.css-animation-alternate {
+    background-color: #22c55e;
+    animation: gallery-travel 1100ms ease-in-out 0s infinite alternate both running;
+}
+
+.css-animation-alternate-reverse {
+    background-color: #f97316;
+    animation: gallery-travel 1100ms ease-in-out 0s infinite alternate-reverse both running;
+}
+
+.animation-step-track {
+    width: 440px;
+    height: 74px;
+    alignment: center;
+    overflow: hidden;
+    corner-radius: 12px;
+    background-color: #111827;
+    border-width: 1px;
+    border-color: #334155;
+}
+
+.animation-step-grid {
+    width: 330px;
+    height: 1s;
+    alignment: center;
+    horizontal-gap: 38px;
+}
+
+.animation-step-marker {
+    width: 3px;
+    height: 30px;
+    corner-radius: 2px;
+    background-color: #475569;
+}
+
+.animation-step-cursor {
+    position-type: absolute;
+    width: 30px;
+    height: 30px;
+    corner-radius: 7px;
+    background-color: #facc15;
+    shadow: 0px 7px 18px #6671330b;
+}
+
+.css-animation-steps {
+    animation: gallery-step-travel 1200ms steps(6, end) 0s infinite alternate both running;
+}
+
+.css-animation-running {
+    background-color: #22c55e;
+    animation-name: gallery-play-state;
+    animation-duration: 1200ms;
+    animation-delay: 0s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-fill-mode: both;
+    animation-play-state: running;
+}
+
+.css-animation-paused {
+    background-color: #ef4444;
+    animation-name: gallery-play-state;
+    animation-duration: 1200ms;
+    animation-delay: -600ms;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-fill-mode: both;
+    animation-play-state: paused;
+}
+
+.css-animation-composed {
+    animation: gallery-pulse 820ms ease-in-out 0s infinite alternate both running,
+               gallery-composed-color 1350ms linear 0s infinite alternate both running;
+}
+
+.css-animation-layout-row {
+    width: 1s;
+    height: 112px;
+    alignment: center;
+    animation: gallery-layout-gap 1400ms steps(4, end) 0s infinite alternate both running;
+}
+
+.css-animation-layout-box {
+    height: 72px;
+    background-color: #06b6d4;
+    border-width: 2px;
+    border-color: #67e8f9;
+    animation: gallery-layout-width 1400ms steps(4, end) 0s infinite alternate both running;
+}
+
+.css-animation-layout-box-static {
+    width: 76px;
+    height: 72px;
+    corner-radius: 10px;
+    background-color: #475569;
+    border-width: 2px;
+    border-color: #64748b;
+}
+
+.css-animation-style {
+    min-width: 230px;
+    min-height: 76px;
+    border-width: 4px;
+    animation: gallery-style-loop 1450ms ease-in-out 0s infinite alternate both running;
+}
+
+.animation-transform-stage {
+    width: 430px;
+    height: 120px;
+    alignment: center;
+}
+
+.animation-transform-guide {
+    position-type: absolute;
+    width: 310px;
+    height: 2px;
+    background-color: #334155;
+}
+
+.css-animation-transform {
+    width: 58px;
+    height: 58px;
+    corner-radius: 12px;
+    background-color: #ec4899;
+    border-width: 2px;
+    border-color: #f9a8d4;
+    shadow: 0px 10px 24px #664a044e;
+    animation: gallery-transform-loop 1250ms ease-in-out 0s infinite alternate both running;
+}
+
+.animation-filter-poster {
+    width: 300px;
+    height: 112px;
+    corner-radius: 16px;
+    overflow: hidden;
+    alignment: center;
+    background-color: #f8fafc;
+    border-width: 3px;
+    border-color: #ffffff;
+    shadow: 0px 12px 28px #66000000;
+}
+
+.filter-poster-stripes {
+    position-type: absolute;
+    width: 1s;
+    height: 1s;
+}
+
+.filter-poster-stripes > element {
+    width: 1s;
+    height: 1s;
+}
+
+.filter-stripe-a { background-color: #06b6d4; }
+.filter-stripe-b { background-color: #f8fafc; }
+.filter-stripe-c { background-color: #f43f5e; }
+.filter-stripe-d { background-color: #a3e635; }
+
+.filter-poster-title {
+    position-type: absolute;
+    width: auto;
+    height: auto;
+    padding: 8px 14px;
+    corner-radius: 8px;
+    background-color: #cc0f172a;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.css-animation-filter {
+    animation: gallery-filter-loop 1550ms ease-in-out 0s infinite alternate both running;
+}
+
+.animation-backdrop-scene {
+    position-type: relative;
+    width: 440px;
+    height: 158px;
+    corner-radius: 22px;
+    overflow: hidden;
+    background-color: #020617;
+    border-width: 1px;
+    border-color: #475569;
+}
+
+.animation-backdrop-stripes {
+    position-type: absolute;
+    width: 1s;
+    height: 1s;
+}
+
+.animation-backdrop-stripes > element {
+    width: 1s;
+    height: 1s;
+}
+
+.backdrop-stripe-a { background-color: #111827; }
+.backdrop-stripe-b { background-color: #1e293b; }
+
+.animation-backdrop-copy {
+    position-type: absolute;
+    width: auto;
+    height: auto;
+    left: 30px;
+    top: 58px;
+    color: #e2e8f0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.animation-gpu-orb {
+    position-type: absolute;
+    width: 92px;
+    height: 92px;
+    corner-radius: 50%;
+    shadow: 0px 10px 26px #66000000;
+}
+
+.gpu-one {
+    left: 76px;
+    top: 22px;
+    background-color: #22d3ee;
+    animation: gallery-gpu-one 1050ms ease-in-out 0s infinite alternate both running;
+}
+
+.gpu-two {
+    right: 62px;
+    top: 18px;
+    background-color: #f43f5e;
+    animation: gallery-gpu-two 1300ms ease-in-out 0s infinite alternate both running;
+}
+
+.gpu-three {
+    left: 176px;
+    bottom: -8px;
+    background-color: #a3e635;
+    animation: gallery-gpu-three 900ms ease-in-out 0s infinite alternate both running;
+}
+
+.animation-backdrop-target {
+    position-type: absolute;
+    width: 258px;
+    height: 96px;
+    space: 1s;
+    alignment: center;
+    corner-radius: 20px;
+    background-color: #66111827;
+    border-width: 1px;
+    border-color: #bbffffff;
+    shadow: 0px 16px 34px #77000000;
+}
+
+.glass-title {
+    width: auto;
+    height: auto;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.glass-subtitle {
+    width: auto;
+    height: auto;
+    color: #dbeafe;
+    font-size: 11px;
+}
+
+.css-animation-backdrop {
+    animation: gallery-backdrop-loop 1600ms ease-in-out 0s infinite alternate both running;
+}

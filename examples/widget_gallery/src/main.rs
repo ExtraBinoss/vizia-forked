@@ -360,6 +360,9 @@ struct PreviewTableRow {
 
 fn render_view_preview(cx: &mut Context, view_name: &'static str) {
     VStack::new(cx, |cx| match view_name {
+        "Animation" => {
+            Label::new(cx, "Replay").class("animation-card").width(Pixels(120.0));
+        }
         "Accordion" => {
             let items = Signal::new(vec![
                 ("Section 1".to_string(), "Accordion content 1".to_string()),
@@ -1266,6 +1269,7 @@ fn render_view_preview(cx: &mut Context, view_name: &'static str) {
 fn render_view_page(cx: &mut Context, view_name: &'static str) {
     match view_name {
         ALL_VIEW_ID => all_views_page(cx),
+        "Animation" => animation(cx),
         "Accordion" => accordion(cx),
         "Avatar" => avatar(cx),
         "Avatar Group" => avatar_group(cx),
@@ -1367,6 +1371,9 @@ fn main() -> Result<(), ApplicationError> {
 
         cx.add_stylesheet(include_style!("resources/themes/accents.css"))
             .expect("Failed to add stylesheet");
+
+        cx.add_stylesheet(include_style!("resources/themes/animation.css"))
+            .expect("Failed to add animation gallery stylesheet");
 
         VStack::new(cx, |cx| {
             HStack::new(cx, |cx| {

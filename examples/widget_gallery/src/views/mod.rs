@@ -1,6 +1,9 @@
 pub mod avatar;
 pub use avatar::*;
 
+pub mod animation;
+pub use animation::*;
+
 pub mod avatar_group;
 pub use avatar_group::*;
 
