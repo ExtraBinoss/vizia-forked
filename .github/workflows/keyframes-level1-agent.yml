@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: keyframes-level1-${{ github.repository }}
+  group: keyframes-level1-macos-${{ github.repository }}
   cancel-in-progress: true
 
 permissions:
