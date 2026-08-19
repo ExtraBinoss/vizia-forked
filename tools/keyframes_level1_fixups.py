@@ -129,4 +129,47 @@ replace_once(
 ''',
 )
 
+# Rust 1.97 added stricter Clippy lints in existing tree-table code. These are semantics-preserving
+# rewrites so the repository-wide CI can validate the keyframes branch with -D warnings.
+replace_once(
+    "crates/vizia_core/src/views/tree_table.rs",
+    r'''                columns
+                    .deref()
+                    .iter()
+                    .map(
+                        |column| if !column.hidden.get() { Some(column.key.clone()) } else { None },
+                    )
+                    .flatten()
+                    .collect::<Vec<_>>()''',
+    r'''                columns
+                    .deref()
+                    .iter()
+                    .filter_map(|column| {
+                        if !column.hidden.get() { Some(column.key.clone()) } else { None }
+                    })
+                    .collect::<Vec<_>>()''',
+)
+replace_once(
+    "crates/vizia_core/src/views/tree_table.rs",
+    r'''        let focused_id = self.focused.get().and_then(|focused| match focused {
+            TableFocus::Row(id) => Some(id.clone()),
+            TableFocus::Cell(id, _) => Some(id.clone()),
+        })?;''',
+    r'''        let focused_id = self.focused.get().map(|focused| match focused {
+            TableFocus::Row(id) => id.clone(),
+            TableFocus::Cell(id, _) => id.clone(),
+        })?;''',
+)
+replace_once(
+    "crates/vizia_core/src/views/virtual_tree_table.rs",
+    r'''        let focused_id = self.focused.get().and_then(|focused| match focused {
+            TableFocus::Row(id) => Some(id.clone()),
+            TableFocus::Cell(id, _) => Some(id.clone()),
+        })?;''',
+    r'''        let focused_id = self.focused.get().map(|focused| match focused {
+            TableFocus::Row(id) => id.clone(),
+            TableFocus::Cell(id, _) => id.clone(),
+        })?;''',
+)
+
 print("generated CSS animation fixups applied")
