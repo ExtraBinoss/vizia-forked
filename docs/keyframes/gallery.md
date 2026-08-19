@@ -1,73 +1,101 @@
-# Animation Gallery and Verification
+# CSS Animations — Widget Gallery Reference
 
-The Widget Gallery owns a top-level **Animation** page. The showcase uses the normal page scroll and
-the same native buttons, sliders, popovers, typography, spacing and theme variables as the rest of
-the application. Demo-specific CSS is limited to the animated surfaces themselves.
+The Widget Gallery **Animation** page is an interactive CSS-animation reference, not a stress-test or a standards-level showcase.
 
-The page deliberately distinguishes two timeline models:
+Its layout intentionally mirrors documentation sites such as MDN:
 
-- The document timeline autoplays and exposes a continuously-following scrubber.
-- Scroll/view timelines are progress timelines: scrolling is the clock, so stopping the scroll must
-  freeze the effect without wall-clock drift.
+- a secondary animation-reference navigation column on the left;
+- the selected property/concept documented in the main pane;
+- CSS source on the left side of the example;
+- the live Vizia result on the right side;
+- native Widget Gallery buttons, sliders, popovers, typography and theme tokens.
 
-## Level 2 showcase
+## Performance rule
 
-- [x] `replace` vs `add` side-by-side using two effects on the same `translate` property.
-- [x] `accumulate` using two rotation effects plus a separate scale effect.
-- [x] Document-timeline autoplay with live progress, pause/resume, reverse, seek and playback-rate controls.
-- [x] Named scroll timeline using a local `ScrollView` and an explicit live percentage readout.
-- [x] View-progress timeline with a subject entering and leaving a local viewport.
-- [x] Native Vizia `Popover` opened by a native `Button`, with a short CSS blur/opacity reveal.
-- [x] Geometric vector-path morph between Heart and Star shapes, with Tabler Heart/Star controls,
-      manual scrub and an alternating play sequence.
-- [x] Lightweight staggered text throbber as a practical small animation pattern.
-- [x] Page-level play/pause controls for document-time examples.
+Only the selected documentation entry mounts a live preview. Inactive examples do not keep CSS animation occurrences, filters, layout animations, timers or progress timelines running in the background.
 
-The named scroll demo is registered from Rust with `ScrollView::timeline_name("--gallery-scroll")`
-and consumed by CSS through `animation-timeline: --gallery-scroll`. The view demo uses
-`animation-timeline: view(block)`.
+The page must not install a page-wide periodic timer merely to refresh readouts. Runtime-control readouts update when the user interacts. Document-time animations are driven by the normal animation system; scroll/view animations are driven only by their progress source.
 
-## Level 1 regression sampler
+## Animation property reference
 
-All ten Level 1 witnesses remain available, but only **one witness is mounted at a time**. Previous
-and Next buttons switch the active witness. This preserves the full regression matrix without making
-the normal gallery scroll pay for every continuous animation simultaneously.
+The navigation documents every CSS animation property currently implemented by Vizia:
 
-- [x] Entrance: opacity + translate + scale.
-- [x] Style interpolation: background/text color + corner radius + border + shadow.
-- [x] Layout: width + padding + gap with visible neighboring content.
-- [x] Multi-keyframe transform motion.
-- [x] Continuous easing and visibly discrete `steps()` motion.
-- [x] Delay and negative delay.
-- [x] Infinite iteration and alternate / alternate-reverse direction.
-- [x] Fill mode and play-state behavior.
-- [x] Paused state shown beside a running copy of the same animation.
-- [x] Filter blur interpolation.
-- [x] Backdrop-filter over moving colored content.
-- [x] Multiple named animations on one entity.
+- `animation`
+- `animation-name`
+- `animation-duration`
+- `animation-delay`
+- `animation-timing-function`
+- `steps()`, `step-start`, `step-end`
+- `animation-iteration-count`
+- `animation-direction`
+- `animation-fill-mode`
+- `animation-play-state`
+- `animation-composition`
+- `animation-timeline`
 
-## Interaction and visual rules
+It also documents `@keyframes`, percentage offsets, multiple animation lists, document timelines, named scroll timelines, `scroll(...)`, and `view(...)`.
 
-1. Do not add `LIVE` badges or debug-looking guide/axis bars to the showcase.
-2. Avoid card-inside-card layouts. Sections are flat; only actual animation viewports receive a border/background.
-3. Native controls keep their normal Widget Gallery styling instead of being restyled in `animation.css`.
-4. Progress-timeline examples must clearly explain that they are scrubbed by scroll, not autoplayed.
-5. Runtime controls operate on the same CSS animation occurrence and do not call
-   `Context::play_animation*` to fake CSS playback.
-6. The document-timeline scrubber must track current progress continuously while playback is running.
-7. Keep fixed heights limited to the actual demonstration viewport; section containers use content height.
-8. Keep the Animation page searchable and present in the all-items overview.
+## Animated property-store reference
+
+The reference mirrors the property families wired by `Style::play_css_on_stores` / `update_css_on_stores` rather than maintaining a hand-wavy demo list.
+
+The page covers:
+
+- `display`
+- `opacity`
+- `clip-path`
+- `filter`
+- `backdrop-filter`
+- `transform`
+- `transform-origin`
+- `translate`
+- `rotate`
+- `scale`
+- border top/right/bottom/left widths
+- border top/right/bottom/left colors
+- per-corner radius and smoothing
+- `outline-width`, `outline-color`, `outline-offset`
+- `background-color`
+- background image / position / repeat / size stores
+- `shadow`
+- `color`
+- `font-size`
+- `letter-spacing`
+- `line-height`
+- `caret-color`
+- `selection-color`
+- `text-decoration-color`
+- `fill`
+- `left`, `right`, `top`, `bottom`
+- padding top/right/bottom/left
+- horizontal / vertical gap
+- width / height
+- min/max width / height
+- min/max horizontal / vertical gap constraints
+- typed custom color, length, font-size, letter-spacing, line-height, units, opacity and shadow stores
+
+Related directional properties may share one visual family preview, but the reference text lists the exact stores that participate in CSS keyframe playback.
+
+## Runtime and UI-pattern examples
+
+The reference also includes focused, opt-in examples for:
+
+- stable CSS animation occurrence inspection;
+- pause / resume;
+- seek;
+- reverse;
+- playback-rate changes;
+- a native `Button` opening a native `Popover` with a CSS blur reveal;
+- a lightweight staggered text throbber.
 
 ## Acceptance
 
-- No headings, labels or animation surfaces overlap at common desktop widths.
-- The page remains visually consistent with the rest of Widget Gallery in light and dark themes.
-- `replace` and `add` visibly produce different motion.
-- Document-timeline playback advances without interaction and its scrubber follows continuously.
-- Named scroll/view timelines move only with their source and freeze when scrolling stops.
-- Runtime pause/resume/reverse/seek/rate controls preserve the stable occurrence ID.
-- The native Popover performs a visible blur reveal without custom button styling.
-- Heart/Star morph visibly interpolates geometry rather than cross-fading two SVG images.
-- Only one Level 1 witness is mounted at once.
-- Resizing during playback does not panic or corrupt layout.
-- The source compiles on supported Widget Gallery backends and `animation.css` passes the runtime stylesheet smoke test.
+- No “Level 1”, “Level 2”, or `LIVE` presentation badges appear in the Widget Gallery Animation page.
+- The first screen reads like documentation, not like nested demo cards.
+- The selected entry shows CSS and its live result side-by-side when space permits.
+- Only one live documentation preview is mounted at a time.
+- The page does not add a periodic UI refresh timer on top of the animation frame loop.
+- Normal document-time animation remains smooth while scrolling the gallery.
+- Named scroll and view timelines stop when their source stops changing.
+- The stylesheet parses through `Context::add_stylesheet(...)` in the gallery smoke test.
+- The source passes formatting, Clippy and the supported backend/platform build matrix.
