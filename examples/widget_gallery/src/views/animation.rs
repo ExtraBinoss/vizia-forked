@@ -289,48 +289,111 @@ ScrollView::new(cx, content)
         description: "view() derives progress from the subject entering and leaving its nearest scroll viewport.",
         example: ExampleKind::ViewTimeline,
     },
-    DocEntry { category: "Animated values", title: "opacity", css: r#"@keyframes demo {
+    DocEntry {
+        category: "Animated values",
+        title: "opacity",
+        css: r#"@keyframes demo {
   from { opacity: .15; }
   to   { opacity: 1; }
-}"#, description: "Paint-only interpolation. It does not require layout or text reconstruction.", example: ExampleKind::Opacity },
-    DocEntry { category: "Animated values", title: "transform", css: r#"@keyframes demo {
+}"#,
+        description: "Paint-only interpolation. It does not require layout or text reconstruction.",
+        example: ExampleKind::Opacity,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "transform",
+        css: r#"@keyframes demo {
   from { transform: translateX(-90px) rotate(-25deg); }
   to   { transform: translateX(90px) rotate(335deg); }
-}"#, description: "Transform lists are sampled through the retransform path rather than layout.", example: ExampleKind::Transform },
-    DocEntry { category: "Animated values", title: "transform-origin", css: r#"@keyframes demo {
+}"#,
+        description: "Transform lists are sampled through the retransform path rather than layout.",
+        example: ExampleKind::Transform,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "transform-origin",
+        css: r#"@keyframes demo {
   from { transform-origin: 0% 50%; rotate: -35deg; }
   to   { transform-origin: 100% 50%; rotate: 35deg; }
-}"#, description: "Transform origin is store-backed and participates in the same animation clock as transforms.", example: ExampleKind::TransformOrigin },
-    DocEntry { category: "Animated values", title: "translate", css: r#"@keyframes demo {
+}"#,
+        description: "Transform origin is store-backed and participates in the same animation clock as transforms.",
+        example: ExampleKind::TransformOrigin,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "translate",
+        css: r#"@keyframes demo {
   from { translate: -110px 0; }
   to   { translate: 110px 0; }
-}"#, description: "Individual translate is independently animatable and supports additive effect composition.", example: ExampleKind::Translate },
-    DocEntry { category: "Animated values", title: "rotate", css: r#"@keyframes demo {
+}"#,
+        description: "Individual translate is independently animatable and supports additive effect composition.",
+        example: ExampleKind::Translate,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "rotate",
+        css: r#"@keyframes demo {
   from { rotate: -30deg; }
   to   { rotate: 330deg; }
-}"#, description: "Individual rotate is independently animatable and supports add/accumulate composition.", example: ExampleKind::Rotate },
-    DocEntry { category: "Animated values", title: "scale", css: r#"@keyframes demo {
+}"#,
+        description: "Individual rotate is independently animatable and supports add/accumulate composition.",
+        example: ExampleKind::Rotate,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "scale",
+        css: r#"@keyframes demo {
   from { scale: .65; }
   to   { scale: 1.25; }
-}"#, description: "Individual scale is independently animatable and participates in transform invalidation.", example: ExampleKind::Scale },
-    DocEntry { category: "Animated values", title: "clip-path", css: r#"@keyframes demo {
+}"#,
+        description: "Individual scale is independently animatable and participates in transform invalidation.",
+        example: ExampleKind::Scale,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "clip-path",
+        css: r#"@keyframes demo {
   from { clip-path: inset(18px); }
   to   { clip-path: inset(0px); }
-}"#, description: "Clip path changes use the reclip path. Incompatible shapes fall back deterministically.", example: ExampleKind::ClipPath },
-    DocEntry { category: "Animated values", title: "filter", css: r#"@keyframes demo {
+}"#,
+        description: "Clip path changes use the reclip path. Incompatible shapes fall back deterministically.",
+        example: ExampleKind::ClipPath,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "filter",
+        css: r#"@keyframes demo {
   from { filter: blur(0px); }
   50%  { filter: blur(10px); }
   to   { filter: blur(0px); }
-}"#, description: "Compatible filter lists interpolate; incompatible lists use discrete fallback.", example: ExampleKind::Filter },
-    DocEntry { category: "Animated values", title: "backdrop-filter", css: r#"@keyframes demo {
+}"#,
+        description: "Compatible filter lists interpolate; incompatible lists use discrete fallback.",
+        example: ExampleKind::Filter,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "backdrop-filter",
+        css: r#"@keyframes demo {
   from { backdrop-filter: blur(1px); }
   to   { backdrop-filter: blur(12px); }
-}"#, description: "Backdrop filter interpolation is tracked sparsely so only filter-bearing entities take the filter-aware draw path.", example: ExampleKind::BackdropFilter },
-    DocEntry { category: "Animated values", title: "background-color", css: r#"@keyframes demo {
+}"#,
+        description: "Backdrop filter interpolation is tracked sparsely so only filter-bearing entities take the filter-aware draw path.",
+        example: ExampleKind::BackdropFilter,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "background-color",
+        css: r#"@keyframes demo {
   from { background-color: #3b82f6; }
   to   { background-color: #8b5cf6; }
-}"#, description: "Background colors interpolate as paint-only values.", example: ExampleKind::BackgroundColor },
-    DocEntry { category: "Animated values", title: "background-image / position / repeat / size", css: r#"@keyframes demo {
+}"#,
+        description: "Background colors interpolate as paint-only values.",
+        example: ExampleKind::BackgroundColor,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "background-image / position / repeat / size",
+        css: r#"@keyframes demo {
   from {
     background-position: 0% 50%;
     background-size: 90% 90%;
@@ -339,20 +402,44 @@ ScrollView::new(cx, content)
     background-position: 100% 50%;
     background-size: 125% 125%;
   }
-}"#, description: "The background image, position, repeat and size stores participate in keyframe playback. Incompatible image/repeat values use deterministic fallback.", example: ExampleKind::BackgroundGeometry },
-    DocEntry { category: "Animated values", title: "border-top/right/bottom/left-width", css: r#"@keyframes demo {
+}"#,
+        description: "The background image, position, repeat and size stores participate in keyframe playback. Incompatible image/repeat values use deterministic fallback.",
+        example: ExampleKind::BackgroundGeometry,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "border-top/right/bottom/left-width",
+        css: r#"@keyframes demo {
   from { border-top-width: 1px; }
   to   { border-top-width: 12px; }
-}"#, description: "All four border width stores are animatable. Width changes are layout-affecting and use change-aware relayout ticking.", example: ExampleKind::BorderWidth },
-    DocEntry { category: "Animated values", title: "border-top/right/bottom/left-color", css: r#"@keyframes demo {
+}"#,
+        description: "All four border width stores are animatable. Width changes are layout-affecting and use change-aware relayout ticking.",
+        example: ExampleKind::BorderWidth,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "border-top/right/bottom/left-color",
+        css: r#"@keyframes demo {
   from { border-color: #3b82f6; }
   to   { border-color: #f43f5e; }
-}"#, description: "All four border colors interpolate as paint values.", example: ExampleKind::BorderColor },
-    DocEntry { category: "Animated values", title: "corner-*-radius / smoothing", css: r#"@keyframes demo {
+}"#,
+        description: "All four border colors interpolate as paint values.",
+        example: ExampleKind::BorderColor,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "corner-*-radius / smoothing",
+        css: r#"@keyframes demo {
   from { corner-radius: 4px; }
   to   { corner-radius: 34px; }
-}"#, description: "Per-corner radius and smoothing stores are animatable. Radius changes also trigger rounded re-clipping.", example: ExampleKind::CornerRadius },
-    DocEntry { category: "Animated values", title: "outline-width / color / offset", css: r#"@keyframes demo {
+}"#,
+        description: "Per-corner radius and smoothing stores are animatable. Radius changes also trigger rounded re-clipping.",
+        example: ExampleKind::CornerRadius,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "outline-width / color / offset",
+        css: r#"@keyframes demo {
   from {
     outline-width: 1px;
     outline-color: #3b82f6;
@@ -363,28 +450,64 @@ ScrollView::new(cx, content)
     outline-color: #a855f7;
     outline-offset: 8px;
   }
-}"#, description: "Outline width, color and offset are all backed by animatable stores.", example: ExampleKind::Outline },
-    DocEntry { category: "Animated values", title: "shadow", css: r#"@keyframes demo {
+}"#,
+        description: "Outline width, color and offset are all backed by animatable stores.",
+        example: ExampleKind::Outline,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "shadow",
+        css: r#"@keyframes demo {
   from { shadow: 0px 2px 6px #22000000; }
   to   { shadow: 0px 16px 34px #55000000; }
-}"#, description: "Compatible shadow lists interpolate and redraw without relayout.", example: ExampleKind::Shadow },
-    DocEntry { category: "Animated values", title: "color", css: r#"@keyframes demo {
+}"#,
+        description: "Compatible shadow lists interpolate and redraw without relayout.",
+        example: ExampleKind::Shadow,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "color",
+        css: r#"@keyframes demo {
   from { color: #3b82f6; }
   to   { color: #f43f5e; }
-}"#, description: "Font color is a paint-only text property and does not reconstruct text layout.", example: ExampleKind::TextColor },
-    DocEntry { category: "Animated values", title: "font-size", css: r#"@keyframes demo {
+}"#,
+        description: "Font color is a paint-only text property and does not reconstruct text layout.",
+        example: ExampleKind::TextColor,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "font-size",
+        css: r#"@keyframes demo {
   from { font-size: 20px; }
   to   { font-size: 42px; }
-}"#, description: "Font size animation requests text reconstruction because glyph metrics change.", example: ExampleKind::FontSize },
-    DocEntry { category: "Animated values", title: "letter-spacing", css: r#"@keyframes demo {
+}"#,
+        description: "Font size animation requests text reconstruction because glyph metrics change.",
+        example: ExampleKind::FontSize,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "letter-spacing",
+        css: r#"@keyframes demo {
   from { letter-spacing: 0px; }
   to   { letter-spacing: 8px; }
-}"#, description: "Letter spacing is reflow-affecting and uses the text construction path.", example: ExampleKind::LetterSpacing },
-    DocEntry { category: "Animated values", title: "line-height", css: r#"@keyframes demo {
+}"#,
+        description: "Letter spacing is reflow-affecting and uses the text construction path.",
+        example: ExampleKind::LetterSpacing,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "line-height",
+        css: r#"@keyframes demo {
   from { line-height: 1; }
   to   { line-height: 1.8; }
-}"#, description: "Line height is reflow-affecting and shares the animation clock with other text properties.", example: ExampleKind::LineHeight },
-    DocEntry { category: "Animated values", title: "caret / selection / text-decoration color", css: r#"@keyframes demo {
+}"#,
+        description: "Line height is reflow-affecting and shares the animation clock with other text properties.",
+        example: ExampleKind::LineHeight,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "caret / selection / text-decoration color",
+        css: r#"@keyframes demo {
   from {
     caret-color: #3b82f6;
     selection-color: #3b82f6;
@@ -395,40 +518,94 @@ ScrollView::new(cx, content)
     selection-color: #f43f5e;
     text-decoration-color: #f43f5e;
   }
-}"#, description: "These text paint stores are animatable without text reconstruction.", example: ExampleKind::TextPaint },
-    DocEntry { category: "Animated values", title: "fill", css: r#"@keyframes demo {
+}"#,
+        description: "These text paint stores are animatable without text reconstruction.",
+        example: ExampleKind::TextPaint,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "fill",
+        css: r#"@keyframes demo {
   from { fill: #3b82f6; }
   to   { fill: #22c55e; }
-}"#, description: "The fill color store is animatable and redraw-only.", example: ExampleKind::Fill },
-    DocEntry { category: "Animated values", title: "left / right / top / bottom", css: r#"@keyframes demo {
+}"#,
+        description: "The fill color store is animatable and redraw-only.",
+        example: ExampleKind::Fill,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "left / right / top / bottom",
+        css: r#"@keyframes demo {
   from { left: 12px; top: 8px; }
   to   { left: 110px; top: 36px; }
-}"#, description: "Position offsets are layout-affecting. The runtime only requests relayout when the sampled value actually changes.", example: ExampleKind::Position },
-    DocEntry { category: "Animated values", title: "padding-left/right/top/bottom", css: r#"@keyframes demo {
+}"#,
+        description: "Position offsets are layout-affecting. The runtime only requests relayout when the sampled value actually changes.",
+        example: ExampleKind::Position,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "padding-left/right/top/bottom",
+        css: r#"@keyframes demo {
   from { padding: 6px; }
   to   { padding: 28px; }
-}"#, description: "All four padding stores are animatable and layout-affecting.", example: ExampleKind::Padding },
-    DocEntry { category: "Animated values", title: "horizontal-gap / vertical-gap", css: r#"@keyframes demo {
+}"#,
+        description: "All four padding stores are animatable and layout-affecting.",
+        example: ExampleKind::Padding,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "horizontal-gap / vertical-gap",
+        css: r#"@keyframes demo {
   from { horizontal-gap: 6px; }
   to   { horizontal-gap: 44px; }
-}"#, description: "Row/column gaps are animatable layout values and participate in change-aware relayout ticking.", example: ExampleKind::Gap },
-    DocEntry { category: "Animated values", title: "width / height", css: r#"@keyframes demo {
+}"#,
+        description: "Row/column gaps are animatable layout values and participate in change-aware relayout ticking.",
+        example: ExampleKind::Gap,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "width / height",
+        css: r#"@keyframes demo {
   from { width: 90px; height: 58px; }
   to   { width: 240px; height: 92px; }
-}"#, description: "Width and height support keyframe interpolation, including the existing auto-size animation resolution path.", example: ExampleKind::Size },
-    DocEntry { category: "Animated values", title: "min/max width/height + min/max gaps", css: r#"@keyframes demo {
+}"#,
+        description: "Width and height support keyframe interpolation, including the existing auto-size animation resolution path.",
+        example: ExampleKind::Size,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "min/max width/height + min/max gaps",
+        css: r#"@keyframes demo {
   from { min-width: 90px; max-width: 140px; }
   to   { min-width: 180px; max-width: 280px; }
-}"#, description: "Constraint stores and min/max horizontal/vertical gap stores participate in CSS animation playback.", example: ExampleKind::Constraints },
-    DocEntry { category: "Animated values", title: "display", css: r#"@keyframes demo {
+}"#,
+        description: "Constraint stores and min/max horizontal/vertical gap stores participate in CSS animation playback.",
+        example: ExampleKind::Constraints,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "display",
+        css: r#"@keyframes demo {
   0%, 49% { display: none; }
   50%, 100% { display: flex; }
-}"#, description: "Display is store-backed but fundamentally discrete rather than numerically interpolated.", example: ExampleKind::Display },
-    DocEntry { category: "Animated values", title: "typed custom properties", css: r#"/* Vizia typed custom-property stores share
+}"#,
+        description: "Display is store-backed but fundamentally discrete rather than numerically interpolated.",
+        example: ExampleKind::Display,
+    },
+    DocEntry {
+        category: "Animated values",
+        title: "typed custom properties",
+        css: r#"/* Vizia typed custom-property stores share
    the same CSS animation clock for:
    color, length, font-size, letter-spacing,
-   line-height, units, opacity and shadow. */"#, description: "Typed Vizia custom property families use the same animation/composition machinery as built-in properties.", example: ExampleKind::StaticInfo },
-    DocEntry { category: "Runtime & UI patterns", title: "runtime controls", css: r#".target {
+   line-height, units, opacity and shadow. */"#,
+        description: "Typed Vizia custom property families use the same animation/composition machinery as built-in properties.",
+        example: ExampleKind::StaticInfo,
+    },
+    DocEntry {
+        category: "Runtime & UI patterns",
+        title: "runtime controls",
+        css: r#".target {
   animation: move 6s linear infinite alternate;
 }
 
@@ -437,8 +614,14 @@ cx.pause_css_animation(id);
 cx.resume_css_animation(id);
 cx.seek_css_animation(id, seconds);
 cx.reverse_css_animation(id);
-cx.set_css_animation_playback_rate(id, 2.0);"#, description: "Runtime control operates on the same stable CSS occurrence and the same property-store clocks that render the effect.", example: ExampleKind::Runtime },
-    DocEntry { category: "Runtime & UI patterns", title: "blur reveal popover", css: r#"@keyframes reveal {
+cx.set_css_animation_playback_rate(id, 2.0);"#,
+        description: "Runtime control operates on the same stable CSS occurrence and the same property-store clocks that render the effect.",
+        example: ExampleKind::Runtime,
+    },
+    DocEntry {
+        category: "Runtime & UI patterns",
+        title: "blur reveal popover",
+        css: r#"@keyframes reveal {
   from {
     opacity: 0;
     filter: blur(8px);
@@ -453,14 +636,23 @@ cx.set_css_animation_playback_rate(id, 2.0);"#, description: "Runtime control op
 
 popover {
   animation: reveal 180ms ease-out both;
-}"#, description: "A native Vizia Popover can use the same CSS animation engine for a short entrance effect.", example: ExampleKind::Popover },
-    DocEntry { category: "Runtime & UI patterns", title: "text throbber", css: r#".dot {
+}"#,
+        description: "A native Vizia Popover can use the same CSS animation engine for a short entrance effect.",
+        example: ExampleKind::Popover,
+    },
+    DocEntry {
+        category: "Runtime & UI patterns",
+        title: "text throbber",
+        css: r#".dot {
   animation: throb 900ms ease-in-out
              infinite alternate;
 }
 
 .dot:nth-child(2) { animation-delay: -300ms; }
-.dot:nth-child(3) { animation-delay: -600ms; }"#, description: "A small staggered loading indicator uses independent animation occurrences and negative delays.", example: ExampleKind::Throbber },
+.dot:nth-child(3) { animation-delay: -600ms; }"#,
+        description: "A small staggered loading indicator uses independent animation occurrences and negative delays.",
+        example: ExampleKind::Throbber,
+    },
 ];
 
 fn runtime_animation_id(cx: &EventContext) -> Option<CssAnimationId> {
@@ -475,14 +667,26 @@ fn runtime_snapshot_text(cx: &EventContext) -> String {
     let Some(snapshot) = cx.css_animations(entity).into_iter().next() else {
         return "No active CSS animation occurrence".to_string();
     };
-    let progress = snapshot.progress.map(|value| format!("{:.0}%", value * 100.0)).unwrap_or_else(|| "—".to_string());
-    format!("id={}  ·  {:?}  ·  {:.2}s  ·  {}  ·  {:.2}×", snapshot.id.get(), snapshot.state, snapshot.current_time, progress, snapshot.playback_rate)
+    let progress = snapshot
+        .progress
+        .map(|value| format!("{:.0}%", value * 100.0))
+        .unwrap_or_else(|| "—".to_string());
+    format!(
+        "id={}  ·  {:?}  ·  {:.2}s  ·  {}  ·  {:.2}×",
+        snapshot.id.get(),
+        snapshot.state,
+        snapshot.current_time,
+        progress,
+        snapshot.playback_rate
+    )
 }
 
 fn simple_stage(cx: &mut Context, label: &'static str, class: &'static str) {
-    HStack::new(cx, move |cx| { Label::new(cx, label).class("animation-doc-target").class(class); })
-        .class("animation-doc-stage")
-        .alignment(Alignment::Center);
+    HStack::new(cx, move |cx| {
+        Label::new(cx, label).class("animation-doc-target").class(class);
+    })
+    .class("animation-doc-stage")
+    .alignment(Alignment::Center);
 }
 
 fn motion_track(cx: &mut Context, class: &'static str) {
@@ -527,24 +731,62 @@ fn render_view_preview(cx: &mut Context) {
 }
 
 fn render_runtime_preview(cx: &mut Context) {
-    let readout = Signal::new("Use the controls, then inspect the stable occurrence snapshot.".to_string());
+    let readout =
+        Signal::new("Use the controls, then inspect the stable occurrence snapshot.".to_string());
     let seek = Signal::new(0.0_f32);
     VStack::new(cx, move |cx| {
         HStack::new(cx, |cx| {
-            Label::new(cx, "RUNTIME").id(DOC_RUNTIME_TARGET_ID).class("animation-doc-target").class("animation-doc-runtime-target");
+            Label::new(cx, "RUNTIME")
+                .id(DOC_RUNTIME_TARGET_ID)
+                .class("animation-doc-target")
+                .class("animation-doc-runtime-target");
         })
         .class("animation-doc-stage")
         .alignment(Alignment::Center);
         HStack::new(cx, move |cx| {
-            Button::new(cx, |cx| Label::new(cx, "Pause")).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.pause_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
-            Button::new(cx, |cx| Label::new(cx, "Resume")).variant(ButtonVariant::Secondary).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.resume_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
-            Button::new(cx, |cx| Label::new(cx, "Reverse")).variant(ButtonVariant::Outline).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.reverse_css_animation(id); } readout.set(runtime_snapshot_text(cx)); });
-            Button::new(cx, |cx| Label::new(cx, "2×")).variant(ButtonVariant::Text).on_press(move |cx| { if let Some(id) = runtime_animation_id(cx) { let _ = cx.set_css_animation_playback_rate(id, 2.0); } readout.set(runtime_snapshot_text(cx)); });
+            Button::new(cx, |cx| Label::new(cx, "Pause")).on_press(move |cx| {
+                if let Some(id) = runtime_animation_id(cx) {
+                    let _ = cx.pause_css_animation(id);
+                }
+                readout.set(runtime_snapshot_text(cx));
+            });
+            Button::new(cx, |cx| Label::new(cx, "Resume"))
+                .variant(ButtonVariant::Secondary)
+                .on_press(move |cx| {
+                    if let Some(id) = runtime_animation_id(cx) {
+                        let _ = cx.resume_css_animation(id);
+                    }
+                    readout.set(runtime_snapshot_text(cx));
+                });
+            Button::new(cx, |cx| Label::new(cx, "Reverse"))
+                .variant(ButtonVariant::Outline)
+                .on_press(move |cx| {
+                    if let Some(id) = runtime_animation_id(cx) {
+                        let _ = cx.reverse_css_animation(id);
+                    }
+                    readout.set(runtime_snapshot_text(cx));
+                });
+            Button::new(cx, |cx| Label::new(cx, "2×")).variant(ButtonVariant::Text).on_press(
+                move |cx| {
+                    if let Some(id) = runtime_animation_id(cx) {
+                        let _ = cx.set_css_animation_playback_rate(id, 2.0);
+                    }
+                    readout.set(runtime_snapshot_text(cx));
+                },
+            );
         })
         .class("animation-doc-controls");
         HStack::new(cx, move |cx| {
             Label::new(cx, "Seek").class("animation-doc-control-label");
-            Slider::new(cx, seek).on_change(move |cx, value| { seek.set(value); if let Some(id) = runtime_animation_id(cx) { let _ = cx.seek_css_animation(id, value * DOC_RUNTIME_DURATION); } readout.set(runtime_snapshot_text(cx)); }).width(Stretch(1.0));
+            Slider::new(cx, seek)
+                .on_change(move |cx, value| {
+                    seek.set(value);
+                    if let Some(id) = runtime_animation_id(cx) {
+                        let _ = cx.seek_css_animation(id, value * DOC_RUNTIME_DURATION);
+                    }
+                    readout.set(runtime_snapshot_text(cx));
+                })
+                .width(Stretch(1.0));
         })
         .class("animation-doc-seek-row");
         Label::new(cx, readout).class("animation-doc-runtime-readout");
@@ -561,20 +803,36 @@ fn render_popover_preview(cx: &mut Context) {
                 Popover::new(cx, move |cx| {
                     VStack::new(cx, |cx| {
                         Label::new(cx, "Blur reveal").class("animation-doc-popover-title");
-                        Label::new(cx, "Native Popover + CSS @keyframes").class("animation-doc-popover-copy");
-                        Button::new(cx, |cx| Label::new(cx, "Close")).variant(ButtonVariant::Secondary).on_press(move |_cx| open.set(false));
-                    }).class("animation-doc-popover-content");
-                }).class("animation-doc-popover").on_blur(move |_cx| open.set(false)).placement(Placement::BottomStart).show_arrow(false);
+                        Label::new(cx, "Native Popover + CSS @keyframes")
+                            .class("animation-doc-popover-copy");
+                        Button::new(cx, |cx| Label::new(cx, "Close"))
+                            .variant(ButtonVariant::Secondary)
+                            .on_press(move |_cx| open.set(false));
+                    })
+                    .class("animation-doc-popover-content");
+                })
+                .class("animation-doc-popover")
+                .on_blur(move |_cx| open.set(false))
+                .placement(Placement::BottomStart)
+                .show_arrow(false);
             }
         });
-    }).class("animation-doc-stage").alignment(Alignment::Center);
+    })
+    .class("animation-doc-stage")
+    .alignment(Alignment::Center);
 }
 
 fn render_throbber_preview(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Label::new(cx, "Thinking").class("animation-doc-throbber-label");
-        for class in ["animation-doc-throbber-a", "animation-doc-throbber-b", "animation-doc-throbber-c"] { Element::new(cx).class("animation-doc-throbber-dot").class(class); }
-    }).class("animation-doc-stage").alignment(Alignment::Center);
+        for class in
+            ["animation-doc-throbber-a", "animation-doc-throbber-b", "animation-doc-throbber-c"]
+        {
+            Element::new(cx).class("animation-doc-throbber-dot").class(class);
+        }
+    })
+    .class("animation-doc-stage")
+    .alignment(Alignment::Center);
 }
 
 fn render_preview(cx: &mut Context, example: ExampleKind) {
@@ -594,15 +852,32 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
         ExampleKind::Multiple => simple_stage(cx, "TWO ANIMATIONS", "animation-doc-multiple"),
         ExampleKind::Opacity => simple_stage(cx, "opacity", "animation-doc-opacity"),
         ExampleKind::Transform => simple_stage(cx, "transform", "animation-doc-transform"),
-        ExampleKind::TransformOrigin => simple_stage(cx, "origin", "animation-doc-transform-origin"),
+        ExampleKind::TransformOrigin => {
+            simple_stage(cx, "origin", "animation-doc-transform-origin")
+        }
         ExampleKind::Translate => simple_stage(cx, "translate", "animation-doc-translate"),
         ExampleKind::Rotate => simple_stage(cx, "rotate", "animation-doc-rotate"),
         ExampleKind::Scale => simple_stage(cx, "scale", "animation-doc-scale"),
         ExampleKind::ClipPath => simple_stage(cx, "clip-path", "animation-doc-clip"),
         ExampleKind::Filter => simple_stage(cx, "FILTER", "animation-doc-filter"),
-        ExampleKind::BackdropFilter => { ZStack::new(cx, |cx| { HStack::new(cx, |cx| { Element::new(cx).class("animation-doc-backdrop-a"); Element::new(cx).class("animation-doc-backdrop-b"); Element::new(cx).class("animation-doc-backdrop-c"); }).class("animation-doc-backdrop-colors"); Label::new(cx, "BACKDROP").class("animation-doc-backdrop-glass"); }).class("animation-doc-backdrop-stage"); }
-        ExampleKind::BackgroundColor => simple_stage(cx, "background", "animation-doc-background-color"),
-        ExampleKind::BackgroundGeometry => simple_stage(cx, "background geometry", "animation-doc-background-geometry"),
+        ExampleKind::BackdropFilter => {
+            ZStack::new(cx, |cx| {
+                HStack::new(cx, |cx| {
+                    Element::new(cx).class("animation-doc-backdrop-a");
+                    Element::new(cx).class("animation-doc-backdrop-b");
+                    Element::new(cx).class("animation-doc-backdrop-c");
+                })
+                .class("animation-doc-backdrop-colors");
+                Label::new(cx, "BACKDROP").class("animation-doc-backdrop-glass");
+            })
+            .class("animation-doc-backdrop-stage");
+        }
+        ExampleKind::BackgroundColor => {
+            simple_stage(cx, "background", "animation-doc-background-color")
+        }
+        ExampleKind::BackgroundGeometry => {
+            simple_stage(cx, "background geometry", "animation-doc-background-geometry")
+        }
         ExampleKind::BorderWidth => simple_stage(cx, "border width", "animation-doc-border-width"),
         ExampleKind::BorderColor => simple_stage(cx, "border color", "animation-doc-border-color"),
         ExampleKind::CornerRadius => simple_stage(cx, "radius", "animation-doc-radius"),
@@ -611,16 +886,44 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
         ExampleKind::TextColor => simple_stage(cx, "Animated text", "animation-doc-text-color"),
         ExampleKind::FontSize => simple_stage(cx, "Font size", "animation-doc-font-size"),
         ExampleKind::LetterSpacing => simple_stage(cx, "Spacing", "animation-doc-letter-spacing"),
-        ExampleKind::LineHeight => { VStack::new(cx, |cx| { Label::new(cx, "First line\nSecond line").class("animation-doc-line-height"); }).class("animation-doc-stage").alignment(Alignment::Center); }
+        ExampleKind::LineHeight => {
+            VStack::new(cx, |cx| {
+                Label::new(cx, "First line\nSecond line").class("animation-doc-line-height");
+            })
+            .class("animation-doc-stage")
+            .alignment(Alignment::Center);
+        }
         ExampleKind::TextPaint => simple_stage(cx, "Text paint", "animation-doc-text-paint"),
         ExampleKind::Fill => simple_stage(cx, "fill", "animation-doc-fill"),
-        ExampleKind::Position => { ZStack::new(cx, |cx| { Element::new(cx).class("animation-doc-position"); }).class("animation-doc-stage"); }
+        ExampleKind::Position => {
+            ZStack::new(cx, |cx| {
+                Element::new(cx).class("animation-doc-position");
+            })
+            .class("animation-doc-stage");
+        }
         ExampleKind::Padding => simple_stage(cx, "padding", "animation-doc-padding"),
-        ExampleKind::Gap => { HStack::new(cx, |cx| { Element::new(cx).class("animation-doc-gap-item"); Element::new(cx).class("animation-doc-gap-item"); Element::new(cx).class("animation-doc-gap-item"); }).class("animation-doc-stage").class("animation-doc-gap-stage").alignment(Alignment::Center); }
+        ExampleKind::Gap => {
+            HStack::new(cx, |cx| {
+                Element::new(cx).class("animation-doc-gap-item");
+                Element::new(cx).class("animation-doc-gap-item");
+                Element::new(cx).class("animation-doc-gap-item");
+            })
+            .class("animation-doc-stage")
+            .class("animation-doc-gap-stage")
+            .alignment(Alignment::Center);
+        }
         ExampleKind::Size => simple_stage(cx, "size", "animation-doc-size"),
         ExampleKind::Constraints => simple_stage(cx, "constraints", "animation-doc-constraints"),
-        ExampleKind::Display => { HStack::new(cx, |cx| { Label::new(cx, "discrete display").class("animation-doc-display"); }).class("animation-doc-stage").alignment(Alignment::Center); }
-        ExampleKind::StaticInfo => { VStack::new(cx, |cx| { Label::new(cx, "Typed custom properties use the same stores").class("animation-doc-static-title"); Label::new(cx, "color · length · font-size · letter-spacing · line-height · units · opacity · shadow").class("animation-doc-static-copy"); }).class("animation-doc-stage").alignment(Alignment::Center); }
+        ExampleKind::Display => {
+            HStack::new(cx, |cx| {
+                Label::new(cx, "discrete display").class("animation-doc-display");
+            })
+            .class("animation-doc-stage")
+            .alignment(Alignment::Center);
+        }
+        ExampleKind::StaticInfo => {
+            VStack::new(cx, |cx| { Label::new(cx, "Typed custom properties use the same stores").class("animation-doc-static-title"); Label::new(cx, "color · length · font-size · letter-spacing · line-height · units · opacity · shadow").class("animation-doc-static-copy"); }).class("animation-doc-stage").alignment(Alignment::Center);
+        }
         ExampleKind::Runtime => render_runtime_preview(cx),
         ExampleKind::Popover => render_popover_preview(cx),
         ExampleKind::Throbber => render_throbber_preview(cx),
@@ -648,10 +951,21 @@ fn build_doc_navigation(cx: &mut Context, selected: Signal<usize>) {
         Label::new(cx, "Animation reference").class("animation-doc-nav-title");
         let mut category: Option<&'static str> = None;
         for (index, doc) in DOCS.iter().enumerate() {
-            if category != Some(doc.category) { category = Some(doc.category); Label::new(cx, doc.category).class("animation-doc-nav-category"); }
-            Button::new(cx, move |cx| Label::new(cx, doc.title)).variant(ButtonVariant::Text).class("animation-doc-nav-item").toggle_class("animation-doc-nav-item-active", selected.map(move |current| *current == index)).on_press(move |_cx| selected.set(index));
+            if category != Some(doc.category) {
+                category = Some(doc.category);
+                Label::new(cx, doc.category).class("animation-doc-nav-category");
+            }
+            Button::new(cx, move |cx| Label::new(cx, doc.title))
+                .variant(ButtonVariant::Text)
+                .class("animation-doc-nav-item")
+                .toggle_class(
+                    "animation-doc-nav-item-active",
+                    selected.map(move |current| *current == index),
+                )
+                .on_press(move |_cx| selected.set(index));
         }
-    }).class("animation-doc-nav");
+    })
+    .class("animation-doc-nav");
 }
 
 pub fn animation(cx: &mut Context) {

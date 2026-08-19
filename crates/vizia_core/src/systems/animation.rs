@@ -130,20 +130,34 @@ fn view_timeline_progress(
     })
 }
 
+fn timeline_progress_changed(previous: Option<f32>, next: Option<f32>) -> bool {
+    match (previous, next) {
+        (Some(previous), Some(next)) => (previous - next).abs() > f32::EPSILON,
+        (None, None) => false,
+        _ => true,
+    }
+}
+
 fn refresh_progress_timelines(cx: &mut Context) {
     let requests = cx
         .style
         .css_animation_instances
         .iter()
         .flat_map(|(entity, instances)| {
-            instances
-                .iter()
-                .map(move |instance| (*entity, instance.instance_id, instance.timeline.clone()))
+            instances.iter().map(move |instance| {
+                (
+                    *entity,
+                    instance.instance_id,
+                    instance.timeline.clone(),
+                    instance.timeline_driven,
+                    instance.timeline_progress,
+                )
+            })
         })
         .collect::<Vec<_>>();
 
-    let mut samples = Vec::with_capacity(requests.len());
-    for (entity, instance_id, timeline) in requests {
+    let mut samples = Vec::new();
+    for (entity, instance_id, timeline, was_driven, previous_progress) in requests {
         let (driven, progress) = match timeline {
             AnimationTimeline::Auto => (false, None),
             AnimationTimeline::None => (true, None),
@@ -166,7 +180,10 @@ fn refresh_progress_timelines(cx: &mut Context) {
             }
             AnimationTimeline::View { axis } => (true, view_timeline_progress(cx, entity, axis)),
         };
-        samples.push((entity, instance_id, driven, progress));
+
+        if driven != was_driven || timeline_progress_changed(previous_progress, progress) {
+            samples.push((entity, instance_id, driven, progress));
+        }
     }
 
     for (entity, instance_id, driven, progress) in samples {
