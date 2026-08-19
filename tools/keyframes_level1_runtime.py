@@ -20,8 +20,25 @@ def ensure_after(path: str, anchor: str, insertion: str) -> None:
     p.write_text(text.replace(anchor, anchor + insertion, 1))
 
 
-# The runtime and stores are already materialized in Rust. This script now only applies the
-# remaining integration fixes discovered by compiling the materialized source on stable Rust.
+# Repair the last parser regressions left behind by the obsolete bootstrap generator.
+replace_if_present(
+    "crates/vizia_style/src/values/mod.rs",
+    "pub mod animation;\npub mod animation;\n",
+    "pub mod animation;\n",
+)
+replace_if_present(
+    "crates/vizia_style/src/values/animation.rs",
+    "use cssparser::{ParseError, ParseErrorKind, Parser, Token};",
+    "use cssparser::{match_ignore_ascii_case, ParseError, ParseErrorKind, Parser, Token};",
+)
+replace_if_present(
+    "crates/vizia_style/src/values/easing.rs",
+    "use cssparser::{ParseError, ParseErrorKind, Parser, Token};",
+    "use cssparser::{match_ignore_ascii_case, ParseError, ParseErrorKind, Parser, Token};",
+)
+
+# The runtime and stores are already materialized in Rust. This script applies only the remaining
+# integration fixes discovered by compiling the materialized source on stable Rust.
 replace_if_present(
     "crates/vizia_core/src/animation/mod.rs",
     "    CssAnimationClock, CssAnimationPhase, CssAnimationSample, CssAnimationTiming,\n",
@@ -178,4 +195,4 @@ for script in [
         'print("CSS Animations Level 1 source already materialized; skipping generator stage")\n'
     )
 
-print("materialized CSS Animations Level 1 core integration fixes")
+print("materialized CSS Animations Level 1 parser and core integration fixes")
