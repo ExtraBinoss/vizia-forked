@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 rust = Path('examples/widget_gallery/src/views/animation.rs')
 text = rust.read_text()
@@ -29,5 +30,27 @@ c = c.replace(
 c = c.replace(
     '@keyframes doc-radius-all { from { corner-radius: 6px; } to { corner-radius: 72px; } }',
     '@keyframes doc-radius-all { from { corner-top-left-radius: 6px; corner-top-right-radius: 6px; corner-bottom-left-radius: 6px; corner-bottom-right-radius: 6px; } to { corner-top-left-radius: 72px; corner-top-right-radius: 72px; corner-bottom-left-radius: 72px; corner-bottom-right-radius: 72px; } }',
+)
+
+# The generic text target must already be comfortable even before a property-specific surface class.
+c = re.sub(
+    r'\.animation-doc-target \{.*?\n\}',
+    '''.animation-doc-target {
+    width: auto;
+    height: auto;
+    min-width: 190px;
+    min-height: 92px;
+    padding: 22px 30px;
+    alignment: center;
+    corner-radius: 10px;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: bold;
+    text-align: center;
+    text-wrap: true;
+}''',
+    c,
+    count=1,
+    flags=re.S,
 )
 css.write_text(c)
