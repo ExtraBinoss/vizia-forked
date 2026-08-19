@@ -244,7 +244,7 @@ impl Model for Environment {
                 if self.prefers_reduced_motion != reduced {
                     self.prefers_reduced_motion = reduced;
                     cx.style.system_reduced_motion = reduced;
-                    cx.needs_restyle(Entity::root());
+                    cx.needs_restyle();
                 }
             }
         });

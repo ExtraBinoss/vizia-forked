@@ -470,9 +470,10 @@ pub(crate) fn draw_bounds(
     }
 
     if let Some(filter) = style.filter.get(entity) {
-        match filter {
-            Filter::Blur(radius) => {
-                dirty_bounds = dirty_bounds.expand(radius.to_px().unwrap() * style.scale_factor());
+        for filter in filter.as_list() {
+            if let Filter::Blur(radius) = filter {
+                dirty_bounds =
+                    dirty_bounds.expand(radius.to_px().unwrap_or(0.0) * style.scale_factor());
             }
         }
     }

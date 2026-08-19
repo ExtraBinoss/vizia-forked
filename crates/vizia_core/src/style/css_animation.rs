@@ -8,6 +8,7 @@ use crate::{
     entity::Entity,
 };
 use std::time::Instant;
+use vizia_id::GenerationalId;
 use vizia_style::{
     AnimationDirection, AnimationFillMode, AnimationIterationCount, AnimationName,
     AnimationPlayState, EasingFunction,

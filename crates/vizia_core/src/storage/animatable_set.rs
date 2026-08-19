@@ -1,5 +1,5 @@
 use crate::animation::{
-    AnimationState, CssAnimationPhase, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
+    AnimationState, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
 };
 use crate::prelude::*;
 use vizia_storage::{SparseSet, SparseSetGeneric, SparseSetIndex};

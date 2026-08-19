@@ -1,5 +1,5 @@
 use crate::{CustomParseError, Parse};
-use cssparser::{ParseError, ParseErrorKind, Parser, Token, match_ignore_ascii_case};
+use cssparser::{ParseError, ParseErrorKind, Parser, Token};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum StepPosition {

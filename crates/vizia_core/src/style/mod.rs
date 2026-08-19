@@ -88,8 +88,8 @@ use cssparser::Token as CssToken;
 use vizia_style::{
     AnimationDelays, AnimationDirections, AnimationDurations, AnimationFillModes,
     AnimationIterationCounts, AnimationNames, AnimationPlayStates, AnimationTimingFunctions,
-    BlendMode, EasingFunction, KeyframeSelector, ParserOptions, Property, Selectors, StyleSheet,
-    TokenList, TokenOrValue, Variable,
+    BlendMode, KeyframeSelector, ParserOptions, Property, Selectors, StyleSheet, TokenList,
+    TokenOrValue, Variable,
 };
 
 mod rule;
@@ -104,9 +104,7 @@ pub(crate) use transform::*;
 mod css_animation;
 pub(crate) use css_animation::CssAnimationInstance;
 
-use crate::animation::{
-    AnimationEvent, AnimationState, CssAnimationTiming, Interpolator, Keyframe, TimingFunction,
-};
+use crate::animation::{AnimationEvent, AnimationState, Interpolator, Keyframe, TimingFunction};
 use crate::storage::animatable_set::AnimatableSet;
 use crate::storage::style_set::StyleSet;
 use bitflags::bitflags;
@@ -136,7 +134,10 @@ mod animation_tests {
 
     fn blur_radius(filter: &Filter) -> f32 {
         match filter {
+            Filter::None => 0.0,
             Filter::Blur(radius) => radius.to_px().expect("test blur radius should use pixels"),
+            Filter::List(filters) if filters.len() == 1 => blur_radius(&filters[0]),
+            Filter::List(_) => panic!("expected a single blur filter in this test"),
         }
     }
 
@@ -1268,7 +1269,7 @@ impl Style {
                         let name = keyframes_rule.name.as_string();
 
                         let animation_id = self.animation_manager.create();
-                        let mut animation_timeline = Vec::new();
+                        let mut animation_timeline: Vec<(f32, TimingFunction)> = Vec::new();
 
                         for keyframes in keyframes_rule.keyframes {
                             for selector in keyframes.selectors.iter() {
