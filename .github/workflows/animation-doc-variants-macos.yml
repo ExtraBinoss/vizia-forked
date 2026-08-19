@@ -1,0 +1,37 @@
+name: Animation Docs Variants macOS
+
+on:
+  pull_request:
+    branches: [ agent/css-keyframes-level2 ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply engine and reference fixes
+        run: |
+          python3 tools/animation_doc_variants.py
+          python3 tools/animation_doc_transform_variants.py
+          cargo fmt
+      - name: Commit source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No source changes"
+          else
+            git add crates/vizia_core/src/animation/interpolator.rs examples/widget_gallery/src/views/animation.rs examples/widget_gallery/resources/themes/animation.css docs/keyframes/gotchas.md
+            git commit -m "fix: make animation reference variants live"
+            git push origin HEAD:agent/css-keyframes-level2
+          fi
