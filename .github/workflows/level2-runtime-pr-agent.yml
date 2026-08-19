@@ -1,0 +1,40 @@
+name: Level 2 Runtime PR Agent
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-runtime:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level2
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Apply runtime control phase
+        run: python tools/level2_runtime.py
+      - name: Format
+        run: cargo fmt
+      - name: Commit source changes
+        run: |
+          if git diff --quiet; then
+            echo "No source changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            crates/vizia_core/src/animation/mod.rs \
+            crates/vizia_core/src/lib.rs \
+            crates/vizia_core/src/animation/css_timing.rs \
+            crates/vizia_core/src/storage/animatable_set.rs \
+            crates/vizia_core/src/storage/animatable_var_set.rs \
+            crates/vizia_core/src/style/css_animation.rs
+          git commit -m "feat: add Level 2 runtime animation control"
+          git push origin HEAD:agent/css-keyframes-level2
