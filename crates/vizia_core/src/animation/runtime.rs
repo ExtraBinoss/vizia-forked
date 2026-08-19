@@ -29,7 +29,8 @@ pub struct CssAnimationSnapshot {
     pub id: CssAnimationId,
     pub name: String,
     pub entity: Entity,
-    /// Current document-timeline time in seconds, including the CSS delay interval.
+    /// Current local effect time in seconds. For progress timelines this is the sampled
+    /// progress mapped onto the effect's active duration rather than wall-clock time.
     pub current_time: f32,
     /// Current directed keyframe progress when the effect has a sampled value.
     pub progress: Option<f32>,
