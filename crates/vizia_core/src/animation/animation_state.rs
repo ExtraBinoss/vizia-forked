@@ -35,6 +35,8 @@ pub(crate) struct AnimationState<T: Interpolator> {
     pub css_instance_id: Option<u64>,
     pub css_order: usize,
     pub css_composition: AnimationComposition,
+    pub css_timeline_driven: bool,
+    pub css_timeline_progress: Option<f32>,
 }
 
 impl<T> AnimationState<T>
@@ -61,6 +63,8 @@ where
             css_instance_id: None,
             css_order: 0,
             css_composition: AnimationComposition::Replace,
+            css_timeline_driven: false,
+            css_timeline_progress: None,
         }
     }
 
@@ -149,6 +153,8 @@ where
             css_instance_id: None,
             css_order: 0,
             css_composition: AnimationComposition::Replace,
+            css_timeline_driven: false,
+            css_timeline_progress: None,
         }
     }
 }

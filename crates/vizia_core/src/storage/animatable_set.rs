@@ -499,6 +499,25 @@ where
         }
     }
 
+    pub(crate) fn set_css_timeline_progress(
+        &mut self,
+        entity: Entity,
+        instance_id: u64,
+        driven: bool,
+        progress: Option<f32>,
+    ) {
+        for state in self.active_animations.iter_mut() {
+            if state.css_instance_id == Some(instance_id) && state.entities.contains(&entity) {
+                state.css_timeline_driven = driven;
+                state.css_timeline_progress = progress;
+                if driven {
+                    // Progress timelines are reversible, so reaching 100% must not remove the effect.
+                    state.t = 0.0;
+                }
+            }
+        }
+    }
+
     fn refresh_css_composed_outputs(&mut self) {
         let mut effects: HashMap<Entity, Vec<(usize, u64, AnimationComposition, T)>> =
             HashMap::new();
@@ -562,8 +581,18 @@ where
             }
 
             if let Some(clock) = &state.css_clock {
-                let sample = clock.sample(time);
-                state.t = if sample.finished { 1.0 } else { 0.0 };
+                let sample = if state.css_timeline_driven {
+                    clock.timing.sample_timeline_progress(state.css_timeline_progress)
+                } else {
+                    clock.sample(time)
+                };
+                state.t = if state.css_timeline_driven {
+                    0.0
+                } else if sample.finished {
+                    1.0
+                } else {
+                    0.0
+                };
                 let Some(progress) = sample.progress else {
                     state.output = None;
                     continue;

@@ -208,6 +208,7 @@ define_property! {
         "animation-fill-mode": AnimationFillMode(AnimationFillModes),
         "animation-play-state": AnimationPlayState(AnimationPlayStates),
         "animation-composition": AnimationComposition(AnimationCompositions),
+        "animation-timeline": AnimationTimeline(AnimationTimelines),
         "animation": Animation(AnimationShorthand),
         "transition": Transition(Vec<Transition>),
 

@@ -128,6 +128,62 @@ impl CssAnimationTiming {
             finished: false,
         }
     }
+
+    /// Sample a progress-based timeline. Delays are intentionally not wall-clock delays here: the
+    /// external timeline owns progress and maps its full 0..=1 range across the effect iterations.
+    /// Infinite iteration counts map to one reversible timeline iteration.
+    pub fn sample_timeline_progress(self, progress: Option<f32>) -> CssAnimationSample {
+        let Some(progress) = progress else {
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Before,
+                progress: None,
+                current_iteration: 0,
+                elapsed_active: 0.0,
+                before: self.reverse_for_iteration(0),
+                finished: false,
+            };
+        };
+        let timeline_progress = progress.clamp(0.0, 1.0);
+        let count = match self.iteration_count {
+            AnimationIterationCount::Infinite => 1.0,
+            AnimationIterationCount::Number(count) => count.max(0.0),
+        };
+        if count == 0.0 {
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Active,
+                progress: Some(self.initial_progress()),
+                current_iteration: 0,
+                elapsed_active: 0.0,
+                before: self.reverse_for_iteration(0),
+                finished: false,
+            };
+        }
+        if timeline_progress >= 1.0 {
+            let (iteration, value) = match self.iteration_count {
+                AnimationIterationCount::Infinite => (0, self.directed_progress(0, 1.0)),
+                AnimationIterationCount::Number(_) => self.final_iteration_and_progress(),
+            };
+            return CssAnimationSample {
+                phase: CssAnimationPhase::Active,
+                progress: Some(value),
+                current_iteration: iteration,
+                elapsed_active: self.duration.max(0.0) * count,
+                before: self.reverse_for_iteration(iteration),
+                finished: false,
+            };
+        }
+        let position = timeline_progress * count;
+        let iteration = position.floor() as u64;
+        let simple = position - iteration as f32;
+        CssAnimationSample {
+            phase: CssAnimationPhase::Active,
+            progress: Some(self.directed_progress(iteration, simple)),
+            current_iteration: iteration,
+            elapsed_active: timeline_progress * self.duration.max(0.0) * count,
+            before: self.reverse_for_iteration(iteration),
+            finished: false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -196,6 +252,20 @@ mod tests {
             fill_mode: AnimationFillMode::None,
             play_state: AnimationPlayState::Running,
         }
+    }
+
+    #[test]
+    fn progress_timeline_is_reversible_and_ignores_wall_clock() {
+        let t = CssAnimationTiming {
+            delay: 99.0,
+            iteration_count: AnimationIterationCount::Number(2.0),
+            direction: AnimationDirection::Alternate,
+            ..timing()
+        };
+        assert_eq!(t.sample_timeline_progress(Some(0.25)).progress, Some(0.5));
+        assert_eq!(t.sample_timeline_progress(Some(0.75)).progress, Some(0.5));
+        assert!(!t.sample_timeline_progress(Some(1.0)).finished);
+        assert_eq!(t.sample_timeline_progress(None).progress, None);
     }
 
     #[test]

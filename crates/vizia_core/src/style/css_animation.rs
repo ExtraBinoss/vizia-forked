@@ -11,7 +11,7 @@ use std::time::Instant;
 use vizia_id::GenerationalId;
 use vizia_style::{
     AnimationComposition, AnimationDirection, AnimationFillMode, AnimationIterationCount,
-    AnimationName, AnimationPlayState, EasingFunction,
+    AnimationName, AnimationPlayState, AnimationTimeline, EasingFunction,
 };
 
 #[derive(Clone, Debug)]
@@ -22,6 +22,9 @@ pub(crate) struct CssAnimationInstance {
     pub clock: CssAnimationClock,
     pub default_timing: TimingFunction,
     pub composition: AnimationComposition,
+    pub timeline: AnimationTimeline,
+    pub timeline_driven: bool,
+    pub timeline_progress: Option<f32>,
     pub started: bool,
     pub last_iteration: u64,
     pub ended: bool,
@@ -34,6 +37,7 @@ struct ResolvedCssAnimation {
     timing: CssAnimationTiming,
     default_timing: TimingFunction,
     composition: AnimationComposition,
+    timeline: AnimationTimeline,
 }
 
 fn repeated<T: Clone>(items: &[T], index: usize, default: T) -> T {
@@ -57,6 +61,7 @@ impl Style {
         let states = self.animation_play_state.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
         let compositions =
             self.animation_composition.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
+        let timelines = self.animation_timeline.get(entity).map(|v| v.0.as_slice()).unwrap_or(&[]);
         let reduce_motion = self.reduced_motion_override.unwrap_or(self.system_reduced_motion);
 
         names
@@ -93,6 +98,7 @@ impl Style {
                     },
                     default_timing: TimingFunction::from_easing(easing),
                     composition: repeated(compositions, index, AnimationComposition::Replace),
+                    timeline: repeated(timelines, index, AnimationTimeline::Auto),
                 })
             })
             .collect()
@@ -321,6 +327,118 @@ impl Style {
         }
     }
 
+    pub(crate) fn set_css_timeline_progress(
+        &mut self,
+        entity: Entity,
+        instance_id: u64,
+        driven: bool,
+        progress: Option<f32>,
+    ) {
+        if let Some(instances) = self.css_animation_instances.get_mut(&entity) {
+            if let Some(instance) =
+                instances.iter_mut().find(|item| item.instance_id == instance_id)
+            {
+                instance.timeline_driven = driven;
+                instance.timeline_progress = progress;
+                if driven {
+                    instance.ended = false;
+                }
+            }
+        }
+        macro_rules! set_progress {
+            ($store:expr) => {
+                $store.set_css_timeline_progress(entity, instance_id, driven, progress);
+            };
+        }
+        set_progress!(self.display);
+        set_progress!(self.opacity);
+        set_progress!(self.clip_path);
+        set_progress!(self.filter);
+        set_progress!(self.backdrop_filter);
+        set_progress!(self.transform);
+        set_progress!(self.transform_origin);
+        set_progress!(self.translate);
+        set_progress!(self.rotate);
+        set_progress!(self.scale);
+        set_progress!(self.border_top_width);
+        set_progress!(self.border_right_width);
+        set_progress!(self.border_bottom_width);
+        set_progress!(self.border_left_width);
+        set_progress!(self.border_top_color);
+        set_progress!(self.border_right_color);
+        set_progress!(self.border_bottom_color);
+        set_progress!(self.border_left_color);
+        set_progress!(self.corner_top_left_radius);
+        set_progress!(self.corner_top_right_radius);
+        set_progress!(self.corner_bottom_left_radius);
+        set_progress!(self.corner_bottom_right_radius);
+        set_progress!(self.corner_top_left_smoothing);
+        set_progress!(self.corner_top_right_smoothing);
+        set_progress!(self.corner_bottom_left_smoothing);
+        set_progress!(self.corner_bottom_right_smoothing);
+        set_progress!(self.outline_width);
+        set_progress!(self.outline_color);
+        set_progress!(self.outline_offset);
+        set_progress!(self.background_color);
+        set_progress!(self.background_image);
+        set_progress!(self.background_position);
+        set_progress!(self.background_repeat);
+        set_progress!(self.background_size);
+        set_progress!(self.shadow);
+        set_progress!(self.font_color);
+        set_progress!(self.font_size);
+        set_progress!(self.letter_spacing);
+        set_progress!(self.line_height);
+        set_progress!(self.caret_color);
+        set_progress!(self.selection_color);
+        set_progress!(self.text_decoration_color);
+        set_progress!(self.fill);
+        set_progress!(self.left);
+        set_progress!(self.right);
+        set_progress!(self.top);
+        set_progress!(self.bottom);
+        set_progress!(self.padding_left);
+        set_progress!(self.padding_right);
+        set_progress!(self.padding_top);
+        set_progress!(self.padding_bottom);
+        set_progress!(self.horizontal_gap);
+        set_progress!(self.vertical_gap);
+        set_progress!(self.width);
+        set_progress!(self.height);
+        set_progress!(self.min_width);
+        set_progress!(self.max_width);
+        set_progress!(self.min_height);
+        set_progress!(self.max_height);
+        set_progress!(self.min_horizontal_gap);
+        set_progress!(self.max_horizontal_gap);
+        set_progress!(self.min_vertical_gap);
+        set_progress!(self.max_vertical_gap);
+        for store in self.custom_color_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_length_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_font_size_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_letter_spacing_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_line_height_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_units_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_opacity_props.values_mut() {
+            set_progress!(store);
+        }
+        for store in self.custom_shadow_props.values_mut() {
+            set_progress!(store);
+        }
+    }
+
     fn stop_css_on_stores(&mut self, entity: Entity, instance_id: u64) {
         macro_rules! stop {
             ($store:expr) => {
@@ -457,6 +575,7 @@ impl Style {
                     instance.clock.update_timing(spec.timing, now);
                     instance.default_timing = spec.default_timing;
                     instance.composition = spec.composition;
+                    instance.timeline = spec.timeline.clone();
                     self.update_css_on_stores(entity, spec, instance.instance_id, order, now);
                     next_reversed.push(instance);
                     continue;
@@ -476,6 +595,9 @@ impl Style {
                 clock: CssAnimationClock::new(spec.timing, now),
                 default_timing: spec.default_timing,
                 composition: spec.composition,
+                timeline: spec.timeline.clone(),
+                timeline_driven: false,
+                timeline_progress: None,
                 started: false,
                 last_iteration: 0,
                 ended: false,
@@ -515,7 +637,11 @@ impl Style {
                 if instance.ended {
                     continue;
                 }
-                let sample = instance.clock.sample(now);
+                let sample = if instance.timeline_driven {
+                    instance.clock.timing.sample_timeline_progress(instance.timeline_progress)
+                } else {
+                    instance.clock.sample(now)
+                };
                 if !instance.started && sample.phase != CssAnimationPhase::Before {
                     instance.started = true;
                     instance.last_iteration = sample.current_iteration;
@@ -548,7 +674,7 @@ impl Style {
                     instance.last_iteration = sample.current_iteration;
                 }
 
-                if sample.finished {
+                if sample.finished && !instance.timeline_driven {
                     if !instance.started {
                         instance.started = true;
                         events.push(AnimationEvent {

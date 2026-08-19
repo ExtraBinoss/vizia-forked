@@ -88,8 +88,9 @@ use cssparser::Token as CssToken;
 use vizia_style::{
     AnimationComposition, AnimationCompositions, AnimationDelays, AnimationDirections,
     AnimationDurations, AnimationFillModes, AnimationIterationCounts, AnimationNames,
-    AnimationPlayStates, AnimationTimingFunctions, BlendMode, KeyframeSelector, ParserOptions,
-    Property, Selectors, StyleSheet, TokenList, TokenOrValue, Variable,
+    AnimationPlayStates, AnimationTimeline, AnimationTimelines, AnimationTimingFunctions,
+    BlendMode, KeyframeSelector, ParserOptions, Property, Selectors, StyleSheet, TokenList,
+    TokenOrValue, Variable,
 };
 
 mod rule;
@@ -105,7 +106,8 @@ mod css_animation;
 pub(crate) use css_animation::CssAnimationInstance;
 
 use crate::animation::{
-    AnimationEvent, AnimationState, Compositor, Interpolator, Keyframe, TimingFunction,
+    AnimationEvent, AnimationState, Compositor, Interpolator, Keyframe, ScrollTimelineSource,
+    TimingFunction,
 };
 use crate::storage::animatable_set::AnimatableSet;
 use crate::storage::style_set::StyleSet;
@@ -326,7 +328,10 @@ pub struct Style {
     pub(crate) animation_fill_mode: StyleSet<AnimationFillModes>,
     pub(crate) animation_play_state: StyleSet<AnimationPlayStates>,
     pub(crate) animation_composition: StyleSet<AnimationCompositions>,
+    pub(crate) animation_timeline: StyleSet<AnimationTimelines>,
     pub(crate) css_animation_instances: HashMap<Entity, Vec<CssAnimationInstance>>,
+    pub(crate) scroll_timeline_sources: HashMap<Entity, ScrollTimelineSource>,
+    pub(crate) named_scroll_timelines: HashMap<String, Entity>,
     pub(crate) next_css_animation_instance_id: u64,
     pub(crate) animation_timelines: HashMap<Animation, Vec<(f32, TimingFunction)>>,
     pub(crate) pending_animation_events: Vec<AnimationEvent>,
@@ -1943,6 +1948,10 @@ impl Style {
                 self.animation_composition.insert_rule(rule_id, value.clone());
                 return;
             }
+            Property::AnimationTimeline(value) => {
+                self.animation_timeline.insert_rule(rule_id, value.clone());
+                return;
+            }
             Property::Animation(value) => {
                 self.animation_name.insert_rule(
                     rule_id,
@@ -1985,6 +1994,10 @@ impl Style {
                     AnimationCompositions(
                         value.0.iter().map(|_| AnimationComposition::Replace).collect(),
                     ),
+                );
+                self.animation_timeline.insert_rule(
+                    rule_id,
+                    AnimationTimelines(value.0.iter().map(|_| AnimationTimeline::Auto).collect()),
                 );
                 return;
             }

@@ -13,7 +13,9 @@ pub(crate) use animation_state::{AnimationState, Keyframe};
 mod interpolator;
 pub(crate) use interpolator::{Compositor, Interpolator};
 
+mod timeline;
 mod timing_function;
+pub(crate) use timeline::{ScrollTimelineSource, view_progress};
 pub(crate) use timing_function::TimingFunction;
 
 mod animation_builder;
