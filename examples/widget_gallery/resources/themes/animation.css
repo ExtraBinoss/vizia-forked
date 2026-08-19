@@ -1,23 +1,23 @@
 /* CSS Animations interactive reference.
  *
- * Keep native Widget Gallery controls untouched. Only the selected documentation
- * example is mounted, so inactive examples do not keep animation clocks alive.
+ * Keep Widget Gallery controls native. Only the selected documentation example
+ * and selected variant are mounted, so inactive examples do not keep clocks alive.
  */
 
-vstack.animation-doc-page {
+.animation-doc-page {
     width: 1s;
     height: auto;
     max-width: 1480px;
     gap: 20px;
 }
 
-vstack.animation-doc-intro {
+.animation-doc-intro {
     width: 1s;
     height: auto;
     gap: 5px;
 }
 
-hstack.animation-doc-layout {
+.animation-doc-layout {
     width: 1s;
     height: 720px;
     min-height: 720px;
@@ -26,7 +26,7 @@ hstack.animation-doc-layout {
     overflow: hidden;
 }
 
-scrollview.animation-doc-nav-scroll {
+.animation-doc-nav-scroll {
     width: 250px;
     min-width: 250px;
     height: 720px;
@@ -34,7 +34,7 @@ scrollview.animation-doc-nav-scroll {
     border-right-color: var(--border);
 }
 
-vstack.animation-doc-nav {
+.animation-doc-nav {
     width: 232px;
     min-width: 232px;
     height: auto;
@@ -42,7 +42,7 @@ vstack.animation-doc-nav {
     gap: 2px;
 }
 
-label.animation-doc-nav-title {
+.animation-doc-nav-title {
     width: 1s;
     height: auto;
     padding: 4px 8px 10px 8px;
@@ -50,7 +50,7 @@ label.animation-doc-nav-title {
     font-weight: bold;
 }
 
-label.animation-doc-nav-category {
+.animation-doc-nav-category {
     width: 1s;
     height: auto;
     padding: 16px 8px 5px 8px;
@@ -60,7 +60,7 @@ label.animation-doc-nav-category {
     text-transform: uppercase;
 }
 
-button.animation-doc-nav-item {
+.animation-doc-nav-item {
     width: 1s;
     height: 32px;
     min-height: 32px;
@@ -70,17 +70,17 @@ button.animation-doc-nav-item {
     justify-content: flex-start;
 }
 
-button.animation-doc-nav-item.animation-doc-nav-item-active {
+.animation-doc-nav-item-active {
     background-color: var(--primary);
     color: var(--primary-foreground);
     font-weight: bold;
 }
 
-button.animation-doc-nav-item.animation-doc-nav-item-active > label {
+.animation-doc-nav-item-active > label {
     color: var(--primary-foreground);
 }
 
-vstack.animation-doc-content {
+.animation-doc-content {
     width: 1s;
     min-width: 520px;
     height: 720px;
@@ -89,14 +89,14 @@ vstack.animation-doc-content {
     overflow: hidden;
 }
 
-label.animation-doc-title {
+.animation-doc-title {
     width: 1s;
     height: auto;
     font-size: 30px;
     font-weight: bold;
 }
 
-label.animation-doc-description {
+.animation-doc-description {
     width: 1s;
     height: auto;
     color: var(--muted-foreground);
@@ -104,59 +104,65 @@ label.animation-doc-description {
     text-wrap: true;
 }
 
-hstack.animation-doc-example {
+.animation-doc-example {
     width: 1s;
-    height: 430px;
-    min-height: 430px;
+    height: 450px;
+    min-height: 450px;
     border-width: 1px;
     border-color: var(--border);
-    corner-radius: 6px;
+    corner-radius: 8px;
     overflow: hidden;
     gap: 0px;
     align-items: stretch;
 }
 
-vstack.animation-doc-code-pane,
-vstack.animation-doc-result-pane {
+.animation-doc-code-pane,
+.animation-doc-result-pane {
     width: 1s;
     min-width: 360px;
-    height: 430px;
-    min-height: 430px;
+    height: 450px;
+    min-height: 450px;
 }
 
-vstack.animation-doc-code-pane {
+.animation-doc-code-pane {
     background-color: var(--background-alt);
     border-right-width: 1px;
     border-right-color: var(--border);
 }
 
-hstack.animation-doc-code-header {
+.animation-doc-code-header,
+.animation-doc-result-header {
     width: 1s;
-    height: 42px;
-    min-height: 42px;
+    height: 50px;
+    min-height: 50px;
     padding: 0px 14px;
     alignment: center-left;
     border-bottom-width: 1px;
     border-bottom-color: var(--border);
 }
 
-label.animation-doc-pane-title {
+.animation-doc-pane-title {
     width: auto;
     height: auto;
     font-size: 13px;
     font-weight: bold;
 }
 
-vstack.animation-doc-code-body {
+.animation-doc-variant-tabs {
+    width: auto;
+    height: auto;
+}
+
+.animation-doc-code-body {
     width: 1s;
-    height: 388px;
-    min-height: 388px;
-    padding: 20px;
+    height: 400px;
+    min-height: 400px;
+    padding: 22px;
     alignment: top-left;
     overflow: hidden;
 }
 
-label.animation-doc-code {
+.animation-doc-code {
     width: 1s;
     height: auto;
     color: var(--foreground);
@@ -166,56 +172,46 @@ label.animation-doc-code {
     text-wrap: true;
 }
 
-hstack.animation-doc-copy-row {
+.animation-doc-copy-row {
     width: 1s;
     height: auto;
     min-height: 36px;
     alignment: center-right;
 }
 
-button.animation-doc-copy-button {
+.animation-doc-copy-button {
     min-width: 88px;
 }
 
-vstack.animation-doc-result-pane {
+.animation-doc-result-pane {
     background-color: var(--background);
     padding: 0px;
     gap: 0px;
 }
 
-hstack.animation-doc-result-header {
+.animation-doc-result-body {
     width: 1s;
-    height: 42px;
-    min-height: 42px;
-    padding: 0px 14px;
-    alignment: center-left;
-    border-bottom-width: 1px;
-    border-bottom-color: var(--border);
-}
-
-vstack.animation-doc-result-body {
-    width: 1s;
-    height: 388px;
-    min-height: 388px;
+    height: 400px;
+    min-height: 400px;
     alignment: center;
     overflow: hidden;
 }
 
-vstack.animation-doc-note {
+.animation-doc-note {
     width: 1s;
     height: auto;
     padding: 12px 0px;
     gap: 4px;
 }
 
-label.animation-doc-note-title {
+.animation-doc-note-title {
     width: 1s;
     height: auto;
     font-size: 13px;
     font-weight: bold;
 }
 
-label.animation-doc-note-copy {
+.animation-doc-note-copy {
     width: 1s;
     height: auto;
     color: var(--muted-foreground);
@@ -223,62 +219,55 @@ label.animation-doc-note-copy {
     text-wrap: true;
 }
 
-hstack.animation-doc-stage,
-zstack.animation-doc-stage {
+.animation-doc-stage,
+.animation-doc-track,
+.animation-doc-backdrop-stage {
     width: 1s;
-    height: 388px;
-    min-height: 388px;
-    padding: 34px;
+    height: 400px;
+    min-height: 400px;
     alignment: center;
     overflow: hidden;
+}
+
+.animation-doc-stage {
+    padding: 34px;
 }
 
 .animation-doc-target {
     width: auto;
     height: auto;
-    min-width: 130px;
-    min-height: 58px;
-    padding: 14px 20px;
+    min-width: 190px;
+    min-height: 92px;
+    padding: 22px 30px;
     alignment: center;
-    corner-radius: 8px;
+    corner-radius: 10px;
     background-color: var(--primary);
     color: var(--primary-foreground);
     font-weight: bold;
-}
-
-label.animation-doc-surface-target {
-    width: 230px;
-    min-width: 230px;
-    min-height: 104px;
-    padding: 24px 30px;
-    alignment: center;
     text-align: center;
     text-wrap: true;
 }
 
-svg.animation-doc-fill-icon {
-    width: 104px;
-    height: 104px;
-    fill: #3b82f6;
-    animation: doc-fill 1400ms ease-in-out infinite alternate;
-}
-
-zstack.animation-doc-track {
-    width: 1s;
-    height: 388px;
-    min-height: 388px;
+.animation-doc-surface-target {
+    width: 320px;
+    min-width: 320px;
+    height: 180px;
+    min-height: 180px;
+    padding: 32px 40px;
     alignment: center;
-    overflow: hidden;
+    text-align: center;
+    text-wrap: true;
+    font-size: 18px;
 }
 
-element.animation-doc-track-line {
+.animation-doc-track-line {
     position-type: absolute;
     width: 72%;
     height: 1px;
     background-color: var(--border);
 }
 
-element.animation-doc-dot {
+.animation-doc-dot {
     width: 42px;
     height: 42px;
     corner-radius: 50%;
@@ -340,14 +329,14 @@ element.animation-doc-dot {
                doc-color 2400ms linear 0s infinite alternate both running;
 }
 
-scrollview.animation-doc-scrollview {
+.animation-doc-scrollview {
     width: 1s;
-    height: 388px;
-    min-height: 388px;
+    height: 400px;
+    min-height: 400px;
     background-color: var(--background);
 }
 
-vstack.animation-doc-scroll-content {
+.animation-doc-scroll-content {
     width: 1s;
     height: auto;
     min-height: 920px;
@@ -356,7 +345,7 @@ vstack.animation-doc-scroll-content {
     padding: 18px;
 }
 
-label.animation-doc-hint {
+.animation-doc-hint {
     width: 1s;
     height: auto;
     color: var(--muted-foreground);
@@ -364,11 +353,11 @@ label.animation-doc-hint {
     text-align: center;
 }
 
-element.animation-doc-scroll-spacer { width: 1s; height: 270px; }
-element.animation-doc-view-spacer { width: 1s; height: 230px; }
+.animation-doc-scroll-spacer { width: 1s; height: 270px; }
+.animation-doc-view-spacer { width: 1s; height: 230px; }
 
-label.animation-doc-scroll-subject,
-label.animation-doc-view-subject {
+.animation-doc-scroll-subject,
+.animation-doc-view-subject {
     width: auto;
     height: auto;
     padding: 16px 20px;
@@ -403,6 +392,34 @@ label.animation-doc-view-subject {
 }
 .animation-doc-transform { animation: doc-transform 1800ms ease-in-out infinite alternate; }
 
+@keyframes doc-transform-translate-only {
+    from { transform: translateX(-120px); }
+    to { transform: translateX(120px); }
+}
+@keyframes doc-transform-rotate-only {
+    from { transform: rotate(-35deg); }
+    to { transform: rotate(325deg); }
+}
+@keyframes doc-transform-combined {
+    from { transform: translate(-100px, 0px) rotate(-25deg) scale(0.78, 0.78); }
+    to { transform: translate(100px, 0px) rotate(335deg) scale(1.12, 1.12); }
+}
+.animation-doc-transform-translate-only {
+    background-color: #2563eb;
+    color: white;
+    animation: doc-transform-translate-only 1500ms ease-in-out infinite alternate;
+}
+.animation-doc-transform-rotate-only {
+    background-color: #7c3aed;
+    color: white;
+    animation: doc-transform-rotate-only 1800ms linear infinite;
+}
+.animation-doc-transform-combined {
+    background-color: #0f9d58;
+    color: white;
+    animation: doc-transform-combined 1800ms ease-in-out infinite alternate;
+}
+
 @keyframes doc-transform-origin {
     from { transform-origin: 0% 50%; rotate: -35deg; }
     to { transform-origin: 100% 50%; rotate: 35deg; }
@@ -424,15 +441,7 @@ label.animation-doc-view-subject {
 @keyframes doc-filter { 0%, 100% { filter: blur(0px); } 50% { filter: blur(10px); } }
 .animation-doc-filter { animation: doc-filter 1600ms ease-in-out infinite; }
 
-zstack.animation-doc-backdrop-stage {
-    width: 1s;
-    height: 388px;
-    min-height: 388px;
-    alignment: center;
-    overflow: hidden;
-}
-
-element.animation-doc-backdrop-blob {
+.animation-doc-backdrop-blob {
     width: 150px;
     height: 150px;
     corner-radius: 50%;
@@ -442,12 +451,10 @@ element.animation-doc-backdrop-blob {
     from { translate: -135px -55px; scale: 0.78; }
     to { translate: 125px 48px; scale: 1.18; }
 }
-
 @keyframes doc-backdrop-b-motion {
     from { translate: 125px -38px; scale: 1.12; }
     to { translate: -120px 58px; scale: 0.74; }
 }
-
 @keyframes doc-backdrop-c-motion {
     from { translate: -30px 80px; scale: 0.82; }
     to { translate: 48px -84px; scale: 1.08; }
@@ -466,7 +473,7 @@ element.animation-doc-backdrop-blob {
     animation: doc-backdrop-c-motion 1900ms ease-in-out infinite alternate;
 }
 
-label.animation-doc-backdrop-behind-text {
+.animation-doc-backdrop-behind-text {
     width: auto;
     height: auto;
     font-size: 30px;
@@ -480,26 +487,27 @@ label.animation-doc-backdrop-behind-text {
     50% { backdrop-filter: blur(16px); }
 }
 
-vstack.animation-doc-backdrop-glass {
-    width: 280px;
-    height: 128px;
-    padding: 18px 22px;
-    gap: 6px;
+.animation-doc-backdrop-glass {
+    width: 300px;
+    height: 150px;
+    padding: 20px 24px;
+    gap: 8px;
     alignment: center;
-    corner-radius: 14px;
-    background-color: #66ffffff;
+    corner-radius: 16px;
+    background-color: #ffffff33;
+    border-width: 1px;
+    border-color: #88ffffff;
     animation: doc-backdrop 1800ms ease-in-out infinite;
 }
 
-label.animation-doc-backdrop-title {
+.animation-doc-backdrop-title {
     width: 1s;
     height: auto;
     text-align: center;
     font-weight: bold;
     color: #111827;
 }
-
-label.animation-doc-backdrop-copy {
+.animation-doc-backdrop-copy {
     width: 1s;
     height: auto;
     text-align: center;
@@ -510,30 +518,134 @@ label.animation-doc-backdrop-copy {
 @keyframes doc-background-color { from { background-color: #3b82f6; } to { background-color: #8b5cf6; } }
 .animation-doc-background-color { animation: doc-background-color 1500ms ease-in-out infinite alternate; }
 
-@keyframes doc-background-geometry {
-    from { background-position: 0% 50%; background-size: 90% 90%; }
-    to { background-position: 100% 50%; background-size: 125% 125%; }
+@keyframes doc-bg-position {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
 }
-.animation-doc-background-geometry {
-    background-image: linear-gradient(90deg, #3b82f6, #8b5cf6, #f97316);
+@keyframes doc-bg-size {
+    from { background-size: 30% 55%; }
+    to { background-size: 100% 100%; }
+}
+@keyframes doc-bg-repeat {
+    0%, 45% { background-repeat: no-repeat; }
+    55%, 100% { background-repeat: repeat; }
+}
+
+.animation-doc-bg-position,
+.animation-doc-bg-size,
+.animation-doc-bg-repeat {
+    background-image: linear-gradient(90deg, #2563eb, #8b5cf6, #f97316);
+    background-color: var(--background-alt);
+    color: white;
+}
+.animation-doc-bg-position {
+    background-size: 48% 82%;
     background-repeat: no-repeat;
-    animation: doc-background-geometry 1800ms ease-in-out infinite alternate;
+    animation: doc-bg-position 1600ms ease-in-out infinite alternate;
+}
+.animation-doc-bg-size {
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    animation: doc-bg-size 1600ms ease-in-out infinite alternate;
+}
+.animation-doc-bg-repeat {
+    background-position: 50% 50%;
+    background-size: 56px 56px;
+    animation: doc-bg-repeat 1800ms steps(1, end) infinite alternate;
 }
 
-@keyframes doc-border-width {
-    from { border-top-width: 1px; border-bottom-width: 1px; }
-    to { border-top-width: 12px; border-bottom-width: 12px; }
-}
-.animation-doc-border-width {
-    border-color: var(--primary);
-    animation: doc-border-width 1600ms ease-in-out infinite alternate;
+@keyframes doc-border-width-top { from { border-top-width: 2px; } to { border-top-width: 24px; } }
+@keyframes doc-border-width-right { from { border-right-width: 2px; } to { border-right-width: 24px; } }
+@keyframes doc-border-width-bottom { from { border-bottom-width: 2px; } to { border-bottom-width: 24px; } }
+@keyframes doc-border-width-left { from { border-left-width: 2px; } to { border-left-width: 24px; } }
+@keyframes doc-border-width-all {
+    from {
+        border-top-width: 2px; border-right-width: 2px;
+        border-bottom-width: 2px; border-left-width: 2px;
+    }
+    to {
+        border-top-width: 18px; border-right-width: 18px;
+        border-bottom-width: 18px; border-left-width: 18px;
+    }
 }
 
-@keyframes doc-border-color { from { border-color: #3b82f6; } to { border-color: #f43f5e; } }
-.animation-doc-border-color { border-width: 5px; animation: doc-border-color 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-width-top,
+.animation-doc-border-width-right,
+.animation-doc-border-width-bottom,
+.animation-doc-border-width-left,
+.animation-doc-border-width-all {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #3b82f6;
+    background-color: var(--background-alt);
+    color: var(--foreground);
+}
+.animation-doc-border-width-top { animation: doc-border-width-top 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-width-right { animation: doc-border-width-right 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-width-bottom { animation: doc-border-width-bottom 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-width-left { animation: doc-border-width-left 1400ms ease-in-out infinite alternate; }
+.animation-doc-border-width-all { animation: doc-border-width-all 1400ms ease-in-out infinite alternate; }
 
-@keyframes doc-radius { from { corner-radius: 4px; } to { corner-radius: 34px; } }
-.animation-doc-radius { animation: doc-radius 1300ms ease-in-out infinite alternate; }
+@keyframes doc-border-color-top { from { border-top-color: #3b82f6; } to { border-top-color: #f97316; } }
+@keyframes doc-border-color-right { from { border-right-color: #3b82f6; } to { border-right-color: #f43f5e; } }
+@keyframes doc-border-color-bottom { from { border-bottom-color: #22c55e; } to { border-bottom-color: #a855f7; } }
+@keyframes doc-border-color-left { from { border-left-color: #06b6d4; } to { border-left-color: #eab308; } }
+@keyframes doc-border-color-all {
+    from {
+        border-top-color: #3b82f6; border-right-color: #3b82f6;
+        border-bottom-color: #3b82f6; border-left-color: #3b82f6;
+    }
+    to {
+        border-top-color: #f43f5e; border-right-color: #f43f5e;
+        border-bottom-color: #f43f5e; border-left-color: #f43f5e;
+    }
+}
+
+.animation-doc-border-color-top,
+.animation-doc-border-color-right,
+.animation-doc-border-color-bottom,
+.animation-doc-border-color-left,
+.animation-doc-border-color-all {
+    border-style: solid;
+    border-width: 12px;
+    border-color: #475569;
+    background-color: var(--background-alt);
+    color: var(--foreground);
+}
+.animation-doc-border-color-top { animation: doc-border-color-top 1300ms ease-in-out infinite alternate; }
+.animation-doc-border-color-right { animation: doc-border-color-right 1300ms ease-in-out infinite alternate; }
+.animation-doc-border-color-bottom { animation: doc-border-color-bottom 1300ms ease-in-out infinite alternate; }
+.animation-doc-border-color-left { animation: doc-border-color-left 1300ms ease-in-out infinite alternate; }
+.animation-doc-border-color-all { animation: doc-border-color-all 1300ms ease-in-out infinite alternate; }
+
+@keyframes doc-radius-tl { from { corner-top-left-radius: 4px; } to { corner-top-left-radius: 90px; } }
+@keyframes doc-radius-tr { from { corner-top-right-radius: 4px; } to { corner-top-right-radius: 90px; } }
+@keyframes doc-radius-bl { from { corner-bottom-left-radius: 4px; } to { corner-bottom-left-radius: 90px; } }
+@keyframes doc-radius-br { from { corner-bottom-right-radius: 4px; } to { corner-bottom-right-radius: 90px; } }
+@keyframes doc-radius-all {
+    from {
+        corner-top-left-radius: 6px; corner-top-right-radius: 6px;
+        corner-bottom-left-radius: 6px; corner-bottom-right-radius: 6px;
+    }
+    to {
+        corner-top-left-radius: 72px; corner-top-right-radius: 72px;
+        corner-bottom-left-radius: 72px; corner-bottom-right-radius: 72px;
+    }
+}
+
+.animation-doc-radius-tl,
+.animation-doc-radius-tr,
+.animation-doc-radius-bl,
+.animation-doc-radius-br,
+.animation-doc-radius-all {
+    background-color: #2563eb;
+    color: white;
+}
+.animation-doc-radius-tl { animation: doc-radius-tl 1400ms ease-in-out infinite alternate; }
+.animation-doc-radius-tr { animation: doc-radius-tr 1400ms ease-in-out infinite alternate; }
+.animation-doc-radius-bl { animation: doc-radius-bl 1400ms ease-in-out infinite alternate; }
+.animation-doc-radius-br { animation: doc-radius-br 1400ms ease-in-out infinite alternate; }
+.animation-doc-radius-all { animation: doc-radius-all 1400ms ease-in-out infinite alternate; }
 
 @keyframes doc-outline {
     from { outline-width: 1px; outline-color: #3b82f6; outline-offset: 1px; }
@@ -545,26 +657,38 @@ label.animation-doc-backdrop-copy {
 .animation-doc-shadow { animation: doc-shadow 1500ms ease-in-out infinite alternate; }
 
 @keyframes doc-text-color { from { color: #3b82f6; } to { color: #f43f5e; } }
-.animation-doc-text-color { background-color: var(--background-alt); animation: doc-text-color 1200ms ease-in-out infinite alternate; }
-
-@keyframes doc-font-size { from { font-size: 20px; } to { font-size: 42px; } }
-.animation-doc-font-size { background-color: var(--background-alt); color: var(--foreground); animation: doc-font-size 1600ms ease-in-out infinite alternate; }
-
-@keyframes doc-letter-spacing { from { letter-spacing: 0px; } to { letter-spacing: 8px; } }
-.animation-doc-letter-spacing { background-color: var(--background-alt); color: var(--foreground); animation: doc-letter-spacing 1500ms ease-in-out infinite alternate; }
-
-@keyframes doc-line-height { from { line-height: 1; } to { line-height: 1.8; } }
-label.animation-doc-line-height {
-    width: 250px;
-    min-width: 250px;
-    min-height: 140px;
-    height: auto;
-    padding: 22px 28px;
-    alignment: center;
-    corner-radius: 8px;
+.animation-doc-text-color {
     background-color: var(--background-alt);
     color: var(--foreground);
-    font-size: 22px;
+    animation: doc-text-color 1200ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-font-size { from { font-size: 20px; } to { font-size: 42px; } }
+.animation-doc-font-size {
+    background-color: var(--background-alt);
+    color: var(--foreground);
+    animation: doc-font-size 1600ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-letter-spacing { from { letter-spacing: 0px; } to { letter-spacing: 8px; } }
+.animation-doc-letter-spacing {
+    background-color: var(--background-alt);
+    color: var(--foreground);
+    animation: doc-letter-spacing 1500ms ease-in-out infinite alternate;
+}
+
+@keyframes doc-line-height { from { line-height: 1; } to { line-height: 1.8; } }
+.animation-doc-line-height {
+    width: 300px;
+    min-width: 300px;
+    height: 180px;
+    min-height: 180px;
+    padding: 32px 40px;
+    alignment: center;
+    corner-radius: 10px;
+    background-color: var(--background-alt);
+    color: var(--foreground);
+    font-size: 24px;
     text-align: center;
     animation: doc-line-height 1500ms ease-in-out infinite alternate;
 }
@@ -574,52 +698,69 @@ label.animation-doc-line-height {
     to { caret-color: #f43f5e; selection-color: #f43f5e; text-decoration-color: #f43f5e; }
 }
 .animation-doc-text-paint {
-    background-color: transparent;
+    background-color: var(--background-alt);
     color: var(--foreground);
     text-decoration-line: underline;
     animation: doc-text-paint 1400ms ease-in-out infinite alternate;
 }
 
 @keyframes doc-fill { from { fill: #3b82f6; } to { fill: #22c55e; } }
+.animation-doc-fill-icon {
+    width: 120px;
+    height: 120px;
+    fill: #3b82f6;
+    animation: doc-fill 1400ms ease-in-out infinite alternate;
+}
 
 @keyframes doc-position { from { left: 20px; top: 24px; } to { left: 220px; top: 150px; } }
-element.animation-doc-position {
+.animation-doc-position {
     position-type: absolute;
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     corner-radius: 8px;
     background-color: var(--primary);
     animation: doc-position 1800ms ease-in-out infinite alternate;
 }
 
-@keyframes doc-padding { from { padding: 6px; } to { padding: 28px; } }
+@keyframes doc-padding {
+    from { padding-left: 6px; padding-right: 6px; padding-top: 6px; padding-bottom: 6px; }
+    to { padding-left: 28px; padding-right: 28px; padding-top: 28px; padding-bottom: 28px; }
+}
 .animation-doc-padding { animation: doc-padding 1500ms ease-in-out infinite alternate; }
 
 @keyframes doc-gap { from { horizontal-gap: 6px; } to { horizontal-gap: 44px; } }
 .animation-doc-gap-stage { animation: doc-gap 1500ms ease-in-out infinite alternate; }
-element.animation-doc-gap-item { width: 44px; height: 44px; corner-radius: 6px; background-color: var(--primary); }
+.animation-doc-gap-item {
+    width: 44px;
+    height: 44px;
+    corner-radius: 6px;
+    background-color: var(--primary);
+}
 
-@keyframes doc-size { from { width: 90px; height: 58px; } to { width: 240px; height: 92px; } }
+@keyframes doc-size { from { width: 120px; height: 90px; } to { width: 280px; height: 170px; } }
 .animation-doc-size { animation: doc-size 1600ms steps(8, end) infinite alternate; }
 
-@keyframes doc-constraints { from { min-width: 90px; max-width: 140px; } to { min-width: 180px; max-width: 280px; } }
+@keyframes doc-constraints { from { min-width: 120px; max-width: 170px; } to { min-width: 220px; max-width: 320px; } }
 .animation-doc-constraints { width: 1s; animation: doc-constraints 1600ms steps(8, end) infinite alternate; }
 
 @keyframes doc-display { 0%, 49% { display: none; } 50%, 100% { display: flex; } }
-label.animation-doc-display {
+.animation-doc-display {
     width: auto;
     height: auto;
-    padding: 14px 18px;
-    corner-radius: 7px;
+    min-width: 190px;
+    min-height: 92px;
+    padding: 22px 30px;
+    alignment: center;
+    corner-radius: 10px;
     background-color: var(--primary);
     color: var(--primary-foreground);
     animation: doc-display 1800ms steps(1, end) infinite;
 }
 
-label.animation-doc-static-title { width: auto; height: auto; font-weight: bold; }
-label.animation-doc-static-copy { width: 70%; height: auto; color: var(--muted-foreground); text-align: center; text-wrap: true; }
+.animation-doc-static-title { width: auto; height: auto; font-weight: bold; }
+.animation-doc-static-copy { width: 70%; height: auto; color: var(--muted-foreground); text-align: center; text-wrap: true; }
 
-vstack.animation-doc-runtime {
+.animation-doc-runtime {
     width: 1s;
     height: auto;
     padding: 0px 18px 18px 18px;
@@ -632,26 +773,26 @@ vstack.animation-doc-runtime {
 }
 .animation-doc-runtime-target { animation: doc-runtime 6000ms linear infinite alternate; }
 
-hstack.animation-doc-controls { width: 1s; height: auto; gap: 8px; }
-hstack.animation-doc-seek-row { width: 1s; height: auto; gap: 10px; alignment: center-left; }
-label.animation-doc-control-label { width: 44px; height: auto; color: var(--muted-foreground); font-size: 12px; }
-label.animation-doc-runtime-readout { width: 1s; height: auto; color: var(--muted-foreground); font-family: monospace; font-size: 12px; text-wrap: true; }
+.animation-doc-controls { width: 1s; height: auto; gap: 8px; }
+.animation-doc-seek-row { width: 1s; height: auto; gap: 10px; alignment: center-left; }
+.animation-doc-control-label { width: 44px; height: auto; color: var(--muted-foreground); font-size: 12px; }
+.animation-doc-runtime-readout { width: 1s; height: auto; color: var(--muted-foreground); font-family: monospace; font-size: 12px; text-wrap: true; }
 
 @keyframes doc-popover-reveal {
     from { opacity: 0; filter: blur(8px); translate: 0px -5px; scale: 0.97; }
     to { opacity: 1; filter: blur(0px); translate: 0px 0px; scale: 1; }
 }
-popup.animation-doc-popover { animation: doc-popover-reveal 180ms ease-out both; }
-vstack.animation-doc-popover-content { width: 250px; height: auto; padding: 14px; gap: 8px; }
-label.animation-doc-popover-title { width: 1s; height: auto; font-weight: bold; }
-label.animation-doc-popover-copy { width: 1s; height: auto; color: var(--muted-foreground); font-size: 12px; text-wrap: true; }
+.animation-doc-popover { animation: doc-popover-reveal 180ms ease-out both; }
+.animation-doc-popover-content { width: 250px; height: auto; padding: 14px; gap: 8px; }
+.animation-doc-popover-title { width: 1s; height: auto; font-weight: bold; }
+.animation-doc-popover-copy { width: 1s; height: auto; color: var(--muted-foreground); font-size: 12px; text-wrap: true; }
 
 @keyframes doc-throb {
     from { opacity: 0.25; translate: 0px 2px; scale: 0.72; }
     to { opacity: 1; translate: 0px -3px; scale: 1; }
 }
-label.animation-doc-throbber-label { width: auto; height: auto; color: var(--muted-foreground); }
-element.animation-doc-throbber-dot {
+.animation-doc-throbber-label { width: auto; height: auto; color: var(--muted-foreground); }
+.animation-doc-throbber-dot {
     width: 6px;
     height: 6px;
     corner-radius: 50%;
