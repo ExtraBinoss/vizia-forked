@@ -67,7 +67,6 @@ pub use alignment::*;
 pub use alpha::*;
 pub use angle::*;
 pub use animation::*;
-pub use animation::*;
 pub use aspect_ratio::*;
 pub use backdrop_filter::*;
 pub use background_repeat::*;
