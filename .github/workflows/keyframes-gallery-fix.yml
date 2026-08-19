@@ -3,6 +3,8 @@ name: Keyframes Gallery Fix
 on:
   push:
     branches: [ agent/css-keyframes-level1-complete ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
