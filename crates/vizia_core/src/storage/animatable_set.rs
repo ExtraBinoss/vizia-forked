@@ -477,6 +477,9 @@ where
         self.refresh_animation_index(entity);
     }
 
+    // Updating one CSS effect is an atomic store operation: identity, order, timing,
+    // easing, composition and the sampling timestamp must remain synchronized.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn update_css_animation(
         &mut self,
         entity: Entity,
