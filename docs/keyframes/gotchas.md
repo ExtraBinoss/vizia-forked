@@ -26,6 +26,10 @@ Do not assume arbitrary browser properties exist. Prefer properties that are pre
 For spacing in Widget Gallery code, the normal Vizia layout tools (`gap`, padding, explicit sizing)
 are safer than assuming browser margin behavior.
 
+Concrete example from the animation gallery: `border-style` is not currently a Vizia CSS property in
+this fork. A browser-style `border-style: solid` declaration therefore should not be copied blindly
+into Vizia CSS; use the supported border width/color properties and verify the stylesheet in `Context`.
+
 A useful regression test is:
 
 ```rust
