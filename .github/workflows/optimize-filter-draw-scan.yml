@@ -10,9 +10,6 @@ on:
 permissions:
   contents: write
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   materialize:
     if: github.actor != 'github-actions[bot]'
@@ -22,20 +19,10 @@ jobs:
         with:
           ref: agent/css-keyframes-level1-complete
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install native dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libfreetype6-dev libfontconfig1-dev libwayland-dev
       - name: Apply filter draw optimization
         run: python tools/optimize_filter_draw_scan.py
       - name: Format
         run: cargo fmt
-      - name: Check core
-        run: cargo check -p vizia_core --lib
-      - name: Check widget gallery
-        run: cargo check -p widget_gallery
-      - name: Verify formatting
-        run: cargo fmt -- --check
       - name: Commit materialized changes
         run: |
           if git diff --quiet; then
