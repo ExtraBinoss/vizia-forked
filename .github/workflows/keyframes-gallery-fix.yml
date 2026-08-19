@@ -1,0 +1,45 @@
+name: Keyframes Gallery Fix
+
+on:
+  push:
+    branches: [ agent/css-keyframes-level1-complete ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/css-keyframes-level1-complete
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - name: Apply performance patch
+        run: python tools/fix_keyframes_gallery_perf.py
+      - name: Format
+        run: cargo fmt
+      - name: Check widget gallery
+        run: cargo check -p widget_gallery
+      - name: Verify formatting
+        run: cargo fmt -- --check
+      - name: Commit materialized changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add examples/widget_gallery/src/main.rs crates/vizia_core/src/storage/animatable_var_set.rs crates/vizia_core/src/systems/animation.rs
+          git commit -m "fix: smooth virtualized CSS animation gallery"
+          git push origin HEAD:agent/css-keyframes-level1-complete
