@@ -527,8 +527,49 @@ impl Interpolator for Angle {
 }
 
 impl Interpolator for Transform {
-    fn interpolate(_start: &Self, end: &Self, _t: f32) -> Self {
-        end.clone()
+    fn interpolate(start: &Self, end: &Self, t: f32) -> Self {
+        match (start, end) {
+            (Transform::Translate((sx, sy)), Transform::Translate((ex, ey))) => {
+                Transform::Translate((
+                    LengthOrPercentage::interpolate(sx, ex, t),
+                    LengthOrPercentage::interpolate(sy, ey, t),
+                ))
+            }
+            (Transform::TranslateX(start), Transform::TranslateX(end)) => {
+                Transform::TranslateX(LengthOrPercentage::interpolate(start, end, t))
+            }
+            (Transform::TranslateY(start), Transform::TranslateY(end)) => {
+                Transform::TranslateY(LengthOrPercentage::interpolate(start, end, t))
+            }
+            (Transform::Scale((sx, sy)), Transform::Scale((ex, ey))) => Transform::Scale((
+                PercentageOrNumber::interpolate(sx, ex, t),
+                PercentageOrNumber::interpolate(sy, ey, t),
+            )),
+            (Transform::ScaleX(start), Transform::ScaleX(end)) => {
+                Transform::ScaleX(PercentageOrNumber::interpolate(start, end, t))
+            }
+            (Transform::ScaleY(start), Transform::ScaleY(end)) => {
+                Transform::ScaleY(PercentageOrNumber::interpolate(start, end, t))
+            }
+            (Transform::Rotate(start), Transform::Rotate(end)) => {
+                Transform::Rotate(Angle::interpolate(start, end, t))
+            }
+            (Transform::Skew(sx, sy), Transform::Skew(ex, ey)) => Transform::Skew(
+                Angle::interpolate(sx, ex, t),
+                Angle::interpolate(sy, ey, t),
+            ),
+            (Transform::SkewX(start), Transform::SkewX(end)) => {
+                Transform::SkewX(Angle::interpolate(start, end, t))
+            }
+            (Transform::SkewY(start), Transform::SkewY(end)) => {
+                Transform::SkewY(Angle::interpolate(start, end, t))
+            }
+            (Transform::Matrix(start), Transform::Matrix(end)) => {
+                Transform::Matrix(Matrix::interpolate(start, end, t))
+            }
+            _ if t < 0.5 => start.clone(),
+            _ => end.clone(),
+        }
     }
 }
 
@@ -587,6 +628,21 @@ mod composition_tests {
         let result = Translate::compose(&base, &effect, AnimationComposition::Add);
         assert_eq!(result.x, LengthOrPercentage::Length(Length::px(30.0)));
         assert_eq!(result.y, LengthOrPercentage::Length(Length::px(12.0)));
+    }
+
+    #[test]
+    fn transform_interpolates_compatible_translate_functions() {
+        let start = Transform::TranslateX(LengthOrPercentage::Length(Length::px(-100.0)));
+        let end = Transform::TranslateX(LengthOrPercentage::Length(Length::px(100.0)));
+        let mid = Transform::interpolate(&start, &end, 0.5);
+
+        let Transform::TranslateX(LengthOrPercentage::Length(Length::Value(
+            LengthValue::Px(value),
+        ))) = mid
+        else {
+            panic!("expected interpolated translateX");
+        };
+        assert!(value.abs() < 0.001);
     }
 
     #[test]
@@ -716,7 +772,9 @@ impl Interpolator for LinearGradient {
                         ColorStop {
                             color: Color::interpolate(&start_stop.color, &end_stop.color, t),
                             position: Some(LengthOrPercentage::interpolate(
-                                &start_pos, &end_pos, t,
+                                &start_pos,
+                                &end_pos,
+                                t,
                             )),
                         }
                     })
