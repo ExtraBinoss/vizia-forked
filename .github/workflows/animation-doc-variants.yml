@@ -22,6 +22,7 @@ jobs:
       - name: Apply engine and reference fixes
         run: |
           python tools/animation_doc_variants.py
+          python tools/animation_doc_transform_variants.py
           cargo fmt
       - name: Commit source
         run: |
