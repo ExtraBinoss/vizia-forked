@@ -57,13 +57,7 @@ jobs:
           python3 tools/keyframes_level1_fixups.py
       - name: Format
         run: cargo fmt --all
-      - name: Test style parser
-        run: cargo test -p vizia_style
-      - name: Test core library
-        run: cargo test -p vizia_core --lib
-      - name: Clippy changed crates
-        run: cargo clippy -p vizia_style -p vizia_core --lib -- -D warnings
-      - name: Commit generated implementation
+      - name: Materialize generated implementation
         run: |
           if git diff --quiet; then
             echo "No generated changes"
@@ -75,3 +69,11 @@ jobs:
           git commit -m "Implement CSS Animations Level 1 runtime and CSS integration"
           git pull --rebase origin agent/css-keyframes-level1-complete
           git push origin HEAD:agent/css-keyframes-level1-complete
+      - name: Test style parser
+        run: cargo test -p vizia_style
+      - name: Test core library
+        run: cargo test -p vizia_core --lib
+      - name: Check widget gallery
+        run: cargo check -p widget_gallery
+      - name: Clippy changed crates
+        run: cargo clippy -p vizia_style -p vizia_core --lib -- -D warnings
