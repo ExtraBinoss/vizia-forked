@@ -96,7 +96,7 @@ impl MorphIcon {
     fn new(cx: &mut Context, progress: Signal<f32>) -> Handle<'_, Self> {
         let handle = Self { progress }.build(cx, |_| {});
         let entity = handle.entity();
-        handle.bind(progress, move |handle| {
+        handle.bind(progress, move |mut handle| {
             let _ = progress.get();
             handle.context().needs_redraw(entity);
         })
