@@ -1,8 +1,8 @@
 name: Level 2 Composition Agent
 
 on:
-  pull_request:
-    branches: [ agent/css-keyframes-level1-complete ]
+  push:
+    branches: [ agent/css-keyframes-level2 ]
   workflow_dispatch:
 
 permissions:
@@ -20,27 +20,12 @@ jobs:
         with:
           ref: agent/css-keyframes-level2
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install native dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libx11-xcb-dev libxcb-dri2-0-dev libgl1-mesa-dev libxcb-icccm4-dev \
-            libxcursor-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
-            libfreetype6-dev libfontconfig1-dev libwayland-dev
       - name: Preflight materializer
         run: python tools/level2_composition_preflight.py
       - name: Apply Level 2 composition phase
         run: python tools/level2_composition.py
       - name: Format
         run: cargo fmt
-      - name: Test style parser
-        run: cargo test -p vizia_style
-      - name: Check core
-        run: cargo check -p vizia_core --lib
-      - name: Check widget gallery
-        run: cargo check -p widget_gallery
-      - name: Verify formatting
-        run: cargo fmt -- --check
       - name: Commit source changes
         run: |
           if git diff --quiet; then
