@@ -25,7 +25,7 @@ impl<'i> Parse<'i> for LetterSpacing {
 
         let location = input.current_source_location();
         if input
-            .try_parse(|input| {
+            .try_parse(|input| -> Result<(), ParseError<'i, CustomParseError<'i>>> {
                 let value = input.expect_number()?;
                 if value == 0.0 {
                     Ok(())
