@@ -1,8 +1,8 @@
 name: Level 2 Composition Agent
 
 on:
-  push:
-    branches: [ agent/css-keyframes-level2 ]
+  pull_request:
+    branches: [ agent/css-keyframes-level1-complete ]
   workflow_dispatch:
 
 permissions:
