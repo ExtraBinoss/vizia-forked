@@ -13,12 +13,8 @@ const ADD_TARGET_ID: &str = "animation-add-target";
 const ACCUMULATE_TARGET_ID: &str = "animation-accumulate-target";
 const RUNTIME_DURATION: f32 = 8.0;
 
-const DOCUMENT_TARGET_IDS: &[&str] = &[
-    RUNTIME_TARGET_ID,
-    REPLACE_TARGET_ID,
-    ADD_TARGET_ID,
-    ACCUMULATE_TARGET_ID,
-];
+const DOCUMENT_TARGET_IDS: &[&str] =
+    &[RUNTIME_TARGET_ID, REPLACE_TARGET_ID, ADD_TARGET_ID, ACCUMULATE_TARGET_ID];
 
 const DEMOS: &[(&str, &str)] = &[
     (
@@ -49,18 +45,9 @@ const DEMOS: &[(&str, &str)] = &[
         "Visual interpolation",
         "Background, text color, radius, border and shadow interpolate on the same surface.",
     ),
-    (
-        "Transform family",
-        "Translate, rotate and scale move through multiple keyframes.",
-    ),
-    (
-        "Filter blur",
-        "filter: blur() interpolates between crisp and blurred states.",
-    ),
-    (
-        "Backdrop filter",
-        "backdrop-filter blurs moving content behind a translucent surface.",
-    ),
+    ("Transform family", "Translate, rotate and scale move through multiple keyframes."),
+    ("Filter blur", "filter: blur() interpolates between crisp and blurred states."),
+    ("Backdrop filter", "backdrop-filter blurs moving content behind a translucent surface."),
 ];
 
 const HEART_POINTS: [(f32, f32); 16] = [
@@ -177,9 +164,7 @@ fn baseline_track(cx: &mut Context, class: &'static str) {
 fn render_demo_visual(cx: &mut Context, index: usize) {
     match index {
         0 => {
-            Label::new(cx, "@KEYFRAMES")
-                .class("baseline-surface")
-                .class("baseline-entrance");
+            Label::new(cx, "@KEYFRAMES").class("baseline-surface").class("baseline-entrance");
         }
         1 => {
             VStack::new(cx, |cx| {
@@ -218,9 +203,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
             .class("baseline-track-stack");
         }
         4 => {
-            Label::new(cx, "TWO EFFECTS")
-                .class("baseline-surface")
-                .class("baseline-multiple");
+            Label::new(cx, "TWO EFFECTS").class("baseline-surface").class("baseline-multiple");
         }
         5 => {
             HStack::new(cx, |cx| {
@@ -230,9 +213,7 @@ fn render_demo_visual(cx: &mut Context, index: usize) {
             .class("baseline-layout-row");
         }
         6 => {
-            Label::new(cx, "STYLE")
-                .class("baseline-surface")
-                .class("baseline-style");
+            Label::new(cx, "STYLE").class("baseline-surface").class("baseline-style");
         }
         7 => {
             Element::new(cx).class("baseline-transform");
@@ -339,12 +320,13 @@ fn level_two_composition(cx: &mut Context) {
 
         VStack::new(cx, |cx| {
             Label::new(cx, "Accumulate").class("animation-example-title");
-            Label::new(cx, "Two rotate effects accumulate while scale stays an independent effect.")
-                .class("animation-example-copy");
+            Label::new(
+                cx,
+                "Two rotate effects accumulate while scale stays an independent effect.",
+            )
+            .class("animation-example-copy");
             ZStack::new(cx, |cx| {
-                Label::new(cx, "A + B")
-                    .id(ACCUMULATE_TARGET_ID)
-                    .class("accumulate-target");
+                Label::new(cx, "A + B").id(ACCUMULATE_TARGET_ID).class("accumulate-target");
             })
             .class("accumulate-stage");
         })

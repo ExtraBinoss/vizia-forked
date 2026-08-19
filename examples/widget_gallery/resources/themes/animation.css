@@ -419,7 +419,6 @@ vstack.animation-page {
 }
 
 .timeline-document-demo {
-    margin-bottom: 12px;
 }
 
 .runtime-stage {
@@ -590,7 +589,6 @@ morph-icon.morph-stage {
     height: auto;
     color: var(--muted-foreground);
     font-size: 13px;
-    margin-right: 3px;
 }
 
 .throbber-dot {
