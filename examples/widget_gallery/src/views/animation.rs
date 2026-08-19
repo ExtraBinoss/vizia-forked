@@ -21,6 +21,9 @@ enum ExampleKind {
     Multiple,
     Opacity,
     Transform,
+    TransformTranslateOnly,
+    TransformRotateOnly,
+    TransformCombined,
     TransformOrigin,
     Translate,
     Rotate,
@@ -30,9 +33,27 @@ enum ExampleKind {
     BackdropFilter,
     BackgroundColor,
     BackgroundGeometry,
+    BackgroundPosition,
+    BackgroundSize,
+    BackgroundRepeat,
     BorderWidth,
+    BorderWidthTop,
+    BorderWidthRight,
+    BorderWidthBottom,
+    BorderWidthLeft,
+    BorderWidthAll,
     BorderColor,
+    BorderColorTop,
+    BorderColorRight,
+    BorderColorBottom,
+    BorderColorLeft,
+    BorderColorAll,
     CornerRadius,
+    CornerRadiusTopLeft,
+    CornerRadiusTopRight,
+    CornerRadiusBottomLeft,
+    CornerRadiusBottomRight,
+    CornerRadiusAll,
     Outline,
     Shadow,
     TextColor,
@@ -58,6 +79,13 @@ struct DocEntry {
     title: &'static str,
     css: &'static str,
     description: &'static str,
+    example: ExampleKind,
+}
+
+#[derive(Clone, Copy)]
+struct DocVariant {
+    label: &'static str,
+    css: &'static str,
     example: ExampleKind,
 }
 
@@ -210,14 +238,12 @@ const DOCS: &[DocEntry] = &[
         category: "Keyframes & timelines",
         title: "@keyframes",
         css: r#"@keyframes pulse {
-  from {
-    opacity: .35;
-    scale: .8;
-  }
-  to {
-    opacity: 1;
-    scale: 1.15;
-  }
+  from { opacity: .35; scale: .8; }
+  to   { opacity: 1; scale: 1.15; }
+}
+
+.target {
+  animation: pulse 1.4s ease-in-out infinite alternate;
 }"#,
         description: "from/to and percentage offsets are parsed into the same animation storage used by Rust-side animations and transitions.",
         example: ExampleKind::Motion,
@@ -233,8 +259,7 @@ const DOCS: &[DocEntry] = &[
 }
 
 .target {
-  animation: orbit 1.8s ease-in-out
-             infinite alternate;
+  animation: orbit 1.8s ease-in-out infinite alternate;
 }"#,
         description: "Multiple offsets, duplicate offsets, implicit endpoints and underlying values are normalized by the CSS animation runtime.",
         example: ExampleKind::PercentageKeyframes,
@@ -279,8 +304,7 @@ ScrollView::new(cx, content)
         title: "scroll()",
         css: r#".target {
   animation: reveal 1s linear both;
-  animation-timeline:
-    scroll(nearest block);
+  animation-timeline: scroll(nearest block);
 }"#,
         description: "scroll() uses the selected scroll source and axis as the animation clock. Stop scrolling and the animation freezes.",
         example: ExampleKind::ScrollTimeline,
@@ -301,7 +325,9 @@ ScrollView::new(cx, content)
         css: r#"@keyframes demo {
   from { opacity: .15; }
   to   { opacity: 1; }
-}"#,
+}
+
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
         description: "Paint-only interpolation. It does not require layout or text reconstruction.",
         example: ExampleKind::Opacity,
     },
@@ -311,8 +337,10 @@ ScrollView::new(cx, content)
         css: r#"@keyframes demo {
   from { transform: translateX(-90px) rotate(-25deg); }
   to   { transform: translateX(90px) rotate(335deg); }
-}"#,
-        description: "Transform lists are sampled through the retransform path rather than layout.",
+}
+
+.target { animation: demo 1.8s ease-in-out infinite alternate; }"#,
+        description: "Transform lists are sampled through the retransform path rather than layout. Compatible functions interpolate component-by-component.",
         example: ExampleKind::Transform,
     },
     DocEntry {
@@ -379,11 +407,13 @@ ScrollView::new(cx, content)
     DocEntry {
         category: "Animated values",
         title: "backdrop-filter",
-        css: r#"@keyframes demo {
-  from { backdrop-filter: blur(1px); }
-  to   { backdrop-filter: blur(12px); }
-}"#,
-        description: "Backdrop filter interpolation is tracked sparsely so only filter-bearing entities take the filter-aware draw path.",
+        css: r#"@keyframes glass {
+  0%, 100% { backdrop-filter: blur(0px); }
+  50%      { backdrop-filter: blur(16px); }
+}
+
+.glass { animation: glass 1.8s ease-in-out infinite; }"#,
+        description: "The glass surface changes blur while colored content keeps moving underneath, so the backdrop effect is visually distinct from a normal filter.",
         example: ExampleKind::BackdropFilter,
     },
     DocEntry {
@@ -400,46 +430,40 @@ ScrollView::new(cx, content)
         category: "Animated values",
         title: "background-image / position / repeat / size",
         css: r#"@keyframes demo {
-  from {
-    background-position: 0% 50%;
-    background-size: 90% 90%;
-  }
-  to {
-    background-position: 100% 50%;
-    background-size: 125% 125%;
-  }
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
 }"#,
-        description: "The background image, position, repeat and size stores participate in keyframe playback. Incompatible image/repeat values use deterministic fallback.",
+        description: "Use the tabs to inspect position, size and discrete repeat behavior independently instead of hiding them inside one busy shorthand example.",
         example: ExampleKind::BackgroundGeometry,
     },
     DocEntry {
         category: "Animated values",
         title: "border-top/right/bottom/left-width",
         css: r#"@keyframes demo {
-  from { border-top-width: 1px; }
-  to   { border-top-width: 12px; }
+  from { border-top-width: 2px; }
+  to   { border-top-width: 24px; }
 }"#,
-        description: "All four border width stores are animatable. Width changes are layout-affecting and use change-aware relayout ticking.",
+        description: "Choose a side (or all four) to see exactly which border-width store is being animated.",
         example: ExampleKind::BorderWidth,
     },
     DocEntry {
         category: "Animated values",
         title: "border-top/right/bottom/left-color",
         css: r#"@keyframes demo {
-  from { border-color: #3b82f6; }
-  to   { border-color: #f43f5e; }
+  from { border-top-color: #3b82f6; }
+  to   { border-top-color: #f97316; }
 }"#,
-        description: "All four border colors interpolate as paint values.",
+        description: "Choose a side (or all four) to isolate border-color interpolation.",
         example: ExampleKind::BorderColor,
     },
     DocEntry {
         category: "Animated values",
         title: "corner-*-radius / smoothing",
         css: r#"@keyframes demo {
-  from { corner-radius: 4px; }
-  to   { corner-radius: 34px; }
+  from { corner-top-left-radius: 4px; }
+  to   { corner-top-left-radius: 90px; }
 }"#,
-        description: "Per-corner radius and smoothing stores are animatable. Radius changes also trigger rounded re-clipping.",
+        description: "Choose a corner or all corners. The preview uses a large stable surface so the geometry change is obvious.",
         example: ExampleKind::CornerRadius,
     },
     DocEntry {
@@ -535,7 +559,7 @@ ScrollView::new(cx, content)
   from { fill: #3b82f6; }
   to   { fill: #22c55e; }
 }"#,
-        description: "The fill color store is animatable and redraw-only.",
+        description: "The fill color store is animatable and redraw-only. The preview uses a real SVG.",
         example: ExampleKind::Fill,
     },
     DocEntry {
@@ -628,21 +652,11 @@ cx.set_css_animation_playback_rate(id, 2.0);"#,
         category: "Runtime & UI patterns",
         title: "blur reveal popover",
         css: r#"@keyframes reveal {
-  from {
-    opacity: 0;
-    filter: blur(8px);
-    translate: 0 -5px;
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    translate: 0 0;
-  }
+  from { opacity: 0; filter: blur(8px); translate: 0 -5px; }
+  to   { opacity: 1; filter: blur(0); translate: 0 0; }
 }
 
-popover {
-  animation: reveal 180ms ease-out both;
-}"#,
+popover { animation: reveal 180ms ease-out both; }"#,
         description: "A native Vizia Popover can use the same CSS animation engine for a short entrance effect.",
         example: ExampleKind::Popover,
     },
@@ -650,8 +664,7 @@ popover {
         category: "Runtime & UI patterns",
         title: "text throbber",
         css: r#".dot {
-  animation: throb 900ms ease-in-out
-             infinite alternate;
+  animation: throb 900ms ease-in-out infinite alternate;
 }
 
 .dot:nth-child(2) { animation-delay: -300ms; }
@@ -660,6 +673,275 @@ popover {
         example: ExampleKind::Throbber,
     },
 ];
+
+const TRANSFORM_VARIANTS: &[DocVariant] = &[
+    DocVariant {
+        label: "Translate",
+        css: r#"@keyframes demo {
+  from { transform: translateX(-120px); }
+  to   { transform: translateX(120px); }
+}
+
+.target { animation: demo 1.5s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::TransformTranslateOnly,
+    },
+    DocVariant {
+        label: "Rotate",
+        css: r#"@keyframes demo {
+  from { transform: rotate(-35deg); }
+  to   { transform: rotate(325deg); }
+}
+
+.target { animation: demo 1.8s linear infinite; }"#,
+        example: ExampleKind::TransformRotateOnly,
+    },
+    DocVariant {
+        label: "Combined",
+        css: r#"@keyframes demo {
+  from { transform: translate(-100px, 0px) rotate(-25deg) scale(.78, .78); }
+  to   { transform: translate(100px, 0px) rotate(335deg) scale(1.12, 1.12); }
+}
+
+.target { animation: demo 1.8s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::TransformCombined,
+    },
+];
+
+const BACKGROUND_VARIANTS: &[DocVariant] = &[
+    DocVariant {
+        label: "Position",
+        css: r#"@keyframes demo {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+.target {
+  background-size: 48% 82%;
+  background-repeat: no-repeat;
+  animation: demo 1.6s ease-in-out infinite alternate;
+}"#,
+        example: ExampleKind::BackgroundPosition,
+    },
+    DocVariant {
+        label: "Size",
+        css: r#"@keyframes demo {
+  from { background-size: 30% 55%; }
+  to   { background-size: 100% 100%; }
+}
+
+.target {
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: demo 1.6s ease-in-out infinite alternate;
+}"#,
+        example: ExampleKind::BackgroundSize,
+    },
+    DocVariant {
+        label: "Repeat",
+        css: r#"@keyframes demo {
+  0%, 45%   { background-repeat: no-repeat; }
+  55%, 100% { background-repeat: repeat; }
+}
+
+.target {
+  background-size: 56px 56px;
+  animation: demo 1.8s steps(1, end) infinite alternate;
+}"#,
+        example: ExampleKind::BackgroundRepeat,
+    },
+];
+
+const BORDER_WIDTH_VARIANTS: &[DocVariant] = &[
+    DocVariant {
+        label: "Top",
+        css: r#"@keyframes demo {
+  from { border-top-width: 2px; }
+  to   { border-top-width: 24px; }
+}
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::BorderWidthTop,
+    },
+    DocVariant {
+        label: "Right",
+        css: r#"@keyframes demo {
+  from { border-right-width: 2px; }
+  to   { border-right-width: 24px; }
+}
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::BorderWidthRight,
+    },
+    DocVariant {
+        label: "Bottom",
+        css: r#"@keyframes demo {
+  from { border-bottom-width: 2px; }
+  to   { border-bottom-width: 24px; }
+}
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::BorderWidthBottom,
+    },
+    DocVariant {
+        label: "Left",
+        css: r#"@keyframes demo {
+  from { border-left-width: 2px; }
+  to   { border-left-width: 24px; }
+}
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::BorderWidthLeft,
+    },
+    DocVariant {
+        label: "All",
+        css: r#"@keyframes demo {
+  from {
+    border-top-width: 2px; border-right-width: 2px;
+    border-bottom-width: 2px; border-left-width: 2px;
+  }
+  to {
+    border-top-width: 18px; border-right-width: 18px;
+    border-bottom-width: 18px; border-left-width: 18px;
+  }
+}
+.target { animation: demo 1.4s ease-in-out infinite alternate; }"#,
+        example: ExampleKind::BorderWidthAll,
+    },
+];
+
+const BORDER_COLOR_VARIANTS: &[DocVariant] = &[
+    DocVariant {
+        label: "Top",
+        css: r#"@keyframes demo {
+  from { border-top-color: #3b82f6; }
+  to   { border-top-color: #f97316; }
+}"#,
+        example: ExampleKind::BorderColorTop,
+    },
+    DocVariant {
+        label: "Right",
+        css: r#"@keyframes demo {
+  from { border-right-color: #3b82f6; }
+  to   { border-right-color: #f43f5e; }
+}"#,
+        example: ExampleKind::BorderColorRight,
+    },
+    DocVariant {
+        label: "Bottom",
+        css: r#"@keyframes demo {
+  from { border-bottom-color: #22c55e; }
+  to   { border-bottom-color: #a855f7; }
+}"#,
+        example: ExampleKind::BorderColorBottom,
+    },
+    DocVariant {
+        label: "Left",
+        css: r#"@keyframes demo {
+  from { border-left-color: #06b6d4; }
+  to   { border-left-color: #eab308; }
+}"#,
+        example: ExampleKind::BorderColorLeft,
+    },
+    DocVariant {
+        label: "All",
+        css: r#"@keyframes demo {
+  from {
+    border-top-color: #3b82f6; border-right-color: #3b82f6;
+    border-bottom-color: #3b82f6; border-left-color: #3b82f6;
+  }
+  to {
+    border-top-color: #f43f5e; border-right-color: #f43f5e;
+    border-bottom-color: #f43f5e; border-left-color: #f43f5e;
+  }
+}"#,
+        example: ExampleKind::BorderColorAll,
+    },
+];
+
+const CORNER_RADIUS_VARIANTS: &[DocVariant] = &[
+    DocVariant {
+        label: "All",
+        css: r#"@keyframes demo {
+  from {
+    corner-top-left-radius: 6px; corner-top-right-radius: 6px;
+    corner-bottom-left-radius: 6px; corner-bottom-right-radius: 6px;
+  }
+  to {
+    corner-top-left-radius: 72px; corner-top-right-radius: 72px;
+    corner-bottom-left-radius: 72px; corner-bottom-right-radius: 72px;
+  }
+}"#,
+        example: ExampleKind::CornerRadiusAll,
+    },
+    DocVariant {
+        label: "Top left",
+        css: r#"@keyframes demo {
+  from { corner-top-left-radius: 4px; }
+  to   { corner-top-left-radius: 90px; }
+}"#,
+        example: ExampleKind::CornerRadiusTopLeft,
+    },
+    DocVariant {
+        label: "Top right",
+        css: r#"@keyframes demo {
+  from { corner-top-right-radius: 4px; }
+  to   { corner-top-right-radius: 90px; }
+}"#,
+        example: ExampleKind::CornerRadiusTopRight,
+    },
+    DocVariant {
+        label: "Bottom left",
+        css: r#"@keyframes demo {
+  from { corner-bottom-left-radius: 4px; }
+  to   { corner-bottom-left-radius: 90px; }
+}"#,
+        example: ExampleKind::CornerRadiusBottomLeft,
+    },
+    DocVariant {
+        label: "Bottom right",
+        css: r#"@keyframes demo {
+  from { corner-bottom-right-radius: 4px; }
+  to   { corner-bottom-right-radius: 90px; }
+}"#,
+        example: ExampleKind::CornerRadiusBottomRight,
+    },
+];
+
+fn doc_variants(title: &str) -> &'static [DocVariant] {
+    match title {
+        "transform" => TRANSFORM_VARIANTS,
+        "background-image / position / repeat / size" => BACKGROUND_VARIANTS,
+        "border-top/right/bottom/left-width" => BORDER_WIDTH_VARIANTS,
+        "border-top/right/bottom/left-color" => BORDER_COLOR_VARIANTS,
+        "corner-*-radius / smoothing" => CORNER_RADIUS_VARIANTS,
+        _ => &[],
+    }
+}
+
+fn selected_variant<'a>(
+    doc: &'a DocEntry,
+    variants: &'a [DocVariant],
+    index: usize,
+) -> (&'a str, ExampleKind) {
+    variants
+        .get(index)
+        .map(|variant| (variant.css, variant.example))
+        .unwrap_or((doc.css, doc.example))
+}
+
+fn render_variant_picker(cx: &mut Context, variants: &'static [DocVariant], selected: Signal<usize>) {
+    if variants.len() < 2 {
+        return;
+    }
+
+    ButtonGroup::new(cx, move |cx| {
+        for (index, variant) in variants.iter().enumerate() {
+            ToggleButton::new(
+                cx,
+                selected.map(move |current| *current == index),
+                move |cx| Label::new(cx, variant.label),
+            )
+            .on_toggle(move |_cx| selected.set(index));
+        }
+    })
+    .class("animation-doc-variant-tabs");
+}
 
 fn runtime_animation_id(cx: &EventContext) -> Option<CssAnimationId> {
     let entity = cx.resolve_entity_identifier(DOC_RUNTIME_TARGET_ID)?;
@@ -783,14 +1065,14 @@ fn render_runtime_preview(cx: &mut Context) {
                     }
                     readout.set(runtime_snapshot_text(cx));
                 });
-            Button::new(cx, |cx| Label::new(cx, "2×")).variant(ButtonVariant::Text).on_press(
-                move |cx| {
+            Button::new(cx, |cx| Label::new(cx, "2×"))
+                .variant(ButtonVariant::Text)
+                .on_press(move |cx| {
                     if let Some(id) = runtime_animation_id(cx) {
                         let _ = cx.set_css_animation_playback_rate(id, 2.0);
                     }
                     readout.set(runtime_snapshot_text(cx));
-                },
-            );
+                });
         })
         .class("animation-doc-controls");
         HStack::new(cx, move |cx| {
@@ -869,15 +1151,24 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
         ExampleKind::PercentageKeyframes => motion_track(cx, "animation-doc-percentage"),
         ExampleKind::Multiple => simple_stage(cx, "TWO ANIMATIONS", "animation-doc-multiple"),
         ExampleKind::Opacity => simple_stage(cx, "opacity", "animation-doc-opacity"),
-        ExampleKind::Transform => simple_stage(cx, "transform", "animation-doc-transform"),
-        ExampleKind::TransformOrigin => {
-            simple_stage(cx, "origin", "animation-doc-transform-origin")
+        ExampleKind::Transform => surface_stage(cx, "transform", "animation-doc-transform"),
+        ExampleKind::TransformTranslateOnly => {
+            surface_stage(cx, "translateX", "animation-doc-transform-translate-only")
         }
-        ExampleKind::Translate => simple_stage(cx, "translate", "animation-doc-translate"),
-        ExampleKind::Rotate => simple_stage(cx, "rotate", "animation-doc-rotate"),
-        ExampleKind::Scale => simple_stage(cx, "scale", "animation-doc-scale"),
-        ExampleKind::ClipPath => simple_stage(cx, "clip-path", "animation-doc-clip"),
-        ExampleKind::Filter => simple_stage(cx, "FILTER", "animation-doc-filter"),
+        ExampleKind::TransformRotateOnly => {
+            surface_stage(cx, "rotate", "animation-doc-transform-rotate-only")
+        }
+        ExampleKind::TransformCombined => {
+            surface_stage(cx, "combined", "animation-doc-transform-combined")
+        }
+        ExampleKind::TransformOrigin => {
+            surface_stage(cx, "origin", "animation-doc-transform-origin")
+        }
+        ExampleKind::Translate => surface_stage(cx, "translate", "animation-doc-translate"),
+        ExampleKind::Rotate => surface_stage(cx, "rotate", "animation-doc-rotate"),
+        ExampleKind::Scale => surface_stage(cx, "scale", "animation-doc-scale"),
+        ExampleKind::ClipPath => surface_stage(cx, "clip-path", "animation-doc-clip"),
+        ExampleKind::Filter => surface_stage(cx, "FILTER", "animation-doc-filter"),
         ExampleKind::BackdropFilter => {
             ZStack::new(cx, |cx| {
                 Element::new(cx)
@@ -889,10 +1180,10 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
                 Element::new(cx)
                     .class("animation-doc-backdrop-blob")
                     .class("animation-doc-backdrop-c");
-                Label::new(cx, "SHARP  CONTENT").class("animation-doc-backdrop-behind-text");
+                Label::new(cx, "SHARP CONTENT").class("animation-doc-backdrop-behind-text");
                 VStack::new(cx, |cx| {
                     Label::new(cx, "BACKDROP FILTER").class("animation-doc-backdrop-title");
-                    Label::new(cx, "blur() over moving content")
+                    Label::new(cx, "glass blur over moving content")
                         .class("animation-doc-backdrop-copy");
                 })
                 .class("animation-doc-backdrop-glass");
@@ -903,16 +1194,68 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             surface_stage(cx, "background", "animation-doc-background-color")
         }
         ExampleKind::BackgroundGeometry => {
-            surface_stage(cx, "background geometry", "animation-doc-background-geometry")
+            surface_stage(cx, "background", "animation-doc-bg-position")
         }
-        ExampleKind::BorderWidth => surface_stage(cx, "border width", "animation-doc-border-width"),
-        ExampleKind::BorderColor => surface_stage(cx, "border color", "animation-doc-border-color"),
-        ExampleKind::CornerRadius => surface_stage(cx, "radius", "animation-doc-radius"),
+        ExampleKind::BackgroundPosition => {
+            surface_stage(cx, "position", "animation-doc-bg-position")
+        }
+        ExampleKind::BackgroundSize => surface_stage(cx, "size", "animation-doc-bg-size"),
+        ExampleKind::BackgroundRepeat => {
+            surface_stage(cx, "repeat", "animation-doc-bg-repeat")
+        }
+        ExampleKind::BorderWidth => {
+            surface_stage(cx, "border width", "animation-doc-border-width-top")
+        }
+        ExampleKind::BorderWidthTop => surface_stage(cx, "TOP", "animation-doc-border-width-top"),
+        ExampleKind::BorderWidthRight => {
+            surface_stage(cx, "RIGHT", "animation-doc-border-width-right")
+        }
+        ExampleKind::BorderWidthBottom => {
+            surface_stage(cx, "BOTTOM", "animation-doc-border-width-bottom")
+        }
+        ExampleKind::BorderWidthLeft => {
+            surface_stage(cx, "LEFT", "animation-doc-border-width-left")
+        }
+        ExampleKind::BorderWidthAll => {
+            surface_stage(cx, "ALL SIDES", "animation-doc-border-width-all")
+        }
+        ExampleKind::BorderColor => {
+            surface_stage(cx, "border color", "animation-doc-border-color-top")
+        }
+        ExampleKind::BorderColorTop => surface_stage(cx, "TOP", "animation-doc-border-color-top"),
+        ExampleKind::BorderColorRight => {
+            surface_stage(cx, "RIGHT", "animation-doc-border-color-right")
+        }
+        ExampleKind::BorderColorBottom => {
+            surface_stage(cx, "BOTTOM", "animation-doc-border-color-bottom")
+        }
+        ExampleKind::BorderColorLeft => {
+            surface_stage(cx, "LEFT", "animation-doc-border-color-left")
+        }
+        ExampleKind::BorderColorAll => {
+            surface_stage(cx, "ALL SIDES", "animation-doc-border-color-all")
+        }
+        ExampleKind::CornerRadius => surface_stage(cx, "radius", "animation-doc-radius-all"),
+        ExampleKind::CornerRadiusTopLeft => surface_stage(cx, "TOP LEFT", "animation-doc-radius-tl"),
+        ExampleKind::CornerRadiusTopRight => {
+            surface_stage(cx, "TOP RIGHT", "animation-doc-radius-tr")
+        }
+        ExampleKind::CornerRadiusBottomLeft => {
+            surface_stage(cx, "BOTTOM LEFT", "animation-doc-radius-bl")
+        }
+        ExampleKind::CornerRadiusBottomRight => {
+            surface_stage(cx, "BOTTOM RIGHT", "animation-doc-radius-br")
+        }
+        ExampleKind::CornerRadiusAll => {
+            surface_stage(cx, "ALL CORNERS", "animation-doc-radius-all")
+        }
         ExampleKind::Outline => surface_stage(cx, "outline", "animation-doc-outline"),
         ExampleKind::Shadow => surface_stage(cx, "shadow", "animation-doc-shadow"),
         ExampleKind::TextColor => surface_stage(cx, "Animated text", "animation-doc-text-color"),
         ExampleKind::FontSize => surface_stage(cx, "Font size", "animation-doc-font-size"),
-        ExampleKind::LetterSpacing => surface_stage(cx, "Spacing", "animation-doc-letter-spacing"),
+        ExampleKind::LetterSpacing => {
+            surface_stage(cx, "Spacing", "animation-doc-letter-spacing")
+        }
         ExampleKind::LineHeight => {
             VStack::new(cx, |cx| {
                 Label::new(cx, "First line\nSecond line").class("animation-doc-line-height");
@@ -934,7 +1277,7 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             })
             .class("animation-doc-stage");
         }
-        ExampleKind::Padding => simple_stage(cx, "padding", "animation-doc-padding"),
+        ExampleKind::Padding => surface_stage(cx, "padding", "animation-doc-padding"),
         ExampleKind::Gap => {
             HStack::new(cx, |cx| {
                 Element::new(cx).class("animation-doc-gap-item");
@@ -945,8 +1288,10 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             .class("animation-doc-gap-stage")
             .alignment(Alignment::Center);
         }
-        ExampleKind::Size => simple_stage(cx, "size", "animation-doc-size"),
-        ExampleKind::Constraints => simple_stage(cx, "constraints", "animation-doc-constraints"),
+        ExampleKind::Size => surface_stage(cx, "size", "animation-doc-size"),
+        ExampleKind::Constraints => {
+            surface_stage(cx, "constraints", "animation-doc-constraints")
+        }
         ExampleKind::Display => {
             HStack::new(cx, |cx| {
                 Label::new(cx, "discrete display").class("animation-doc-display");
@@ -955,7 +1300,17 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
             .alignment(Alignment::Center);
         }
         ExampleKind::StaticInfo => {
-            VStack::new(cx, |cx| { Label::new(cx, "Typed custom properties use the same stores").class("animation-doc-static-title"); Label::new(cx, "color · length · font-size · letter-spacing · line-height · units · opacity · shadow").class("animation-doc-static-copy"); }).class("animation-doc-stage").alignment(Alignment::Center);
+            VStack::new(cx, |cx| {
+                Label::new(cx, "Typed custom properties use the same stores")
+                    .class("animation-doc-static-title");
+                Label::new(
+                    cx,
+                    "color · length · font-size · letter-spacing · line-height · units · opacity · shadow",
+                )
+                .class("animation-doc-static-copy");
+            })
+            .class("animation-doc-stage")
+            .alignment(Alignment::Center);
         }
         ExampleKind::Runtime => render_runtime_preview(cx),
         ExampleKind::Popover => render_popover_preview(cx),
@@ -965,35 +1320,48 @@ fn render_preview(cx: &mut Context, example: ExampleKind) {
 
 fn render_doc_content(cx: &mut Context, index: usize) {
     let doc = &DOCS[index];
+    let variants = doc_variants(doc.title);
+    let selected_variant_index = Signal::new(0usize);
+
     VStack::new(cx, move |cx| {
         Label::new(cx, doc.title).class("animation-doc-title");
         Label::new(cx, doc.description).class("animation-doc-description");
 
         HStack::new(cx, move |cx| {
-            VStack::new(cx, |cx| {
-                HStack::new(cx, |cx| {
+            VStack::new(cx, move |cx| {
+                HStack::new(cx, move |cx| {
                     Label::new(cx, "CSS").class("animation-doc-pane-title");
+                    Element::new(cx).width(Stretch(1.0));
+                    render_variant_picker(cx, variants, selected_variant_index);
                 })
                 .class("animation-doc-code-header");
 
-                VStack::new(cx, move |cx| {
-                    Label::new(cx, doc.css)
-                        .class("animation-doc-code")
-                        .text_wrap(true);
-                    Element::new(cx).height(Stretch(1.0));
-                    HStack::new(cx, move |cx| {
-                        Element::new(cx).width(Stretch(1.0));
-                        Button::new(cx, |cx| Label::new(cx, "Copy CSS"))
-                            .variant(ButtonVariant::Outline)
-                            .class("animation-doc-copy-button")
-                            .on_press(move |cx| {
-                                let _ = cx.set_clipboard(doc.css.to_string());
-                            });
+                Binding::new(cx, selected_variant_index, move |cx| {
+                    let (css, _) = selected_variant(doc, variants, selected_variant_index.get());
+                    VStack::new(cx, move |cx| {
+                        Label::new(cx, css)
+                            .class("animation-doc-code")
+                            .text_wrap(true);
+                        Element::new(cx).height(Stretch(1.0));
+                        HStack::new(cx, move |cx| {
+                            Element::new(cx).width(Stretch(1.0));
+                            Button::new(cx, |cx| Label::new(cx, "Copy CSS"))
+                                .variant(ButtonVariant::Outline)
+                                .class("animation-doc-copy-button")
+                                .on_press(move |cx| {
+                                    let (css, _) = selected_variant(
+                                        doc,
+                                        variants,
+                                        selected_variant_index.get(),
+                                    );
+                                    let _ = cx.set_clipboard(css.to_string());
+                                });
+                        })
+                        .class("animation-doc-copy-row");
                     })
-                    .class("animation-doc-copy-row");
-                })
-                .class("animation-doc-code-body")
-                .alignment(Alignment::TopLeft);
+                    .class("animation-doc-code-body")
+                    .alignment(Alignment::TopLeft);
+                });
             })
             .class("animation-doc-code-pane");
 
@@ -1003,8 +1371,12 @@ fn render_doc_content(cx: &mut Context, index: usize) {
                 })
                 .class("animation-doc-result-header");
 
-                VStack::new(cx, move |cx| render_preview(cx, doc.example))
-                    .class("animation-doc-result-body");
+                Binding::new(cx, selected_variant_index, move |cx| {
+                    let (_, example) =
+                        selected_variant(doc, variants, selected_variant_index.get());
+                    VStack::new(cx, move |cx| render_preview(cx, example))
+                        .class("animation-doc-result-body");
+                });
             })
             .class("animation-doc-result-pane");
         })
@@ -1012,7 +1384,7 @@ fn render_doc_content(cx: &mut Context, index: usize) {
 
         VStack::new(cx, |cx| {
             Label::new(cx, "Implementation note").class("animation-doc-note-title");
-            Label::new(cx, "CSS animations are sampled directly through Vizia's existing AnimatableSet / AnimatableVarSet property stores. The documentation mounts only the selected live example, so browsing the catalogue does not keep unrelated animations running in the background.").class("animation-doc-note-copy");
+            Label::new(cx, "CSS animations are sampled directly through Vizia's existing AnimatableSet / AnimatableVarSet property stores. Only the selected example and selected variant are mounted, so browsing the reference does not leave unrelated animation clocks running.").class("animation-doc-note-copy");
         })
         .class("animation-doc-note");
     })
@@ -1050,14 +1422,20 @@ pub fn animation(cx: &mut Context) {
     VStack::new(cx, move |cx| {
         VStack::new(cx, |cx| {
             Label::new(cx, "CSS Animations").class("panel-title");
-            Label::new(cx, "Interactive reference for the CSS animation properties, timelines, runtime controls and every property family currently wired into Vizia's keyframe storage.").class("panel-description");
-        }).class("animation-doc-intro");
+            Label::new(cx, "Interactive reference for CSS animation properties, keyframes, timelines, runtime controls and the property families wired into Vizia's animation stores.").class("panel-description");
+        })
+        .class("animation-doc-intro");
         Divider::new(cx);
         HStack::new(cx, move |cx| {
             build_doc_navigation(cx, selected);
-            Binding::new(cx, selected, move |cx| { render_doc_content(cx, selected.get()); });
-        }).class("animation-doc-layout").alignment(Alignment::TopLeft);
-    }).class("animation-doc-page");
+            Binding::new(cx, selected, move |cx| {
+                render_doc_content(cx, selected.get());
+            });
+        })
+        .class("animation-doc-layout")
+        .alignment(Alignment::TopLeft);
+    })
+    .class("animation-doc-page");
 }
 
 #[cfg(test)]
