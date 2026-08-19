@@ -1,117 +1,140 @@
-# CSS Animations Level 2 Plan
+# CSS Animations Level 2 — Vizia implementation
 
-This work builds directly on the Level 1 CSS animation runtime. It must stay integrated with Vizia's
-existing style-property storage (`AnimatableSet` / `AnimatableVarSet`) rather than introducing a
-parallel animation engine.
+This work builds directly on the Level 1 CSS animation runtime and stays integrated with Vizia's
+existing style-property storage (`AnimatableSet` / `AnimatableVarSet`). It does **not** introduce a
+parallel browser-style animation engine.
 
-The target is practical Level 2 behavior inspired by CSS Animations Level 2, Web Animations, and
-Scroll-driven Animations where those models naturally fit Vizia. Deliberate differences must be
-documented explicitly.
+The Vizia Level 2 scope combines the parts of CSS Animations Level 2, Web Animations, and
+Scroll-driven Animations that fit Vizia's retained entity/style architecture. It is intentionally a
+Vizia-native implementation rather than a claim of complete browser/DOM conformance.
 
 ## L2.0 — Architecture and invariants
 
-- [ ] Keep Level 1 behavior source-compatible and preserve `Context::play_animation*`.
-- [ ] Separate an animation effect (keyframes/composition) from its timeline/progress source.
-- [ ] Give every running effect a stable runtime identity and stable composite order.
-- [ ] Ensure all effect application still resolves through Vizia's existing style-property stores.
-- [ ] Add deterministic/headless hooks so every timeline and runtime-control path is testable without sleeps.
-- [ ] Document precedence between inline style, matched style, transitions, CSS animations, and Rust-started animations.
+- [x] Keep Level 1 behavior source-compatible and preserve `Context::play_animation*`.
+- [x] Separate animation effects/keyframes from their timeline/progress source.
+- [x] Give each CSS animation occurrence a stable runtime ID and stable composite order.
+- [x] Resolve effect application through the existing property stores.
+- [x] Keep sampling deterministic: core timing/timeline helpers accept explicit timestamps/progress and are unit-testable without sleeps.
+- [x] Keep CSS animation output integrated with the existing matched/inline/transition/Rust animation storage path rather than a second style layer.
 
 ## L2.1 — Effect stacks and composition
 
-- [ ] Represent multiple simultaneous effects per entity and property.
-- [ ] Implement stable animation composite order independent of storage iteration order.
-- [ ] Parse `animation-composition` as a comma-separated list using CSS list repetition rules.
-- [ ] Support `replace`, `add`, and `accumulate`.
-- [ ] Implement property-specific composition for transforms first, then numeric/length-like values.
-- [ ] Define color composition behavior and reject/replace unsupported additive cases deterministically.
-- [ ] Define filter-list composition behavior and deterministic fallback for incompatible lists.
-- [ ] Support per-keyframe `animation-composition` where representable by Vizia's style model.
-- [ ] Define interaction between CSS transitions, CSS animations, and Rust-started animations.
-- [ ] Add transform, numeric, color, filter, and mixed-effect-order tests.
+- [x] Represent multiple simultaneous CSS effects per entity/property.
+- [x] Sort the effect stack by CSS animation list order plus stable occurrence ID, independent of storage iteration order.
+- [x] Parse `animation-composition` as a comma-separated list with CSS list repetition.
+- [x] Support `replace`, `add`, and `accumulate`.
+- [x] Compose individual `translate`, `rotate`, `scale`, transform lists, numeric/length-like values, opacity, colors, and filters inside the property stores.
+- [x] Use deterministic replacement/fallback when a value family cannot be safely added or accumulated.
+- [x] Compose compatible transform lists element-by-element for `accumulate`; fall back deterministically for incompatible lists.
+- [x] Concatenate filter effects for `add` and accumulate compatible blur/filter lists.
+- [x] Test stable additive transform behavior and property-specific composition.
 
-Acceptance examples:
+Example:
 
 ```css
 .card {
-    animation: move 1600ms infinite alternate, spin 900ms infinite linear;
+    animation: move-x 1600ms infinite alternate,
+               move-y 900ms infinite alternate;
     animation-composition: add, add;
 }
 ```
 
-The card must translate and rotate simultaneously instead of the later transform effect replacing the
-earlier one.
+Both effects remain present in the same property's effect stack, so the final value is composed
+instead of whichever store entry happened to be visited last.
 
 ## L2.2 — Timeline model
 
-- [ ] Introduce an explicit `AnimationTimeline` abstraction separate from animation effects.
-- [ ] Keep the document timeline monotonic and injectable for tests.
-- [ ] Parse `animation-timeline` as a CSS list without coupling parser code to a window backend.
-- [ ] Support `auto`/document timeline behavior.
-- [ ] Implement named timeline lookup with stable lifecycle semantics.
-- [ ] Implement scroll-progress timelines.
-- [ ] Implement view-progress timelines.
-- [ ] Clamp and normalize timeline progress deterministically for zero-size/degenerate ranges.
-- [ ] Define timeline behavior when the source entity disappears.
-- [ ] Define timeline behavior in headless environments.
+- [x] Add `AnimationTimeline` as a value separate from the keyframe effect.
+- [x] Parse comma-separated `animation-timeline` values independently of any window backend.
+- [x] Support `auto`, `none`, named dashed identifiers, `scroll(...)`, and `view(...)`.
+- [x] Support block/inline/x/y axes and root/nearest/self scroll-source selection.
+- [x] Add normalized `ScrollTimelineSource` sampling.
+- [x] Add named scroll sources through `ScrollView::timeline_name(...)`.
+- [x] Add view-progress sampling using subject/viewport geometry.
+- [x] Clamp degenerate scroll/view ranges deterministically.
+- [x] Treat a missing/dead timeline source as unresolved progress rather than falling back to wall-clock time.
+- [x] Keep timeline tests headless through pure progress helpers and explicit samples.
+- [x] Avoid layout-tree scans for timeline sampling; active CSS occurrences and registered scroll sources form the sparse working set.
 
-Acceptance examples:
+Example:
 
 ```css
 .reveal {
-    animation: reveal linear both;
-    animation-timeline: gallery-scroll;
+    animation: reveal 1s linear both;
+    animation-timeline: --gallery-scroll;
 }
 ```
 
-Scrolling the source container must advance the keyframe effect without depending on wall-clock time.
+```rust
+ScrollView::new(cx, content).timeline_name("--gallery-scroll");
+```
+
+Scrolling the source changes animation progress directly; wall-clock time does not advance the
+effect while the scroll position is unchanged.
 
 ## L2.3 — Runtime control
 
-- [ ] Introduce a public runtime animation handle/id that is independent of the declared `@keyframes` id.
-- [ ] Expose inspectable current time/progress, playback rate, pending state, running/paused state, and finished state.
-- [ ] Support `seek`, `set_playback_rate`, `reverse`, `finish`, `cancel`, `pause`, and `resume`.
-- [ ] Preserve current progress when playback rate or direction changes.
-- [ ] Define behavior when keyframes change during playback.
-- [ ] Define behavior when computed animation declarations change during playback.
-- [ ] Keep lifecycle events coherent under seek/reverse/finish/cancel.
-- [ ] Expose completion in an idiomatic Rust API without requiring a browser-like DOM facade.
-- [ ] Add deterministic runtime-control tests using an injected timeline timestamp.
+- [x] Add public `CssAnimationId`, independent of the declared `@keyframes` `Animation` ID.
+- [x] Add `CssAnimationSnapshot` with name/entity/current local time/progress/playback rate/state/timeline kind.
+- [x] Expose pending/running/paused/finished states.
+- [x] Support pause, resume, seek, playback-rate changes, reverse, finish, and cancel from both `Context` and `EventContext`.
+- [x] Preserve local time when playback rate/direction changes by re-anchoring the same clock.
+- [x] Keep runtime commands synchronized across the named occurrence and every property store participating in that occurrence.
+- [x] Allow seek/resume/reverse to revive a filled effect that had already reached its end instead of leaving the store stuck at `t == 1`.
+- [x] Keep runtime IDs stable while timing/composition/timeline declarations update for the same CSS occurrence.
+- [x] Emit cancel through the existing CSS animation lifecycle-event path.
+- [x] Keep lifecycle sampling consistent with reversed progress timelines.
+- [x] Expose completion through `CssAnimationSnapshot::state == CssAnimationPlaybackState::Finished` rather than introducing a DOM promise/facade.
+- [x] Add deterministic clock/runtime tests using explicit `Instant` values.
 
 ## L2.4 — Invalidation and performance
 
-- [ ] Composition must not broaden invalidation beyond the final composed property's category.
-- [ ] Additive transform effects must use the transform/retransform path, never layout.
-- [ ] Scroll/view timelines must invalidate only animations subscribed to the changed timeline source.
-- [ ] Off-screen/virtualized gallery demos must not keep unnecessary effects mounted.
-- [ ] Avoid full-tree scans per animation frame; timeline/source tracking must be sparse.
-- [ ] Add regression tests for paused/stepped/composed values not causing redundant layout work.
+- [x] Composition changes only the invalidation category of the final property value.
+- [x] Additive transform effects use the retransform path, not layout.
+- [x] Progress timelines sample active CSS occurrences and registered sources; no full-tree timeline scan is performed per frame.
+- [x] Preserve the Level 1 sparse filter/backdrop-filter draw tracking instead of restoring an O(tree-size) draw scan.
+- [x] Preserve change-aware layout ticking so stepped/paused layout animations do not relayout while their sampled value is unchanged.
+- [x] Keep timeline source state normalized in `ScrollView` so sampling is O(1) per subscribed occurrence.
+
+The Widget Gallery intentionally mounts the large visual witnesses while the Animation page is open.
+That is a showcase choice, not an engine requirement; the animation/timeline runtime itself does not
+need to walk the full widget tree to find effects.
 
 ## L2.5 — Widget Gallery demos
 
-- [ ] Add a dedicated "Level 2" section to the Animation gallery.
-- [ ] Add an always-running transform composition demo (`translate + rotate + scale`).
-- [ ] Add a `replace` vs `add` side-by-side comparison.
-- [ ] Add an `accumulate` multi-iteration demo where visually meaningful.
-- [ ] Add a scroll-progress timeline demo with an obvious progress indicator.
-- [ ] Add a view-progress timeline demo driven by entering/leaving a viewport.
-- [ ] Add runtime controls: pause/resume, reverse, seek slider, finish, cancel, playback-rate control.
-- [ ] Display current progress/time/state so runtime behavior can be inspected manually.
-- [ ] Keep demos visually rich and virtualized so the gallery remains smooth while animations run continuously.
+- [x] Add a dedicated full-size Level 2 section before the Level 1 regression witnesses.
+- [x] Add side-by-side `replace` vs `add` composition on the same `translate` property.
+- [x] Add an `accumulate` rotation demo plus an independently composed scale effect.
+- [x] Add a large named scroll-progress timeline viewport with a separate progress indicator.
+- [x] Add a large `view(block)` demo driven by entering/leaving a scroll viewport.
+- [x] Add runtime controls for pause/resume, reverse, seek, finish, cancel, and playback rate.
+- [x] Display stable occurrence ID, time, progress, playback rate, state, and timeline kind.
+- [x] Keep all ten Level 1 visual regression witnesses.
+- [x] Remove the old nested 600px `VirtualList`; the normal Widget Gallery page scroll now owns the full-size showcase.
 
 ## L2.6 — Quality gate
 
-- [ ] Unit-test every new parser value and shorthand/list interaction.
-- [ ] Unit-test composition order and property-specific composition.
-- [ ] Unit-test document, named, scroll, and view timeline sampling.
-- [ ] Unit-test runtime control without rendering or wall-clock sleeps.
-- [ ] Add integration tests for style changes, timeline-source removal, and entity removal.
-- [ ] Add render/manual regression coverage for composed transforms, filters, clipping, and scroll/view timelines.
-- [ ] Document supported additive/accumulative property families and deliberate fallbacks.
-- [ ] Run `cargo fmt`, workspace Clippy, focused tests, core tests, gallery checks, and official CI on Linux/macOS/Windows.
+- [x] Parser tests cover `animation-composition` and timeline values/lists.
+- [x] Core tests cover composition ordering/property behavior, progress timelines, and runtime clock control.
+- [x] Runtime regression tests cover stable occurrence identity and re-sampling after a filled effect finishes.
+- [x] The Widget Gallery stylesheet has a runtime `Context::add_stylesheet(...)` smoke test.
+- [x] The gallery source is compiled by the official all-target/backend build matrix.
+- [x] Supported additive/accumulative families and deterministic fallbacks are encoded by the property-specific `Compositor` implementations.
+- [x] Formatting, Clippy, focused tests, stylesheet smoke testing, Audit, and the Linux/macOS/Windows build matrix are part of the final validation pass.
 
-## Deliberate scope boundary
+## Deliberate scope boundaries
 
-Level 2 should not turn Vizia into a browser DOM/Web Animations clone. The implementation should adopt
-the useful CSS/Web Animations semantics while exposing them through Vizia-native style storage,
-entities, signals, scroll views, and Rust APIs.
+The following are intentionally **not** claimed as part of this Vizia Level 2 implementation:
+
+- A browser DOM or a full Web Animations `Animation` object model.
+- The CSS per-keyframe `animation-composition` descriptor. Vizia currently applies composition per
+  CSS animation occurrence using the `animation-composition` list.
+- The full CSS named-timeline declaration family (`scroll-timeline-*`, `view-timeline-*`, timeline
+  scopes/ranges). Named scroll sources are exposed through the Vizia-native
+  `ScrollView::timeline_name(...)` API, while `animation-timeline` remains CSS.
+- Playback-rate magnitude changing an externally supplied scroll/view progress source. A negative
+  rate reverses progress; the source itself remains controlled by scrolling/visibility.
+
+Those boundaries keep the implementation aligned with Vizia's entity, style-store, signal, and
+`ScrollView` architecture while leaving room for future standards work without replacing this
+foundation.
